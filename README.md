@@ -1,1 +1,1 @@
-# redmine-avanced-messenger
+# redmine-advanced-messenger
