@@ -1,0 +1,2 @@
+class RedmineAdvancedMessenger < ApplicationController
+end
