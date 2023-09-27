@@ -1,0 +1,136 @@
+<%= javascript_tag do %>
+{
+    const currentUserId = "<%= User.current.id %>";
+    const collapseIconClass = "icon-toggle-minus";
+    const expandIconClass = "icon-toggle-plus";
+
+    function renderCollapsed(id, isOfInterestForCurrentUser) {
+        var currentNote = $("#change-" + id + ".journal.has-notes");
+        
+        currentNote.find('.collapseAndReadButton').hide();
+        currentNote.find('.collapseButton').hide();
+        console.log(id);
+        console.log(currentNote.find('.wiki'));
+
+        if (isOfInterestForCurrentUser) {
+            currentNote.find('.expandButton').hide();
+            currentNote.find('.expandAndReadButton').show();
+        } else {
+            currentNote.find('.expandButton').show();
+            currentNote.find('.expandAndReadButton').hide();
+        }
+        
+        // TODO DB: investigate who force this to be visible
+        setTimeout(() => currentNote.find('.wiki').hide(), 10);
+        setTimeout(() => currentNote.find('.details').hide(), 10);
+        setTimeout(() => currentNote.find('.thumbnails').hide(), 10);
+
+        currentNote.find('.note-preview').show();
+    }
+
+    function renderExpanded(id, isOfInterestForCurrentUser) {
+        var currentNote = $("#change-" + id + ".journal.has-notes");
+        console.log("EXP" + id);
+        console.log(currentNote.find('.wiki'));
+        currentNote.find('.expandAndReadButton').hide();
+        currentNote.find('.expandButton').hide();
+
+        if (isOfInterestForCurrentUser) {
+            currentNote.find('.collapseButton').hide();
+            currentNote.find('.collapseAndReadButton').show();
+        } else {
+            currentNote.find('.collapseButton').show();
+            currentNote.find('.collapseAndReadButton').hide();
+        } 
+
+        currentNote.find('.details').show();
+        currentNote.find('.thumbnails').show();
+        currentNote.find('.wiki').show();
+
+        currentNote.find('.note-preview').hide();
+    }
+
+    function render_advanced_messenger_features_for_journal (id) {
+        var currentNote = $("#change-" + id + ".journal.has-notes");
+        const noteHeader = currentNote.find(".note-header");
+        
+        if (currentNote.length != 0) {
+            const readByUsers = JSON.parse('<%= journal.read_by_users.html_safe %>');
+            const isOfInterestForCurrentUser = readByUsers[currentUserId] != undefined;   
+            const isReadByCurrentUser = readByUsers[currentUserId]?.read;
+            const noteHeader = currentNote.find(".note-header"); 
+
+            // Add the border
+            // First we added a css class, but it was overrided by journals.update.js.erb, when editing a journal, so we choose only to add an inline css style
+            currentNote.css({"border": "1px solid #628DB6", "margin-bottom": "5px", "padding": "5px"});
+
+            // All posible collapse/expand icons
+            noteHeader.prepend('<%= link_to '', { controller: 'advanced_messenger', action: 'update_read_by_users', id: journal.id, read_by_users: '2'}, method: :post , class: 'icon icon-toggle-minus collapseAndReadButton' %>');
+            noteHeader.prepend('<%= link_to '', { controller: 'advanced_messenger', action: 'update_read_by_users', id: journal.id, read_by_users: '1'}, method: :post , class: 'icon icon-toggle-plus expandAndReadButton' %>');
+            noteHeader.prepend("<a class='icon icon-toggle-minus collapseButton' style='display: inline' onclick='renderCollapsed(<%= journal.id %>, <%=JSON.parse(journal.read_by_users)[User.current.id] != nil%>)'> </a>");
+            noteHeader.prepend("<a class='icon icon-toggle-plus expandButton' style='display: inline' onclick='renderExpanded(<%= journal.id %>, <%=JSON.parse(journal.read_by_users)[User.current.id] != nil%>)'> </a>");
+
+            // The collapsed note preview
+            currentNote.find('.note').append("<p class='note-preview'>" + "<%= escape_javascript(journal.notes) %>".substring(0, 50) + "... </p>");
+
+            // Render expanded/collapsed state
+            if (!isOfInterestForCurrentUser || isReadByCurrentUser == 1) {
+                renderExpanded(id, isOfInterestForCurrentUser);
+            } else {
+                renderCollapsed(id, isOfInterestForCurrentUser);
+            }
+
+            <% read_by_users = JSON.parse(journal.read_by_users) %>
+            let userCapitals;
+            let color;
+            let tooltipUserList = "";
+            const RED = "red";
+            const GREEN = "#55CB85";
+            
+            var readUnreadIndicator = isOfInterestForCurrentUser ? ("<span style='padding-right: 5px'> Read </span>" + (isReadByCurrentUser ? "<a class='icon icon-checked-green readButton'></a>" : "<a class='icon icon-unchecked-red unreadButton'></a>")) : "";
+            
+            let readByOthers = "<span style='padding-right: 5px'>";
+            <% read_by_users.keys.each_with_index do |user_id, index| %>
+                <% if user_id != User.current.id %>
+                    <%user = User.find(user_id)%>
+                    <%read_by_user = read_by_users[read_by_users.keys[index]]%>
+                    userCapitals = "<%=user.firstname%>".charAt(0).toUpperCase() + "<%=user.lastname%>".charAt(0).toUpperCase(); 
+                    colorStyle = "style='color:" + (<%=read_by_user["read"] == 0%> ? RED : GREEN) + "'";
+                    tooltipUserList += "<li " + colorStyle + ">" + userCapitals + "-" + "<%=user.firstname%>" + " " + "<%=user.lastname%>" + " (" + (<%=read_by_user["read"] == 0%> ? "not viewed" : "<%=read_by_user["date"].to_date.strftime("%d %b %Y %H:%M")%>") + ")" + "</li>";
+                    readByOthers +="<span " + colorStyle + ">" + userCapitals + "</span>";
+                    <% if index < read_by_users.keys.length() - 1%>
+                    readByOthers += ", ";
+                    <% end %>
+                <% end %>
+            <% end %>
+            readByOthers += "</span>";
+
+            function openCloseTooltip(event) {
+                $(event.target).toggleClass('open', '');
+            }
+            let tooltip = readByOthers == "" ? "" :
+            ("<div class='tooltip' style='display: inline'>" + 
+                "<a onClick='openCloseTooltip(event)' class='icon icon-zoom-in'></a>" +
+                "<span class='tip read-by-users-tip'>" +
+                    "<span>" + 
+                        "At " + "<%= journal.created_on.strftime("%d %b %Y %H:%M")%>" + " notifications sent (<span style='color:" + GREEN + "'>read</span>/<span style='color:" + RED + "'>unread</span>) to: " + 
+                    "</span>" + 
+                    "<ul>" +
+                        tooltipUserList +
+                    "</ul>" +
+                "</span>" +
+            "</div>");
+            
+            let wereOtherNotified = <%= read_by_users.keys.length > 0 %>;
+            currentNote.find('.contextual').after("<div style='float: right;'>" +  
+                                                        readUnreadIndicator +
+                                                        (readUnreadIndicator.length && readByOthers ? " | " : "") +
+                                                        (wereOtherNotified ? (readByOthers + tooltip) : "") +
+                                                    "</div>");
+        }
+    }
+    render_advanced_messenger_features_for_journal("<%= journal.id %>");
+}
+
+
+<% end %>

@@ -1,0 +1,17 @@
+.advanced-messenger-note {
+    border: 1px solid #628DB6;
+    margin-bottom: 5px;
+    padding: 5px;
+}
+
+.icon-checked-green { background-image: url(../images/checked_green.png) }
+
+.icon-unchecked-red { background-image: url(../images/unchecked_red.png) }
+
+.read-by-users-tip {
+  top: 20px; width:360px !important;
+  right:0px !important;
+  border:1px solid #B2B2B2 !important;
+  background-color:#F6F6F6 !important;
+  font-size: 1em !important;
+}
