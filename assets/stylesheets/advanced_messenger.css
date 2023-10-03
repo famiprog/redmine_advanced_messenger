@@ -3,15 +3,35 @@
     margin-bottom: 5px;
     padding: 5px;
 }
+.expand-collapse-icon-placeholder {
+  display: inline !important;
+}
+
+.fixed-dialog {
+  position: fixed !important;
+  bottom: 10px;
+  right: 10px;
+  top: auto !important;
+  left: auto !important;
+}
 
 .icon-checked-green { background-image: url(../images/checked_green.png) }
-
 .icon-unchecked-red { background-image: url(../images/unchecked_red.png) }
+.icon-down-left-arrow { background-image: url(../images/down_left_arrow.png) }
 
-.read-by-users-tip {
-  top: 20px; width:360px !important;
-  right:0px !important;
+.notifications_dialog .ui-dialog-titlebar-close {
+  background-color: transparent;
+  border: none;
+}
+
+.ui-tooltip {
+  z-index: 10000;
+}
+
+.ui-tooltip.notification-statuses {
   border:1px solid #B2B2B2 !important;
   background-color:#F6F6F6 !important;
-  font-size: 1em !important;
+  opacity: 0.95;
+  color: black;
 }
+

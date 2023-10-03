@@ -1,1 +1,2 @@
-render_advanced_messenger_features_for_journal("<%= journal.id %>");
+renderExpandEndReadIndicatorForCurrentUser("<%= @journal.id %>", '<%= @journal.read_by_users.html_safe %>', <%=User.current.id%>, "<%= escape_javascript(@journal.notes)[0, 50] %>");
+renderNotificationsStatusses(<%=@unread_notification_statuses[0]%>, <%=@unread_notification_statuses[1]%>, <%=@unread_notification_statuses[2].to_json.html_safe%>);

@@ -8,5 +8,17 @@ Redmine::Plugin.register :redmine_advanced_messenger do
   url 'https://github.com/famiprog/redmine-advanced-messenger'
   author_url 'https://github.com/famiprog'
 
+  # need the helper to be available in _issue_notifications.html.erb 
+  if Rails.version > '6.0' # Redmine 5.0
+    Rails.application.config.after_initialize do
+      # this is to expose helper methods to the hook class as they are used inside the controller hooks
+      Redmine::Hook::Helper.include AdvancedMessengerHelper
+    end
+  else
+    Rails.configuration.to_prepare do
+      Redmine::Hook::Helper.include AdvancedMessengerHelper
+    end
+  end
+
   Journal.send(:include, Patches::JournalPatch)
 end

@@ -1,0 +1,112 @@
+<div id="issue_notifications_dialog" >
+    For <%=User.current.firstname%> <%=User.current.lastname%>, there are <span id="no-unread-notifications">no</span><span id="unread-notifications-count"></span> <span style="color: red"> unread </span> notifications.
+    <br/>
+    <a id="go-to-first-one" class="icon icon-down-left-arrow">Go to first one</a> 
+    <a id="status-for-others-link" title="unused but needed by tooltip" class='icon icon-zoom-in' style="color:#169; margin-left:5px">Status for other users</a>
+    <div id="other-users-status-list-content-holder" style="display:none">
+    </div>
+</div>
+
+<%= javascript_tag do%>
+
+    function getDialogWidth(screenWidth) {
+        if (screenWidth <= 1089) { return 22/100 * screenWidth } else
+        if (screenWidth <= 1279) { return 240 } else
+        if (screenWidth <= 1599) { return 280 } else
+        if (screenWidth <= 1919) { return 320 } else
+        if (screenWidth <= 2559) { return 360 } else
+        if (screenWidth <= 2560) { return 380 }
+    }
+
+    /**
+    * These limits are copied from redmine application.css and are the values for the sidebar width 
+    **/
+    let width;
+    var dialog = $("#issue_notifications_dialog").dialog( {
+        width: getDialogWidth(window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth),
+        height: 100,
+        resizable: false,
+        dialogClass: 'fixed-dialog',
+        draggable: false,
+        classes: {"ui-dialog": "ui-corner-all notifications_dialog"}
+    });
+
+    $(window).resize(function() {
+        $("#issue_notifications_dialog").dialog( "option", "width", getDialogWidth($(this).width()));
+    });
+
+    $("#issue_notifications_dialog").parent().find(".ui-dialog-titlebar").css({
+        "border" : "0px none" 
+    });
+
+    $("#issue_notifications_dialog").parent().css({
+        "border": "0px unset"
+    })
+
+    $("#status-for-others-link").tooltip({
+        content: function () {
+            return "<span>" + 
+                        "Unread notifications:" +
+                    "</span>" +  
+                    "<ul id='other-users-status-list' style='list-style-type: none; padding-inline-start: 15px; margin-top: 5px;'>" +
+                        $("#other-users-status-list-content-holder").html() + 
+                    "</ul>";
+        },
+        classes: {
+            "ui-tooltip": "notification-statuses"
+        }
+    });
+
+
+<% end %>
+
+<%= javascript_tag do %>
+function renderNotificationsStatusses(firstUnreadNotificationIndex, unreadNotificationsForCurrentUser, unreadNotificationsForOtherUsers) {
+    if (unreadNotificationsForCurrentUser == 0) {
+        const green = "#E0EDD7";
+        $("#issue_notifications_dialog").parent().find(".ui-dialog-titlebar").css({ 
+            "background-color" : green
+        });
+        $("#issue_notifications_dialog").parent().css({
+            "background-color" : green
+        })
+
+        $("#no-unread-notifications").show();
+        
+        $("#unread-notifications-count").hide();
+        $("#go-to-first-one").hide();
+        
+    } else {
+        const red = "#FFC4C4";
+        $("#issue_notifications_dialog").parent().find(".ui-dialog-titlebar").css({ 
+            "background-color" : red
+        });
+        $("#issue_notifications_dialog").parent().css({
+            "background-color" : red
+        });
+
+        $("#unread-notifications-count").text(unreadNotificationsForCurrentUser);
+        $("#unread-notifications-count").show()
+        $("#go-to-first-one").attr("href", "#note-" + firstUnreadNotificationIndex);
+        $("#go-to-first-one").show();
+
+        $("#no-unread-notifications").hide();
+    }
+
+    let otherUsersStatussesList = "";
+    for (let key in unreadNotificationsForOtherUsers){
+        const unreadNotificationStatus = unreadNotificationsForOtherUsers[key];
+	    otherUsersStatussesList += "<li>(" + unreadNotificationStatus.count + ") " + unreadNotificationStatus.user + "</li>"
+    }   
+    
+    $("#other-users-status-list-content-holder").html(otherUsersStatussesList);
+}
+<%end%>
+
+<%
+unread_notification_statuses = getUnreadNotificationsStatusses(issue) 
+%>
+
+<%= javascript_tag do %>
+renderNotificationsStatusses(<%=unread_notification_statuses[0]%>, <%=unread_notification_statuses[1]%>, <%=unread_notification_statuses[2].to_json.html_safe%>);
+<%end%>
