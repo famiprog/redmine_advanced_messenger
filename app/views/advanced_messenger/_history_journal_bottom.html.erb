@@ -1,6 +1,9 @@
 <%= javascript_tag do %>
+// We need to enclose the code in a block {} because otherwise we get a javascript compilation error about variables/constants being declared many times
 {
     const currentUserId = "<%= User.current.id %>";
+    const RED = "red";
+    const GREEN = "#55CB85";
 
     function renderCollapsed(id, isOfInterestForCurrentUser, isInitialRender) {
         var currentNote = $("#change-" + id + ".journal.has-notes");
@@ -17,7 +20,6 @@
         
         currentNote.find('.wiki :not(.note-preview)').hide();
         currentNote.find('.details').hide();
-        // TODO DB: investigate who forces this to be visible
         if (isInitialRender) {
             setTimeout(() => currentNote.find('.thumbnails').hide(), 100);
         } else {
@@ -60,9 +62,10 @@
             renderCollapsed(id, isOfInterestForCurrentUser, isInitialRender);
         }
         
+        // ====== Current user read status + read/unread button ======
         if (isOfInterestForCurrentUser) {
             let span = currentNote.find('.read-unread-indicators-at-right').find('.for_current_user_placeholder');
-            span.html("<span style='padding-right: 5px'> Read </span>"
+            span.html("<span style='padding-right: 5px'> <%=t(:journal_read)%> </span>"
                         + (isReadByCurrentUser ? 
                         "<a class='icon icon-checked-green readButton' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + id + "/0/update_read_by_users'></a>" 
                       : "<a class='icon icon-unchecked-red unreadButton' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + id + "/1/update_read_by_users'></a>"));
@@ -76,12 +79,18 @@
     var currentNote = $("#change-" + id + ".journal.has-notes");
     if (currentNote.length != 0) {
         // ====== Set the note panel blue border ======
-        // First we added a css class, but it was overrided by journals.update.js.erb, when editing a journal, so we choose only to add an inline css style
-        currentNote.css({"border": "1px solid #628DB6", "margin-bottom": "5px", "padding": "5px"});
+        currentNote.addClass("advanced-messenger-note");
 
         // ====== Set the placeholders that will contain dynamically render content (that changes without page refresh) ======
         currentNote.find('.contextual').after("<div class='read-unread-indicators-at-right' style='float: right;'><span class='for_current_user_placeholder'></span></div>");
-        currentNote.find(".note-header").prepend("<div class='expand-collapse-icon-placeholder'></div>");
+        const gravatar = currentNote.find(".gravatar");
+        const expandCollapse = "<div class='expand-collapse-icon-placeholder'></div>";
+        if (gravatar.length == 0) {
+            currentNote.find(".note-header").prepend(expandCollapse);
+        } else {
+            gravatar.after(expandCollapse);
+        }
+
         currentNote.find('.wiki').append("<p class='note-preview'>" + notesPreview + "... </p>");
 
         // ====== Expand/collapse indicators and panel + read indicator for currrent user ======
@@ -92,8 +101,6 @@
         let userCapitals;
         let color;
         let tooltipUserList = "";
-        const RED = "red";
-        const GREEN = "#55CB85";
         let readByOthers = "<span style='padding-right: 5px'>";
         let wereOtherNotified = false;
         <% read_by_users.keys.each_with_index do |user_id, index| %>
@@ -103,32 +110,32 @@
                 <%read_by_user = read_by_users[read_by_users.keys[index]]%>
                 userCapitals = "<%=user.firstname%>".charAt(0).toUpperCase() + "<%=user.lastname%>".charAt(0).toUpperCase(); 
                 colorStyle = "style='color:" + (<%=read_by_user["read"] == 0%> ? RED : GREEN) + "'";
-                tooltipUserList += "<li " + colorStyle.replace(GREEN, "green") + ">" + userCapitals + "-" + "<%=user.firstname%>" + " " + "<%=user.lastname%>" + " (" + (<%=read_by_user["read"] == 0%> ? "not viewed" : "<%=read_by_user["date"].to_date.strftime("%d %b %Y %H:%M")%>") + ")" + "</li>";
+                tooltipUserList += "<li " + colorStyle.replace(GREEN, "green") + ">" + userCapitals + "-<%=user.firstname%> <%=user.lastname%>" + " (<%=read_by_user["read"] == 0 ? t(:journal_notifications_tooltip_list_item_not_viewed) : read_by_user["date"].to_date.strftime("%d %b %Y %H:%M")%>)</li>";
                 readByOthers +="<span " + colorStyle + ">" + userCapitals + "</span>";
                 <% if index < read_by_users.keys.length() - 1%>
-                readByOthers += ", ";
+                    readByOthers += ", ";
                 <% end %>
             <% end %>
         <% end %>
         readByOthers += "</span>";
 
-        function openCloseTooltip(event) {
-            $(event.target).toggleClass('open', '');
-        }
-        
         const readByUsers = JSON.parse(read_by_users);
         const isOfInterestForCurrentUser = readByUsers[currentUserId] != undefined;
         const readUnreadIndicators = currentNote.find('.read-unread-indicators-at-right');
         readUnreadIndicators.append(isOfInterestForCurrentUser && wereOtherNotified ? " | " : "");
         if (wereOtherNotified) {
             readUnreadIndicators.append(readByOthers);
-
+            
+            // ====== tooltip ======
             const tooltipId = "others-notifications-tooltip-<%=journal.id%>"
-            readUnreadIndicators.append("<a id='" + tooltipId + "' onClick='openCloseTooltip(event)' class='icon icon-zoom-in' title='unused but needed by tooltip'></a>");
+            readUnreadIndicators.append("<a id='" + tooltipId + "' class='icon icon-zoom-in' title='unused but needed by tooltip'></a>");
             $("#" + tooltipId).tooltip({
                 content: function () {
                     return "<span>" + 
-                                "At " + "<%= journal.created_on.strftime("%d %b %Y %H:%M")%>" + " notifications sent (<span style='color:green'>read</span>/<span style='color:" + RED + "'>unread</span>) to: " + 
+                                "<%= t(:journal_notifications_tooltip_list_title_part_1) %> <%= journal.created_on.strftime("%d %b %Y %H:%M")%>" + 
+                                " <%= t(:journal_notifications_tooltip_list_title_part_2) %> " + 
+                                "(<span style='color:green'><%= t(:journal_notifications_tooltip_list_title_part_3) %></span>" +
+                                "/<span style='color:" + RED + "'><%= t(:journal_notifications_tooltip_list_title_part_4) %></span>) <%= t(:journal_notifications_tooltip_list_title_part_5) %>: " + 
                             "</span>" + 
                             "<ul>" +
                                 tooltipUserList +
@@ -141,6 +148,4 @@
         }
     }
 }
-
-
 <% end %>
