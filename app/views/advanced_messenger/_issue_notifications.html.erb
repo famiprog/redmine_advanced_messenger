@@ -1,14 +1,13 @@
 <div id="issue_notifications_dialog" >
-    For <%=User.current.firstname%> <%=User.current.lastname%>, there are <span id="no-unread-notifications">no</span><span id="unread-notifications-count"></span> <span style="color: red"> unread </span> notifications.
+    <%=t(:issue_notifications_dialog_text_for_current_user_1)%> <%=User.current.firstname%> <%=User.current.lastname%>, <%=t(:issue_notifications_dialog_text_for_current_user_2)%> <span id="no-unread-notifications"><%=t(:issue_notifications_dialog_text_for_current_user_3)%></span><span id="unread-notifications-count"></span> <span style="color: red"> <%=t(:issue_notifications_dialog_text_for_current_user_4)%> </span> <%=t(:issue_notifications_dialog_text_for_current_user_5)%>.
     <br/>
-    <a id="go-to-first-one" class="icon icon-down-left-arrow">Go to first one</a> 
-    <a id="status-for-others-link" title="unused but needed by tooltip" class='icon icon-zoom-in' style="color:#169; margin-left:5px">Status for other users</a>
+    <a id="go-to-first-one" class="icon icon-down-left-arrow"><%=t(:issue_notifications_dialog_go_to_first_one)%></a> 
+    <a id="status-for-others-link" title="unused but needed by tooltip" class='icon icon-zoom-in' style="color:#169; margin-left:5px"><%=t(:issue_notifications_dialog_status_for_others)%></a>
     <div id="other-users-status-list-content-holder" style="display:none">
     </div>
 </div>
 
 <%= javascript_tag do%>
-
     function getDialogWidth(screenWidth) {
         if (screenWidth <= 1089) { return 22/100 * screenWidth } else
         if (screenWidth <= 1279) { return 240 } else
@@ -46,7 +45,7 @@
     $("#status-for-others-link").tooltip({
         content: function () {
             return "<span>" + 
-                        "Unread notifications:" +
+                        "<%=t(:issue_notifications_dialog_others_tooltip_text)%>:" +
                     "</span>" +  
                     "<ul id='other-users-status-list' style='list-style-type: none; padding-inline-start: 15px; margin-top: 5px;'>" +
                         $("#other-users-status-list-content-holder").html() + 
@@ -56,57 +55,52 @@
             "ui-tooltip": "notification-statuses"
         }
     });
-
-
 <% end %>
 
 <%= javascript_tag do %>
-function renderNotificationsStatusses(firstUnreadNotificationIndex, unreadNotificationsForCurrentUser, unreadNotificationsForOtherUsers) {
-    if (unreadNotificationsForCurrentUser == 0) {
-        const green = "#E0EDD7";
-        $("#issue_notifications_dialog").parent().find(".ui-dialog-titlebar").css({ 
-            "background-color" : green
-        });
-        $("#issue_notifications_dialog").parent().css({
-            "background-color" : green
-        })
+    function renderNotificationsStatusesPerIssue(firstUnreadNotificationIndex, unreadNotificationsForCurrentUser, unreadNotificationsForOtherUsers) {
+        if (unreadNotificationsForCurrentUser == 0) {
+            const green = "#E0EDD7";
+            $("#issue_notifications_dialog").parent().find(".ui-dialog-titlebar").css({ 
+                "background-color" : green
+            });
+            $("#issue_notifications_dialog").parent().css({
+                "background-color" : green
+            })
 
-        $("#no-unread-notifications").show();
+            $("#no-unread-notifications").show();
+            
+            $("#unread-notifications-count").hide();
+            $("#go-to-first-one").hide();
+            
+        } else {
+            const RED = "#FFC4C4";
+            $("#issue_notifications_dialog").parent().find(".ui-dialog-titlebar").css({ 
+                "background-color" : RED
+            });
+            $("#issue_notifications_dialog").parent().css({
+                "background-color" : RED
+            });
+
+            $("#unread-notifications-count").text(unreadNotificationsForCurrentUser);
+            $("#unread-notifications-count").show()
+            $("#go-to-first-one").attr("href", "#note-" + firstUnreadNotificationIndex);
+            $("#go-to-first-one").show();
+
+            $("#no-unread-notifications").hide();
+        }
+
+        let otherUsersStatussesList = "";
+        for (let key in unreadNotificationsForOtherUsers){
+            const unreadNotificationStatus = unreadNotificationsForOtherUsers[key];
+            otherUsersStatussesList += "<li>(" + unreadNotificationStatus.count + ") " + unreadNotificationStatus.user + "</li>"
+        }   
         
-        $("#unread-notifications-count").hide();
-        $("#go-to-first-one").hide();
-        
-    } else {
-        const red = "#FFC4C4";
-        $("#issue_notifications_dialog").parent().find(".ui-dialog-titlebar").css({ 
-            "background-color" : red
-        });
-        $("#issue_notifications_dialog").parent().css({
-            "background-color" : red
-        });
-
-        $("#unread-notifications-count").text(unreadNotificationsForCurrentUser);
-        $("#unread-notifications-count").show()
-        $("#go-to-first-one").attr("href", "#note-" + firstUnreadNotificationIndex);
-        $("#go-to-first-one").show();
-
-        $("#no-unread-notifications").hide();
+        $("#other-users-status-list-content-holder").html(otherUsersStatussesList);
     }
-
-    let otherUsersStatussesList = "";
-    for (let key in unreadNotificationsForOtherUsers){
-        const unreadNotificationStatus = unreadNotificationsForOtherUsers[key];
-	    otherUsersStatussesList += "<li>(" + unreadNotificationStatus.count + ") " + unreadNotificationStatus.user + "</li>"
-    }   
-    
-    $("#other-users-status-list-content-holder").html(otherUsersStatussesList);
-}
 <%end%>
 
-<%
-unread_notification_statuses = getUnreadNotificationsStatusses(issue) 
-%>
-
+<% unread_notification_statuses = getUnreadNotificationsForIssue(issue) %>
 <%= javascript_tag do %>
-renderNotificationsStatusses(<%=unread_notification_statuses[0]%>, <%=unread_notification_statuses[1]%>, <%=unread_notification_statuses[2].to_json.html_safe%>);
+    renderNotificationsStatusesPerIssue(<%=unread_notification_statuses[0]%>, <%=unread_notification_statuses[1]%>, <%=unread_notification_statuses[2].to_json.html_safe%>);
 <%end%>

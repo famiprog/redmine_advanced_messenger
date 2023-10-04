@@ -1,8 +1,10 @@
 module AdvancedMessengerHelper
-    def getUnreadNotificationsStatusses(issue)
+
+    def getUnreadNotificationsForIssue(issue)
         unread_notifications_for_current_user = 0;
         unread_notifications_for_others = Hash.new;
         first_unread_notification_index = -1;
+
         issue.visible_journals_with_index.each do |journal| 
             next if !journal.notes?
             read_by_users = JSON.parse(journal.read_by_users)
@@ -20,10 +22,29 @@ module AdvancedMessengerHelper
                     end
                 end
             end
-
-
-
         end
         return [first_unread_notification_index, unread_notifications_for_current_user, unread_notifications_for_others]
+    end
+
+    def getUnreadNotificationsForCurrentUserGroupByIssues() 
+        unread_notifications = Journal.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
+        unread_notifications.sort_by{|j| j.issue.id}
+        unread_notifications_per_issue = Hash.new
+
+        unread_notifications.each do |journal|
+            if unread_notifications_per_issue[journal.issue.id] != nil
+                unread_notification_status = unread_notifications_per_issue[journal.issue.id]
+            else
+                # we set user to nil because is always the current user
+                unread_notification_status = UnreadNotificationsStatus.new(0, nil, journal.issue)
+                unread_notifications_per_issue[journal.issue.id] = unread_notification_status
+            end
+            unread_notification_status.count += 1 
+        end
+        return unread_notifications_per_issue
+    end
+
+    def getUnreadNotificationsForCurrentUserCount()
+        return Journal.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count;
     end
 end

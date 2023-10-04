@@ -3,6 +3,11 @@
     margin-bottom: 5px;
     padding: 5px;
 }
+
+body.avatars-on div.journal {
+  padding-left: 38px;
+}
+
 .expand-collapse-icon-placeholder {
   display: inline !important;
 }

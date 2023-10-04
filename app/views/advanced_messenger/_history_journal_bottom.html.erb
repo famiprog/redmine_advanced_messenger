@@ -106,7 +106,7 @@
                 tooltipUserList += "<li " + colorStyle.replace(GREEN, "green") + ">" + userCapitals + "-" + "<%=user.firstname%>" + " " + "<%=user.lastname%>" + " (" + (<%=read_by_user["read"] == 0%> ? "not viewed" : "<%=read_by_user["date"].to_date.strftime("%d %b %Y %H:%M")%>") + ")" + "</li>";
                 readByOthers +="<span " + colorStyle + ">" + userCapitals + "</span>";
                 <% if index < read_by_users.keys.length() - 1%>
-                    readByOthers += ", ";
+                readByOthers += ", ";
                 <% end %>
             <% end %>
         <% end %>

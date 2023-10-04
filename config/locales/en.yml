@@ -1,3 +1,26 @@
 # English strings go here for Rails i18n
 en:
-  # my_label: "My label"
+  issue_notifications_dialog_go_to_first_one: "Go to first one"
+  issue_notifications_dialog_text_for_current_user_1: "For"
+  issue_notifications_dialog_text_for_current_user_2: "there are"
+  issue_notifications_dialog_text_for_current_user_3: "no"
+  issue_notifications_dialog_text_for_current_user_4: "unread"
+  issue_notifications_dialog_text_for_current_user_5: "notifications"
+  issue_notifications_dialog_others_tooltip_text: "Unread notifications"
+  issue_notifications_dialog_status_for_others: "Status for other users"
+  
+  journal_notifications_tooltip_list_title_part_1: "At"
+  journal_notifications_tooltip_list_title_part_2: "notifications sent"
+  journal_notifications_tooltip_list_title_part_3: "read"
+  journal_notifications_tooltip_list_title_part_4: "unread"
+  journal_notifications_tooltip_list_title_part_5: "to"
+  journal_notifications_tooltip_list_item_not_viewed: "not viewed"
+  journal_read: "Read"
+
+  my_page_unread_notifications: "Unread notifications"
+  my_page_all_notifications_read: "All notifications are read"
+  
+  top_app_menu_unread_notifications: "Unread notifications"
+
+
+  

@@ -1,0 +1,28 @@
+<% if current_page?(:controller => 'my', :action => 'page') %>
+    <%= javascript_tag do %>
+        $("#my-page").before(
+            "<div id='notifications-placeholder'></div>"
+        );
+    <%end%>
+    <% unread_notifications_per_issue = getUnreadNotificationsForCurrentUserGroupByIssues() %>
+    <% if unread_notifications_per_issue.count == 0%>
+        <%= javascript_tag do %>
+            $("#notifications-placeholder").html(
+                "<h3 style='color:#2A5685'><%=t(:my_page_all_notifications_read)%></h3>"
+            );
+        <%end%>
+    <%else%>  
+        <%= javascript_tag do %>
+            let html = "<h3 style='color:#2A5685'><%=t(:my_page_unread_notifications)%></h3><ul style='list-style-type: none; padding-inline-start: 15px; font-weight: bold;'>";
+            <%unread_notifications_per_issue.each_value do |unread_notification_status| %>  
+                html += "<li>" + 
+                            "<a href='/issues/<%=unread_notification_status.issue.id%>'>" + 
+                                "(<%=unread_notification_status.count%>) #<%=unread_notification_status.issue.id%> <%=unread_notification_status.issue.subject%>" +
+                            "</a>" + 
+                        "</li>"
+            <%end%>
+            html += "</ul>";
+            $("#notifications-placeholder").html(html);
+        <%end%>
+    <%end%>
+<%end%>

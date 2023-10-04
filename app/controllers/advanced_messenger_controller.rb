@@ -23,7 +23,8 @@ class AdvancedMessengerController < ApplicationController
     @journal.read_by_users = read_by_users.to_json
     @journal.save
 
-    @unread_notification_statuses = helpers.getUnreadNotificationsStatusses(@journal.issue)
+    #needed in update_read_by_users.js.erb
+    @unread_notification_statuses = helpers.getUnreadNotificationsForIssue(@journal.issue)
     
     respond_to do |format|
       format.js
