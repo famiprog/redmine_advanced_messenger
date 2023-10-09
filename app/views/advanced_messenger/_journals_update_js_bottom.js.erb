@@ -1,0 +1,17 @@
+{
+    // After a journal update, redmine resets the note content overriding the special collapsed note content (a shorter preview one) of our plugin. 
+    // That's why we need to restore it
+    // It also resets the currentNote css class, removing our custom css class
+    // (see journals/update.js.erb)
+    
+    const currentNote = $("#change-<%= journal.id %>.journal.has-notes");
+    if (currentNote.length > 0) {
+        currentNote.find('.wiki').append("<p class='note-preview'><%= escape_javascript(journal.notes)[0, 50] %>... </p>");
+        if (currentNote.find('.expand-collapse-icon-placeholder a').hasClass("icon-toggle-plus")) {
+            currentNote.find('.wiki :not(.note-preview)').hide();
+        } else {
+            currentNote.find('.wiki .note-preview').hide();
+        }
+        currentNote.addClass("advanced-messenger-note");
+    }
+}

@@ -1,0 +1,15 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'advanced_messenger', :plugin => 'redmine_advanced_messenger' %>
+<% end %>  
+<%= javascript_tag do%>
+
+    function renderAllUnreadNotificationsIndicator(unreadNotificationsCount) {
+        const color = unreadNotificationsCount > 0 ? "#ff4545" : "#2bff2b";
+        $("#all-unread-notifications-indicator").html("<a href='/my/page'><%=t(:top_app_menu_unread_notifications)%>: <span style='color:" + color + "; font-weight:bold'>" + unreadNotificationsCount + "</span></a>");
+    }
+
+    jQuery( document ).ready(function() {
+        $("div#loggedas").append("<span id='all-unread-notifications-indicator'><span>");
+        renderAllUnreadNotificationsIndicator(<%= getUnreadNotificationsForCurrentUserCount()%>);
+    });
+<% end %>
