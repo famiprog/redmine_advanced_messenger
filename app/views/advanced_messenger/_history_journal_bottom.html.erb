@@ -74,7 +74,7 @@
 
     const id = "<%= journal.id %>";
     const read_by_users = '<%= journal.read_by_users.html_safe %>';
-    const notesPreview = "<%= escape_javascript(journal.notes[0, 50]) %>"
+	const notesPreview = "<%= journal.notes.nil? ? "" : escape_javascript(journal.notes[0, 50]) %>"
 
     var currentNote = $("#change-" + id + ".journal.has-notes");
     if (currentNote.length != 0) {
