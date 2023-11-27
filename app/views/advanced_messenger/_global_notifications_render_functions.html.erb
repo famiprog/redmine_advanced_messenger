@@ -5,13 +5,13 @@
     function renderExpandCollapseButton(expanded, isOfInterestForCurrentUser, currentNote, journalId) {
         const cssClass = expanded ? 'icon icon-toggle-minus' : 'icon icon-toggle-plus';
         if (isOfInterestForCurrentUser) {
-            <%# currentNote.find('.expand-collapse-icon-placeholder').html(
+            currentNote.find('.expand-collapse-icon-placeholder').html(
                 "<a class='" + cssClass + "' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + journalId + "/" + (expanded ? 2 : 1) + "/update_read_by_users'></a>"
-            ); %>
+            );
         } else {
-            <%# currentNote.find('.expand-collapse-icon-placeholder').html(
+            currentNote.find('.expand-collapse-icon-placeholder').html(
                 "<a class='" + cssClass + "' style='display: inline' onclick='" + (expanded ? "renderCollapsed" : "renderExpanded") + "(" + journalId + ", false)'> </a>"
-            ); %>
+            );
         } 
     }
 
@@ -114,7 +114,7 @@
         if (inSomeoneInterestedIn) {
             const readUnreadIndicators = currentNote.find('.users_initials_and_tooltip_placeholder');
             const tooltipId = "others-notifications-tooltip-" + journalId;
-            const tooltip = "<a id='" + tooltipId + "' class='icon icon-zoom-in' title='unused but needed by tooltip' style='cursor: pointer'></a>";
+            const tooltip = "<a id='" + tooltipId + "' class='icon icon-chat' title='unused but needed by tooltip' style='cursor: pointer'></a>";
 
             readUnreadIndicators.html((isOfInterestForCurrentUser ? " | " : "") + usersColoredInitials + tooltip);
             
