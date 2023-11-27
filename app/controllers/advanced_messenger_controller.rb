@@ -7,6 +7,12 @@ class AdvancedMessengerController < ApplicationController
       render_404
       return
     end
+    
+    if !@journal.journalized.visible? || @journal.private_notes? && !User.current.allowed_to?(:view_private_notes, @journal.journalized.project) && @journal.user.id =! User.current.id
+      Rails.logger.error("Current user doesn't have permissions to view journal #{params[:id]}")
+      render_403
+      return
+    end
     read_by_users = JSON.parse(@journal.read_by_users);
     if read_by_users[User.current.id.to_s] == nil
       Rails.logger.error("Change read status of journal #{params[:id]} for user #{User.current.id} is not allowed")

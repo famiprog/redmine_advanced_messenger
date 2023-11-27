@@ -47,4 +47,24 @@ module AdvancedMessengerHelper
     def getUnreadNotificationsForCurrentUserCount()
         return Journal.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count;
     end
+
+    def getUsersReadStatus(journal)
+        read_by_users = JSON.parse(journal.read_by_users)
+        read_statuses = Hash.new
+        users = Hash.new
+        read_by_users.keys.each_with_index do |user_id, index|
+            user = User.find(user_id)
+            user_short = Hash.new
+            user_short["firstname"] = user.firstname
+            user_short["lastname"] = user.lastname
+            user_short["link"] = link_to_user(user)
+            users[user_id] = user_short  
+
+            read_by_user = read_by_users[user_id] 
+            read_by_user["date"] = format_time(read_by_user["date"])
+            read_statuses[user_id] = read_by_user
+        end
+        return [users, read_statuses]
+    end    
+
 end

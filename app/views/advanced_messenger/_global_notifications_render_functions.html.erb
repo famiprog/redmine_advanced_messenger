@@ -1,0 +1,142 @@
+<%= javascript_tag do %>
+    const RED = "red";
+    const GREEN = "#55CB85";
+
+    function renderExpandCollapseButton(expanded, isOfInterestForCurrentUser, currentNote, journalId) {
+        const cssClass = expanded ? 'icon icon-toggle-minus' : 'icon icon-toggle-plus';
+        if (isOfInterestForCurrentUser) {
+            <%# currentNote.find('.expand-collapse-icon-placeholder').html(
+                "<a class='" + cssClass + "' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + journalId + "/" + (expanded ? 2 : 1) + "/update_read_by_users'></a>"
+            ); %>
+        } else {
+            <%# currentNote.find('.expand-collapse-icon-placeholder').html(
+                "<a class='" + cssClass + "' style='display: inline' onclick='" + (expanded ? "renderCollapsed" : "renderExpanded") + "(" + journalId + ", false)'> </a>"
+            ); %>
+        } 
+    }
+
+    function renderCollapsed(journalId, isOfInterestForCurrentUser, isInitialRender) {
+        var currentNote = $("#change-" + journalId + ".journal.has-notes");
+        renderExpandCollapseButton(false, isOfInterestForCurrentUser, currentNote, journalId);
+        
+        currentNote.find('.wiki :not(.note-preview)').hide();
+        currentNote.find('.details').hide();
+        if (isInitialRender) {
+            setTimeout(() => currentNote.find('.thumbnails').hide(), 100);
+        } else {
+            currentNote.find('.thumbnails').hide();
+        }
+
+        currentNote.find('.wiki .note-preview').show();
+    }
+
+    function renderExpanded(journalId, isOfInterestForCurrentUser) {
+        var currentNote = $("#change-" + journalId + ".journal.has-notes");
+        renderExpandCollapseButton(true, isOfInterestForCurrentUser, currentNote, journalId);
+
+        currentNote.find('.details').show();
+        currentNote.find('.thumbnails').show();
+        currentNote.find('.wiki :not(.note-preview)').show();
+
+        currentNote.find('.wiki .note-preview').hide();
+    }
+
+    function renderExpandAndReadIndicatorForCurrentUser (journalId, readByUsers, currentUserId, notesPreview, isInitialRender) {
+        var currentNote = $("#change-" + journalId + ".journal.has-notes");
+        if (currentNote.length == 0) return;
+
+        const isOfInterestForCurrentUser = readByUsers[currentUserId] != undefined;   
+        const isReadByCurrentUser = readByUsers[currentUserId]?.read;
+
+        if (!isOfInterestForCurrentUser || isReadByCurrentUser == 1) {
+            renderExpanded(journalId, isOfInterestForCurrentUser);
+        } else {
+            renderCollapsed(journalId, isOfInterestForCurrentUser, isInitialRender);
+        }
+        
+        // ====== Current user read status + read/unread button ======
+        if (isOfInterestForCurrentUser) {
+            let span = currentNote.find('.read-unread-indicators-at-right').find('.read_checkbox_placeholder');
+            span.html("<span style='padding-right: 5px'> <%=t(:journal_read)%> </span>"
+                        + (isReadByCurrentUser ? 
+                        "<a class='icon icon-checked-green readButton' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + journalId + "/0/update_read_by_users'></a>" 
+                      : "<a class='icon icon-unchecked-red unreadButton' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + journalId + "/1/update_read_by_users'></a>"));
+        }
+
+        // ====== Panel border color ======
+        if (!isOfInterestForCurrentUser) {
+            currentNote.css({"border-color": "#628DB6"});
+        } else if (isReadByCurrentUser == 0) {
+             currentNote.css({"border-color": RED});
+        } else {
+            currentNote.css({"border-color": GREEN});
+        }
+
+        // ====== note-preview ======
+        const notesPreviewDiv = currentNote.find('.note-preview');
+        if (isReadByCurrentUser) {
+            notesPreviewDiv.html("<%=t(:journal_collapse_note_message_read)%><span style='font-style: italic; color: black'>" + notesPreview + "...</span>");
+        } else {
+            notesPreviewDiv.html("<%=t(:journal_collapse_note_message_unread)%>");
+        }
+    }
+
+    function renderReadIndicatorsForAllUsers(journalId, currentUserId, journalCreationDate, users, readStatuses) {
+        var currentNote = $("#change-" + journalId + ".journal.has-notes");
+        let userInitials;
+        let color;
+        let tooltipUserList = "";
+        let usersColoredInitials = "<span style='padding-right: 5px'>";
+        let inSomeoneInterestedIn = Object.keys(users).length > 0;
+        let i = 0;
+        for (const [userId, user] of Object.entries(users)) {
+            const readStatus = readStatuses[userId] 
+            userInitials = user.firstname.charAt(0).toUpperCase() + user.lastname.charAt(0).toUpperCase(); 
+            colorStyle = "style='color:" + (readStatus["read"] == 0 ? RED : GREEN) + "'";
+            tooltipUserList += "<li " + colorStyle.replace(GREEN, "green") + ">" + userInitials + " - " + user.firstname + " " + user.lastname +
+                                    " (" + (readStatus["read"] == 0 ? "<%=t(:journal_notifications_tooltip_list_item_not_viewed)%>" : readStatus["date"]) + ")" + 
+                                "</li>";
+            usersColoredInitials +="<span " + colorStyle + ">" + userInitials + "</span>";
+            if (i < Object.keys(users).length - 1) {
+                usersColoredInitials += ", ";
+            }
+            i++;
+        }
+        usersColoredInitials += "</span>";
+
+        const isOfInterestForCurrentUser = false;
+        for (const user in users) {
+            if (user.id == currentUserId) {
+                isOfInterestForCurrentUser = true;
+                break;
+            }
+        }
+        if (inSomeoneInterestedIn) {
+            const readUnreadIndicators = currentNote.find('.users_initials_and_tooltip_placeholder');
+            const tooltipId = "others-notifications-tooltip-" + journalId;
+            const tooltip = "<a id='" + tooltipId + "' class='icon icon-zoom-in' title='unused but needed by tooltip' style='cursor: pointer'></a>";
+
+            readUnreadIndicators.html((isOfInterestForCurrentUser ? " | " : "") + usersColoredInitials + tooltip);
+            
+            // ====== tooltip ======
+            $("#" + tooltipId).tooltip({
+                content: function () {
+                    return "<div style='font-weight: bold; margin-bottom: 15px !important'>" +  
+                                "<span class='icon icon-chat'><%=t(:global_popup_title)%></span>"+
+                            "</div>" + 
+                            "<div>" + 
+                                "<span>" + 
+                                    "<%= t(:journal_notifications_tooltip_list_title).html_safe %>".replace("0", journalCreationDate) + 
+                                "</span>" + 
+                                "<ul>" +
+                                    tooltipUserList +
+                                "</ul>" +
+                            "</div>"; 
+                },
+                classes: {
+                    "ui-tooltip": "journal-notifications-tooltip"
+                }
+            });
+        }
+    }
+<% end %>

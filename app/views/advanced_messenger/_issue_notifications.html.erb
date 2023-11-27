@@ -1,37 +1,34 @@
 <div id="issue_notifications_dialog" >
-    <%=t(:issue_notifications_dialog_text_for_current_user_1)%> <%=User.current.firstname%> <%=User.current.lastname%>, <%=t(:issue_notifications_dialog_text_for_current_user_2)%> <span id="no-unread-notifications"><%=t(:issue_notifications_dialog_text_for_current_user_3)%></span><span id="unread-notifications-count"></span> <span style="color: red"> <%=t(:issue_notifications_dialog_text_for_current_user_4)%> </span> <%=t(:issue_notifications_dialog_text_for_current_user_5)%>.
+    <%=l(:issue_notifications_dialog_text_for_current_user_1, :user => link_to_user(User.current).gsub("\"", "\'")).html_safe%> <span id="unread-notifications-count"></span> <%=t(:issue_notifications_dialog_text_for_current_user_2).html_safe%> 
     <br/>
     <a id="go-to-first-one" class="icon icon-down-left-arrow"><%=t(:issue_notifications_dialog_go_to_first_one)%></a> 
-    <a id="status-for-others-link" title="unused but needed by tooltip" class='icon icon-zoom-in' style="color:#169; margin-left:5px"><%=t(:issue_notifications_dialog_status_for_others)%></a>
+    <a id="status-for-others-link" title="unused but needed by tooltip" class='icon icon-chat' style="color:#169; cursor:pointer"><%=t(:issue_notifications_dialog_status_for_others)%></a>
     <div id="other-users-status-list-content-holder" style="display:none">
     </div>
 </div>
 
 <%= javascript_tag do%>
-    function getDialogWidth(screenWidth) {
-        if (screenWidth <= 1089) { return 22/100 * screenWidth } else
-        if (screenWidth <= 1279) { return 240 } else
-        if (screenWidth <= 1599) { return 280 } else
-        if (screenWidth <= 1919) { return 320 } else
-        if (screenWidth <= 2559) { return 360 } else
-        if (screenWidth <= 2560) { return 380 }
-    }
-
     /**
     * These limits are copied from redmine application.css and are the values for the sidebar width 
     **/
     let width;
     var dialog = $("#issue_notifications_dialog").dialog( {
-        width: getDialogWidth(window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth),
-        height: 100,
+        width: $("#sidebar").width(),
+        height: 90,
         resizable: false,
-        dialogClass: 'fixed-dialog',
+        dialogClass: 'fixed-issue-notifications-dialog',
         draggable: false,
-        classes: {"ui-dialog": "ui-corner-all notifications_dialog"}
+        classes: {"ui-dialog": "ui-corner-all notifications_dialog"},
+        // the 'title' attribute doesn't accept html. That's why we need to set the title in the 'open()' function
+        
+        open: function(event, ui) {
+                $(this).parent().find('.ui-dialog-titlebar .ui-dialog-title').remove();
+                $(this).parent().find('.ui-dialog-titlebar').append("<span class='ui-dialog-title icon icon-chat'><%=t(:global_popup_title)%></span>");
+            }
     });
 
     $(window).resize(function() {
-        $("#issue_notifications_dialog").dialog( "option", "width", getDialogWidth($(this).width()));
+        $("#issue_notifications_dialog").dialog( "option", "width", $("#sidebar").width());
     });
 
     $("#issue_notifications_dialog").parent().find(".ui-dialog-titlebar").css({
@@ -56,38 +53,19 @@
         }
     });
 <% end %>
-
+<% unread_notification_statuses = getUnreadNotificationsForIssue(issue) %>
 <%= javascript_tag do %>
     function renderNotificationsStatusesPerIssue(firstUnreadNotificationIndex, unreadNotificationsForCurrentUser, unreadNotificationsForOtherUsers) {
+        $("#unread-notifications-count").html(unreadNotificationsForCurrentUser);
+        
         if (unreadNotificationsForCurrentUser == 0) {
-            const green = "#E0EDD7";
-            $("#issue_notifications_dialog").parent().find(".ui-dialog-titlebar").css({ 
-                "background-color" : green
-            });
-            $("#issue_notifications_dialog").parent().css({
-                "background-color" : green
-            })
-
-            $("#no-unread-notifications").show();
-            
-            $("#unread-notifications-count").hide();
             $("#go-to-first-one").hide();
+            $(".notifications_dialog").removeClass("unread");
             
         } else {
-            const RED = "#FFC4C4";
-            $("#issue_notifications_dialog").parent().find(".ui-dialog-titlebar").css({ 
-                "background-color" : RED
-            });
-            $("#issue_notifications_dialog").parent().css({
-                "background-color" : RED
-            });
-
-            $("#unread-notifications-count").text(unreadNotificationsForCurrentUser);
-            $("#unread-notifications-count").show()
             $("#go-to-first-one").attr("href", "#note-" + firstUnreadNotificationIndex);
             $("#go-to-first-one").show();
-
-            $("#no-unread-notifications").hide();
+            $(".notifications_dialog").addClass("unread");
         }
 
         let otherUsersStatussesList = "";
@@ -100,7 +78,6 @@
     }
 <%end%>
 
-<% unread_notification_statuses = getUnreadNotificationsForIssue(issue) %>
 <%= javascript_tag do %>
     renderNotificationsStatusesPerIssue(<%=unread_notification_statuses[0]%>, <%=unread_notification_statuses[1]%>, <%=unread_notification_statuses[2].to_json.html_safe%>);
 <%end%>

@@ -1,19 +1,16 @@
 fr:
+  global_popup_title: "Messagerie avancée Redmine"
+
   issue_notifications_dialog_go_to_first_one: "Aller au premier"
-  issue_notifications_dialog_text_for_current_user_1: "Pour"
-  issue_notifications_dialog_text_for_current_user_2: "il y a"
-  issue_notifications_dialog_text_for_current_user_3: "non"
-  issue_notifications_dialog_text_for_current_user_4: "non lu"
-  issue_notifications_dialog_text_for_current_user_5: "notifications"
+  issue_notifications_dialog_text_for_current_user_1: "Pour %{user}, il y a"
+  issue_notifications_dialog_text_for_current_user_2: "<span style='color: red'>non lu</span> notifications."
   issue_notifications_dialog_others_tooltip_text: "Notifications non lues"
   issue_notifications_dialog_status_for_others: "Statut des autres utilisateurs"
 
-  journal_notifications_tooltip_list_title_part_1: "Au"
-  journal_notifications_tooltip_list_title_part_2: "notifications envoyées"
-  journal_notifications_tooltip_list_title_part_3: "lues"
-  journal_notifications_tooltip_list_title_part_4: "non lues"
-  journal_notifications_tooltip_list_title_part_5: "à"
-  journal_notifications_tooltip_list_item_not_viewed: "non consulté"
+  journal_collapse_note_message_read: "Le message est lu, mais réduit. Aperçu: "
+  journal_collapse_note_message_unread: "Le message n'est pas lu. Veuillez le développer pour voir son contenu et le marquer comme lu."
+  journal_notifications_tooltip_list_title: "Au 0 notifications envoyées (<span style='color:green'>lues</span>/<span style='color:red'>non lues</span>) à:"
+  journal_notifications_tooltip_list_item_not_viewed: "non lues"
   journal_read: "Lu"
   
   my_page_unread_notifications: "Notifications non lues"
