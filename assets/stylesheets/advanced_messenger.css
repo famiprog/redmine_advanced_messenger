@@ -63,3 +63,25 @@ body.avatars-on div.journal {
   padding-left: 15px !important;
 }
 
+.ui-tooltip .notifications-close-button {
+  position: absolute;
+  right: 0.3em;
+  top: 50%;
+  margin: -10px 0 0 0;
+  padding: 1px;
+}
+
+.ui-tooltip .notifications-title-text {
+  float: left;
+  margin: 0.1em 0;
+  white-space: nowrap;
+  width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-tooltip .notifications-title {
+  font-weight: bold; 
+  margin-bottom: 15px!important; 
+  position:relative;
+}

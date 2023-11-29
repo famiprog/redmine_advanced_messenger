@@ -53,6 +53,10 @@ module AdvancedMessengerHelper
         read_statuses = Hash.new
         users = Hash.new
         read_by_users.keys.each_with_index do |user_id, index|
+            if (!read_by_users[user_id]["read"]) 
+                # no read status for this user i.e. the note is not of interest for him
+                next
+            end
             user = User.find(user_id)
             user_short = Hash.new
             user_short["firstname"] = user.firstname

@@ -14,18 +14,19 @@ class AdvancedMessengerController < ApplicationController
       return
     end
     read_by_users = JSON.parse(@journal.read_by_users);
-    if read_by_users[User.current.id.to_s] == nil
-      Rails.logger.error("Change read status of journal #{params[:id]} for user #{User.current.id} is not allowed")
-      render_404
-      return
-    end
-    if not ["0", "1", "2"].include? params[:read_by_users]
+    if not ["0", "1", "2", "3"].include? params[:read_by_users]
       Rails.logger.error("#{params[:read_by_users]} is not a valid journal read status for a user")
       render_404
       return
     end
 
-    read_by_users[User.current.id.to_s] = ReadByUsers.new params[:read_by_users].to_i
+    if read_by_users[User.current.id.to_s] == nil &&  params[:read_by_users] == "2"
+      read_by_users[User.current.id.to_s] = {collapsed: 1}
+    elsif read_by_users[User.current.id.to_s] != nil && read_by_users[User.current.id.to_s]["collapsed"] != nil && params[:read_by_users] == "1"
+      read_by_users.delete(User.current.id.to_s)
+    else  
+      read_by_users[User.current.id.to_s] = {read: params[:read_by_users].to_i, date: DateTime.now}
+    end
     @journal.read_by_users = read_by_users.to_json
     @journal.save
 

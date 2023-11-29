@@ -2,56 +2,44 @@
     const RED = "red";
     const GREEN = "#55CB85";
 
-    function renderExpandCollapseButton(expanded, isOfInterestForCurrentUser, currentNote, journalId) {
+    function renderExpandCollapseButton(expanded, currentNote, journalId) {
         const cssClass = expanded ? 'icon icon-toggle-minus' : 'icon icon-toggle-plus';
-        if (isOfInterestForCurrentUser) {
-            currentNote.find('.expand-collapse-icon-placeholder').html(
-                "<a class='" + cssClass + "' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + journalId + "/" + (expanded ? 2 : 1) + "/update_read_by_users'></a>"
-            );
-        } else {
-            currentNote.find('.expand-collapse-icon-placeholder').html(
-                "<a class='" + cssClass + "' style='display: inline' onclick='" + (expanded ? "renderCollapsed" : "renderExpanded") + "(" + journalId + ", false)'> </a>"
-            );
-        } 
+        currentNote.find('.expand-collapse-icon-placeholder').html(
+            "<a class='" + cssClass + "' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + journalId + "/" + (expanded ? 2 : 1) + "/update_read_by_users'></a>"
+        );
     }
 
-    function renderCollapsed(journalId, isOfInterestForCurrentUser, isInitialRender) {
+     function renderExpandedCollapsed(journalId, expanded, isInitialRender) {
         var currentNote = $("#change-" + journalId + ".journal.has-notes");
-        renderExpandCollapseButton(false, isOfInterestForCurrentUser, currentNote, journalId);
+        renderExpandCollapseButton(expanded, currentNote, journalId);
+
+        var showOrHideContent = expanded ? "show" : "hide";
+        var showOrHidePreview = expanded ? "hide" : "show";
+
+        // ======= Show or hide content ======
+        currentNote.find('.wiki :not(.note-preview)')[showOrHideContent]();
+        currentNote.find('.details')[showOrHideContent]();
+        // setTimeout is a workarround for:
+        // At page load, for collapsed notes with images, even if we hide them they become visible again
+        setTimeout(() => currentNote.find('.thumbnails')[showOrHideContent](), isInitialRender && !expanded ? 100 : 0);
         
-        currentNote.find('.wiki :not(.note-preview)').hide();
-        currentNote.find('.details').hide();
-        if (isInitialRender) {
-            setTimeout(() => currentNote.find('.thumbnails').hide(), 100);
-        } else {
-            currentNote.find('.thumbnails').hide();
-        }
 
-        currentNote.find('.wiki .note-preview').show();
-    }
-
-    function renderExpanded(journalId, isOfInterestForCurrentUser) {
-        var currentNote = $("#change-" + journalId + ".journal.has-notes");
-        renderExpandCollapseButton(true, isOfInterestForCurrentUser, currentNote, journalId);
-
-        currentNote.find('.details').show();
-        currentNote.find('.thumbnails').show();
-        currentNote.find('.wiki :not(.note-preview)').show();
-
-        currentNote.find('.wiki .note-preview').hide();
+        // ====== Show or hide preview ======
+        currentNote.find('.wiki .note-preview')[showOrHidePreview]();
     }
 
     function renderExpandAndReadIndicatorForCurrentUser (journalId, readByUsers, currentUserId, notesPreview, isInitialRender) {
         var currentNote = $("#change-" + journalId + ".journal.has-notes");
         if (currentNote.length == 0) return;
 
-        const isOfInterestForCurrentUser = readByUsers[currentUserId] != undefined;   
+        const isOfInterestForCurrentUser = readByUsers[currentUserId] != undefined && readByUsers[currentUserId]["read"] != undefined;   
         const isReadByCurrentUser = readByUsers[currentUserId]?.read;
+        const collapsed = readByUsers[currentUserId]?.collapsed;
 
-        if (!isOfInterestForCurrentUser || isReadByCurrentUser == 1) {
-            renderExpanded(journalId, isOfInterestForCurrentUser);
+        if (!isOfInterestForCurrentUser && !collapsed || isReadByCurrentUser == 1) {
+            renderExpandedCollapsed(journalId, true);
         } else {
-            renderCollapsed(journalId, isOfInterestForCurrentUser, isInitialRender);
+            renderExpandedCollapsed(journalId, false, isInitialRender);
         }
         
         // ====== Current user read status + read/unread button ======
@@ -74,10 +62,14 @@
 
         // ====== note-preview ======
         const notesPreviewDiv = currentNote.find('.note-preview');
-        if (isReadByCurrentUser) {
-            notesPreviewDiv.html("<%=t(:journal_collapse_note_message_read)%><span style='font-style: italic; color: black'>" + notesPreview + "...</span>");
+        if (isOfInterestForCurrentUser) {
+            if (isReadByCurrentUser) {
+                notesPreviewDiv.html("<%=t(:journal_collapse_note_message_read)%><span style='font-style: italic; color: black'>" + notesPreview + "...</span>");
+            } else {
+                notesPreviewDiv.html("<%=t(:journal_collapse_note_message_unread)%>");
+            }
         } else {
-            notesPreviewDiv.html("<%=t(:journal_collapse_note_message_unread)%>");
+            notesPreviewDiv.html(notesPreview + "...");
         }
     }
 
@@ -93,7 +85,7 @@
             const readStatus = readStatuses[userId] 
             userInitials = user.firstname.charAt(0).toUpperCase() + user.lastname.charAt(0).toUpperCase(); 
             colorStyle = "style='color:" + (readStatus["read"] == 0 ? RED : GREEN) + "'";
-            tooltipUserList += "<li " + colorStyle.replace(GREEN, "green") + ">" + userInitials + " - " + user.firstname + " " + user.lastname +
+            tooltipUserList += "<li " + colorStyle.replace(GREEN, "green") + ">" + userInitials + " - " + user.link +
                                     " (" + (readStatus["read"] == 0 ? "<%=t(:journal_notifications_tooltip_list_item_not_viewed)%>" : readStatus["date"]) + ")" + 
                                 "</li>";
             usersColoredInitials +="<span " + colorStyle + ">" + userInitials + "</span>";
@@ -113,16 +105,19 @@
         }
         if (inSomeoneInterestedIn) {
             const readUnreadIndicators = currentNote.find('.users_initials_and_tooltip_placeholder');
-            const tooltipId = "others-notifications-tooltip-" + journalId;
-            const tooltip = "<a id='" + tooltipId + "' class='icon icon-chat' title='unused but needed by tooltip' style='cursor: pointer'></a>";
+            let tooltipTriggerId = "others-notifications-tooltip-" + journalId;
+            const tooltip = "<a id='" + tooltipTriggerId + "' class='icon icon-chat' title='unused but needed by tooltip' style='cursor: pointer'></a>";
+            tooltipTriggerId = "#" + tooltipTriggerId;   
 
             readUnreadIndicators.html((isOfInterestForCurrentUser ? " | " : "") + usersColoredInitials + tooltip);
             
             // ====== tooltip ======
-            $("#" + tooltipId).tooltip({
+
+            $(tooltipTriggerId).tooltip({
                 content: function () {
-                    return "<div style='font-weight: bold; margin-bottom: 15px !important'>" +  
-                                "<span class='icon icon-chat'><%=t(:global_popup_title)%></span>"+
+                    return "<div class='ui-helper-clearfix notifications-title'>" +
+                                "<span class='ui-button-icon ui-icon ui-icon-closethick notifications-close-button'></span>" +  
+                                "<span class='icon icon-chat notifications-title'><%=t(:global_popup_title)%></span>" +
                             "</div>" + 
                             "<div>" + 
                                 "<span>" + 
@@ -135,6 +130,41 @@
                 },
                 classes: {
                     "ui-tooltip": "journal-notifications-tooltip"
+                },
+                trigger: "click"
+            });
+
+            // ==============================================
+            // Logic for tooltip that opens on click, 
+            // and that closes when clicking outside or when clicking on a close button 
+            // ==============================================    
+            
+            function closeTooltip() {
+                $(tooltipTriggerId).tooltip('close');
+                $(tooltipTriggerId).attr('ttVisible','no');
+            }
+
+            $(tooltipTriggerId).unbind('mouseover');
+            $(tooltipTriggerId).attr('ttVisible','no');
+            
+            $(tooltipTriggerId).click(function() {
+                if($(tooltipTriggerId).attr('ttVisible') == 'no') {
+                    
+                    // Open the tooltip on click
+                    $(tooltipTriggerId).tooltip('open');
+                    $(tooltipTriggerId).unbind('mouseleave');
+                    $(tooltipTriggerId).attr('ttVisible','yes');
+
+                    // Add handlers for closing the tooltip
+                    $(document).on("click", function (event) {
+                            // Target is not the tootltip or a child of the tooltip
+                            if ($(event.target).closest("#" + $(tooltipTriggerId).data("ui-tooltip-id")).length === 0 && $(event.target).closest(tooltipTriggerId).length === 0) {
+                                closeTooltip();
+                                $(this).unbind('click', arguments.callee);
+                            }
+                        }
+                    );
+                    $("#" + $(tooltipTriggerId).data("ui-tooltip-id") + " .ui-icon-closethick").click(closeTooltip);
                 }
             });
         }
