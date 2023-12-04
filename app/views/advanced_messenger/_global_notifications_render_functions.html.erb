@@ -17,22 +17,22 @@
         var showOrHidePreview = expanded ? "hide" : "show";
 
         // ======= Show or hide content ======
-        currentNote.find('.wiki :not(.note-preview)')[showOrHideContent]();
+        currentNote.find('.wiki .note-content')[showOrHideContent]();
+
         currentNote.find('.details')[showOrHideContent]();
         // setTimeout is a workarround for:
         // At page load, for collapsed notes with images, even if we hide them they become visible again
         setTimeout(() => currentNote.find('.thumbnails')[showOrHideContent](), isInitialRender && !expanded ? 100 : 0);
         
-
         // ====== Show or hide preview ======
-        currentNote.find('.wiki .note-preview')[showOrHidePreview]();
+        currentNote.find('.note-preview')[showOrHidePreview]();
     }
 
     function renderExpandAndReadIndicatorForCurrentUser (journalId, readByUsers, currentUserId, notesPreview, isInitialRender) {
         var currentNote = $("#change-" + journalId + ".journal.has-notes");
         if (currentNote.length == 0) return;
 
-        const isOfInterestForCurrentUser = readByUsers[currentUserId] != undefined && readByUsers[currentUserId]["read"] != undefined;   
+        const isOfInterestForCurrentUser = readByUsers[currentUserId]?.read != undefined;   
         const isReadByCurrentUser = readByUsers[currentUserId]?.read;
         const collapsed = readByUsers[currentUserId]?.collapsed;
 
@@ -61,6 +61,12 @@
         }
 
         // ====== note-preview ======
+        renderNotesPreviewContent(journalId, isOfInterestForCurrentUser, isReadByCurrentUser, currentUserId, notesPreview);
+
+    }
+
+    function renderNotesPreviewContent(journalId, isOfInterestForCurrentUser, isReadByCurrentUser, currentUserId, notesPreview) {
+        var currentNote = $("#change-" + journalId + ".journal.has-notes");
         const notesPreviewDiv = currentNote.find('.note-preview');
         if (isOfInterestForCurrentUser) {
             if (isReadByCurrentUser) {

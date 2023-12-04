@@ -13,6 +13,7 @@
         const expandCollapse = "<div class='expand-collapse-icon-placeholder'></div>";
         gravatar.length == 0 ? currentNote.find(".note-header").prepend(expandCollapse): gravatar.after(expandCollapse);
 
+        currentNote.find('.wiki').html("<div class='note-content'>" + currentNote.find('.wiki').html() + "</div>");
         currentNote.find('.wiki').append("<p class='note-preview' style='color: rgb(100, 100, 100)'></p>");
 
         // ====== Expand/collapse indicators and panel + read indicator for currrent user ======
