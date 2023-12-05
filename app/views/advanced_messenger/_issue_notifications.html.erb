@@ -2,7 +2,7 @@
     <%=l(:issue_notifications_dialog_text_for_current_user_1, :user => link_to_user(User.current).gsub("\"", "\'")).html_safe%> <span id="unread-notifications-count"></span> <%=t(:issue_notifications_dialog_text_for_current_user_2).html_safe%> 
     <br/>
     <a id="go-to-first-one" class="icon icon-down-left-arrow"><%=t(:issue_notifications_dialog_go_to_first_one)%></a> 
-    <a id="status-for-others-link" title="unused but needed by tooltip" class='icon icon-chat' style="color:#169; cursor:pointer"><%=t(:issue_notifications_dialog_status_for_others)%></a>
+    <a id="status-for-others-link" title=" " class='icon icon-chat' style="color:#169; cursor:pointer"><%=t(:issue_notifications_dialog_status_for_others)%></a>
     <div id="other-users-status-list-content-holder" style="display:none">
     </div>
 </div>
@@ -18,7 +18,7 @@
         resizable: false,
         dialogClass: 'fixed-issue-notifications-dialog',
         draggable: false,
-        classes: {"ui-dialog": "ui-corner-all notifications_dialog"},
+        classes: {"ui-dialog": "ui-corner-all notifications-dialog"},
         // the 'title' attribute doesn't accept html. That's why we need to set the title in the 'open()' function
         
         open: function(event, ui) {
@@ -60,12 +60,12 @@
         
         if (unreadNotificationsForCurrentUser == 0) {
             $("#go-to-first-one").hide();
-            $(".notifications_dialog").removeClass("unread");
+            $(".notifications-dialog").removeClass("unread");
             
         } else {
             $("#go-to-first-one").attr("href", "#note-" + firstUnreadNotificationIndex);
             $("#go-to-first-one").show();
-            $(".notifications_dialog").addClass("unread");
+            $(".notifications-dialog").addClass("unread");
         }
 
         let otherUsersStatussesList = "";

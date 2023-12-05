@@ -17,10 +17,10 @@
         currentNote.find('.wiki').append("<p class='note-preview' style='color: rgb(100, 100, 100)'></p>");
 
         // ====== Expand/collapse indicators and panel + read indicator for currrent user ======
-        renderExpandAndReadIndicatorForCurrentUser("<%= journal.id %>", <%= journal.read_by_users.html_safe %>, "<%= User.current.id %>", "<%= journal.notes.nil? ? '' : escape_javascript(journal.notes[0, 50]) %>", true);
+        renderExpandAndReadIndicatorForCurrentUser("<%= journal.id %>", <%= journal.read_by_users.html_safe %>, "<%= User.current.id %>", "<%= journal.notes.nil? ? '' : escape_javascript(journal.notes[0, 130]) %>", true);
 
         // ====== Read/Unread indicators and tooltip for all users ======
-        renderReadIndicatorsForAllUsers("<%= journal.id %>", "<%= User.current.id %>", "<%=format_time(journal.created_on)%>", ...<%= raw(getUsersReadStatus(journal).to_json)%>);
+        renderReadIndicatorsForAllUsers("<%= journal.id %>", "<%= User.current.id %>", '<%=l(:label_time_ago, :time => time_tag(journal.created_on).html_safe).html_safe%>', ...<%= raw(getUsersReadStatus(journal).to_json)%>);
     }
 }
 <% end %>

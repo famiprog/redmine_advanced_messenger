@@ -8,6 +8,23 @@ body.avatars-on div.journal {
   padding-left: 38px;
 }
 
+.collapse-note-preview {
+  font-style: italic;
+  color: black;
+}
+
+.collapse-note-read-message {
+  color: green;
+}
+
+.collapse-note-unread-message {
+  color: red;
+}
+
+.collapse-note-message {
+  color: #628DB6;
+}
+
 .expand-collapse-icon-placeholder {
   display: inline !important;
 }
@@ -26,25 +43,30 @@ body.avatars-on div.journal {
 .icon-test { background-image: url(../images/users.png) }
 .icon-chat { background-image: url(../images/chat.png) }
 
-.notifications_dialog .ui-dialog-titlebar-close {
+.notifications-dialog .ui-dialog-titlebar-close {
   background-color: transparent;
   border: none;
 }
 
-.notifications_dialog {
+.notifications-dialog {
   background-color : #E0EDD7 !important;
 }
 
-.notifications_dialog.unread {
+.notifications-dialog.unread {
   background-color : #FFC4C4 !important;
 }
 
-.notifications_dialog > .ui-dialog-titlebar {
+.notifications-dialog > .ui-dialog-titlebar {
   background-color : #E0EDD7;
 }
 
-.notifications_dialog.unread > .ui-dialog-titlebar {
+.notifications-dialog.unread > .ui-dialog-titlebar {
   background-color : #FFC4C4;
+}
+
+/* Without this, the notifications title was having big gap before and after (only in firefox). */
+.notifications-title::before, .notifications-title::after {
+  border-collapse: unset !important;
 }
 
 .ui-tooltip {

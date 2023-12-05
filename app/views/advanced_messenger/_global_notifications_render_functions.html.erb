@@ -70,12 +70,12 @@
         const notesPreviewDiv = currentNote.find('.note-preview');
         if (isOfInterestForCurrentUser) {
             if (isReadByCurrentUser) {
-                notesPreviewDiv.html("<%=t(:journal_collapse_note_message_read)%><span style='font-style: italic; color: black'>" + notesPreview + "...</span>");
+                notesPreviewDiv.html("<span class='collapse-note-read-message'><%=t(:journal_collapse_note_message_read)%></span><span class='collapse-note-preview'>" + notesPreview + "...</span>");
             } else {
-                notesPreviewDiv.html("<%=t(:journal_collapse_note_message_unread)%>");
+                notesPreviewDiv.html("<span class='collapse-note-unread-message'><%=t(:journal_collapse_note_message_unread)%></span>");
             }
         } else {
-            notesPreviewDiv.html(notesPreview + "...");
+            notesPreviewDiv.html("<span class='collapse-note-message'><%=t(:journal_collapse_note_message)%></span><span class='collapse-note-preview'>" + notesPreview + "...</span>");
         }
     }
 
@@ -112,7 +112,7 @@
         if (inSomeoneInterestedIn) {
             const readUnreadIndicators = currentNote.find('.users_initials_and_tooltip_placeholder');
             let tooltipTriggerId = "others-notifications-tooltip-" + journalId;
-            const tooltip = "<a id='" + tooltipTriggerId + "' class='icon icon-chat' title='unused but needed by tooltip' style='cursor: pointer'></a>";
+            const tooltip = "<a id='" + tooltipTriggerId + "' class='icon icon-chat' title=' ' style='cursor: pointer'></a>";
             tooltipTriggerId = "#" + tooltipTriggerId;   
 
             readUnreadIndicators.html((isOfInterestForCurrentUser ? " | " : "") + usersColoredInitials + tooltip);
@@ -127,7 +127,7 @@
                             "</div>" + 
                             "<div>" + 
                                 "<span>" + 
-                                    "<%= t(:journal_notifications_tooltip_list_title).html_safe %>".replace("0", journalCreationDate) + 
+                                    "<%= t(:journal_notifications_tooltip_list_title).html_safe %>".replace("%{date}", journalCreationDate) + 
                                 "</span>" + 
                                 "<ul>" +
                                     tooltipUserList +

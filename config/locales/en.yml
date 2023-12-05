@@ -8,11 +8,14 @@ en:
   issue_notifications_dialog_others_tooltip_text: "Unread notifications"
   issue_notifications_dialog_status_for_others: "Status for other users"
   
+  journal_collapse_note_message: "The message is collapsed. Preview: "
   journal_collapse_note_message_read: "The message is read, but collapsed. Preview: "
   journal_collapse_note_message_unread: "The message is unread. Please expand it to see its content & mark read."
-  journal_notifications_tooltip_list_title: "At 0 notifications sent (<span style='color:green'>read</span>/<span style='color:red'>unread</span>) to:"
+  journal_notifications_tooltip_list_title: "%{date} notifications sent (<span style='color:green'>read</span>/<span style='color:red'>unread</span>) to:"
   journal_notifications_tooltip_list_item_not_viewed: "unread"
   journal_read: "Read"
+
+  label_time_ago: "%{time} ago"
 
   my_page_unread_notifications: "Unread notifications"
   my_page_all_notifications_read: "All notifications are read"

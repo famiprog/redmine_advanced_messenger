@@ -7,12 +7,15 @@ fr:
   issue_notifications_dialog_others_tooltip_text: "Notifications non lues"
   issue_notifications_dialog_status_for_others: "Statut des autres utilisateurs"
 
+  journal_collapse_note_message: "Le message est réduit. Aperçu: "
   journal_collapse_note_message_read: "Le message est lu, mais réduit. Aperçu: "
   journal_collapse_note_message_unread: "Le message n'est pas lu. Veuillez le développer pour voir son contenu et le marquer comme lu."
-  journal_notifications_tooltip_list_title: "Au 0 notifications envoyées (<span style='color:green'>lues</span>/<span style='color:red'>non lues</span>) à:"
+  journal_notifications_tooltip_list_title: "%{date} notifications envoyées (<span style='color:green'>lues</span>/<span style='color:red'>non lues</span>) à:"
   journal_notifications_tooltip_list_item_not_viewed: "non lues"
   journal_read: "Lu"
-  
+
+  label_time_ago: "a %{time}"
+
   my_page_unread_notifications: "Notifications non lues"
   my_page_all_notifications_read: "Toutes les notifications sont lues"
   

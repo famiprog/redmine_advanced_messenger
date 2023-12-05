@@ -65,10 +65,16 @@ module AdvancedMessengerHelper
             users[user_id] = user_short  
 
             read_by_user = read_by_users[user_id] 
-            read_by_user["date"] = format_time(read_by_user["date"])
+            # For the moment the changing of the read status doesn't have an associated activity so no need to link to the activity page
+            #read_by_user["date"] =  l(:label_time_ago, :time => time_tag(read_by_user["date"].to_time).html_safe);
+            read_by_user["date"] =  l(:label_time_ago, :time => time_tag_without_link_to_activity(read_by_user["date"].to_time).html_safe);
+            
             read_statuses[user_id] = read_by_user
         end
         return [users, read_statuses]
-    end    
+    end  
 
+    def time_tag_without_link_to_activity(time) 
+        return content_tag('abbr', distance_of_time_in_words(Time.now, time), :title => format_time(time))
+    end
 end
