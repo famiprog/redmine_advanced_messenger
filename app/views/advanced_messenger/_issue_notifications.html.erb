@@ -13,7 +13,7 @@
     * These limits are copied from redmine application.css and are the values for the sidebar width 
     **/
     let width;
-    var dialog = setTimeout(() => $("#issue_notifications_dialog").dialog( {
+    var dialog = $("#issue_notifications_dialog").dialog( {
         width: $("#sidebar").width(),
         height: 90,
         resizable: false,
@@ -27,7 +27,7 @@
                 $(this).parent().find('.ui-dialog-titlebar').append("<span class='ui-dialog-title icon icon-chat'><%=t(:global_popup_title)%></span>");
 
             }
-    }),);
+    });
 
     $(window).resize(function() {
         $("#issue_notifications_dialog").dialog( "option", "width", $("#sidebar").width());
