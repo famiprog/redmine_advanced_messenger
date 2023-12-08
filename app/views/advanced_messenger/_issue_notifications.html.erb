@@ -43,6 +43,9 @@
 
     $("#status-for-others-link").tooltip({
         content: function () {
+            if ($("#other-users-status-list-content-holder").children().length == 0) {
+                return "<%=t(:issue_notifications_dialog_others_tooltip_text_all_read)%>"
+            }
             return "<span>" + 
                         "<%=t(:issue_notifications_dialog_others_tooltip_text)%>:" +
                     "</span>" +  

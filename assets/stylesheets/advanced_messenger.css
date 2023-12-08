@@ -108,3 +108,10 @@ body.avatars-on div.journal {
   margin-bottom: 15px!important; 
   position:relative;
 }
+
+.ui-tooltip.notification-statuses {
+  border:1px solid #B2B2B2 !important;
+  background-color:#F6F6F6 !important;
+  opacity: 0.95;
+  color: black;
+}
