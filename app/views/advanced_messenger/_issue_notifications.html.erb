@@ -3,8 +3,9 @@
     <br/>
     <a id="go-to-first-one" class="icon icon-down-left-arrow"><%=t(:issue_notifications_dialog_go_to_first_one)%></a> 
     <a id="status-for-others-link" title=" " class='icon icon-chat' style="color:#169; cursor:pointer"><%=t(:issue_notifications_dialog_status_for_others)%></a>
-    <div id="other-users-status-list-content-holder" style="display:none">
-    </div>
+    <!--By default first link inside a dialog gets auto focus (its a uiDialog feature: https://api.jqueryui.com/1.11/dialog/).
+     We don't need this, so we autofocus on another element without any graphical implication-->
+    <div id="other-users-status-list-content-holder" style="display:none" autofocus></div>
 </div>
 
 <%= javascript_tag do%>
@@ -12,7 +13,7 @@
     * These limits are copied from redmine application.css and are the values for the sidebar width 
     **/
     let width;
-    var dialog = $("#issue_notifications_dialog").dialog( {
+    var dialog = setTimeout(() => $("#issue_notifications_dialog").dialog( {
         width: $("#sidebar").width(),
         height: 90,
         resizable: false,
@@ -24,8 +25,9 @@
         open: function(event, ui) {
                 $(this).parent().find('.ui-dialog-titlebar .ui-dialog-title').remove();
                 $(this).parent().find('.ui-dialog-titlebar').append("<span class='ui-dialog-title icon icon-chat'><%=t(:global_popup_title)%></span>");
+
             }
-    });
+    }),);
 
     $(window).resize(function() {
         $("#issue_notifications_dialog").dialog( "option", "width", $("#sidebar").width());

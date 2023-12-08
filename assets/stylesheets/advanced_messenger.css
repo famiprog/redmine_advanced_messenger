@@ -58,6 +58,7 @@ body.avatars-on div.journal {
 
 .notifications-dialog > .ui-dialog-titlebar {
   background-color : #E0EDD7;
+  border: none;
 }
 
 .notifications-dialog.unread > .ui-dialog-titlebar {
