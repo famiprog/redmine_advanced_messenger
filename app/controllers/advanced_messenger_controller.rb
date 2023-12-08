@@ -1,5 +1,9 @@
 class AdvancedMessengerController < ApplicationController
 
+  # The read field can have the following values
+  # 0 -> unread
+  # 1 -> read
+  # 2 -> read but collapsed
   def update_read_by_users
     @journal = Journal.find_by(id: params[:id])
     if @journal == nil
@@ -14,7 +18,7 @@ class AdvancedMessengerController < ApplicationController
       return
     end
     read_by_users = JSON.parse(@journal.read_by_users);
-    if not ["0", "1", "2", "3"].include? params[:read_by_users]
+    if not ["0", "1", "2"].include? params[:read_by_users]
       Rails.logger.error("#{params[:read_by_users]} is not a valid journal read status for a user")
       render_404
       return

@@ -1,5 +1,5 @@
 <div id="issue_notifications_dialog" >
-    <%=l(:issue_notifications_dialog_text_for_current_user_1, :user => link_to_user(User.current).gsub("\"", "\'")).html_safe%> <span id="unread-notifications-count"></span> <%=t(:issue_notifications_dialog_text_for_current_user_2).html_safe%> 
+    <%=l(:issue_notifications_dialog_text_for_current_user, :user => link_to_user(User.current).gsub("\"", "\'")).html_safe%> 
     <br/>
     <a id="go-to-first-one" class="icon icon-down-left-arrow"><%=t(:issue_notifications_dialog_go_to_first_one)%></a> 
     <a id="status-for-others-link" title=" " class='icon icon-chat' style="color:#169; cursor:pointer"><%=t(:issue_notifications_dialog_status_for_others)%></a>

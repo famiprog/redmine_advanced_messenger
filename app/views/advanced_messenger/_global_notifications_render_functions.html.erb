@@ -85,7 +85,7 @@
         let color;
         let tooltipUserList = "";
         let usersColoredInitials = "<span style='padding-right: 5px'>";
-        let inSomeoneInterestedIn = Object.keys(users).length > 0;
+        let isSomeoneInterestedIn = Object.keys(users).length > 0;
         let i = 0;
         for (const [userId, user] of Object.entries(users)) {
             const readStatus = readStatuses[userId] 
@@ -109,7 +109,7 @@
                 break;
             }
         }
-        if (inSomeoneInterestedIn) {
+        if (isSomeoneInterestedIn) {
             const readUnreadIndicators = currentNote.find('.users_initials_and_tooltip_placeholder');
             let tooltipTriggerId = "others-notifications-tooltip-" + journalId;
             const tooltip = "<a id='" + tooltipTriggerId + "' class='icon icon-chat' title=' ' style='cursor: pointer'></a>";

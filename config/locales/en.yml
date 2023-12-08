@@ -3,8 +3,7 @@ en:
   global_popup_title: "Redmine Advanced Messenger"
   
   issue_notifications_dialog_go_to_first_one: "Go to first one"
-  issue_notifications_dialog_text_for_current_user_1: "For %{user}, there are"
-  issue_notifications_dialog_text_for_current_user_2: "<span style='color: red'> unread </span> notifications."
+  issue_notifications_dialog_text_for_current_user: "For %{user}, there are <span id='unread-notifications-count'></span> <span style='color: red'> unread </span> notifications."
   issue_notifications_dialog_others_tooltip_text: "Unread notifications"
   issue_notifications_dialog_status_for_others: "Status for other users"
   

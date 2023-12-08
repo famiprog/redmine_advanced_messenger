@@ -57,12 +57,14 @@ module AdvancedMessengerHelper
                 # no read status for this user i.e. the note is not of interest for him
                 next
             end
-            user = User.find(user_id)
-            user_short = Hash.new
-            user_short["firstname"] = user.firstname
-            user_short["lastname"] = user.lastname
-            user_short["link"] = link_to_user(user)
-            users[user_id] = user_short  
+            if (users[user_id] == nil) 
+                user = User.find(user_id)
+                user_short = Hash.new
+                user_short["firstname"] = user.firstname
+                user_short["lastname"] = user.lastname
+                user_short["link"] = link_to_user(user)
+                users[user_id] = user_short
+            end  
 
             read_by_user = read_by_users[user_id] 
             # For the moment the changing of the read status doesn't have an associated activity so no need to link to the activity page
