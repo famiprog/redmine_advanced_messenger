@@ -1,151 +1,26 @@
 <%= javascript_tag do %>
 // We need to enclose the code in a block {} because otherwise we get a javascript compilation error about variables/constants being declared many times
 {
-    const currentUserId = "<%= User.current.id %>";
-    const RED = "red";
-    const GREEN = "#55CB85";
-
-    function renderCollapsed(id, isOfInterestForCurrentUser, isInitialRender) {
-        var currentNote = $("#change-" + id + ".journal.has-notes");
-
-        if (isOfInterestForCurrentUser) {
-            currentNote.find('.expand-collapse-icon-placeholder').html(
-                "<a class='icon icon-toggle-plus' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + id + "/1/update_read_by_users'></a>"
-            );
-        } else {
-            currentNote.find('.expand-collapse-icon-placeholder').html(
-                "<a class='icon icon-toggle-plus' style='display: inline' onclick='renderExpanded(" + id + ", false)'> </a>"
-            );
-        }
-        
-        currentNote.find('.wiki :not(.note-preview)').hide();
-        currentNote.find('.details').hide();
-        if (isInitialRender) {
-            setTimeout(() => currentNote.find('.thumbnails').hide(), 100);
-        } else {
-            currentNote.find('.thumbnails').hide();
-        }
-
-        currentNote.find('.wiki .note-preview').show();
-    }
-
-    function renderExpanded(id, isOfInterestForCurrentUser) {
-        var currentNote = $("#change-" + id + ".journal.has-notes");
-        if (isOfInterestForCurrentUser) {
-            currentNote.find('.expand-collapse-icon-placeholder').html(
-                "<a class='icon icon-toggle-minus' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + id + "/2/update_read_by_users'></a>"
-            );
-        } else {
-            currentNote.find('.expand-collapse-icon-placeholder').html(
-                "<a class='icon icon-toggle-minus' style='display: inline' onclick='renderCollapsed(" + id + ", false)'> </a>"
-            );
-        } 
-
-        currentNote.find('.details').show();
-        currentNote.find('.thumbnails').show();
-        currentNote.find('.wiki :not(.note-preview)').show();
-
-        currentNote.find('.wiki .note-preview').hide();
-    }
-
-    function renderExpandEndReadIndicatorForCurrentUser (id, read_by_users, currentUserId, notesPreview, isInitialRender) {
-        var currentNote = $("#change-" + id + ".journal.has-notes");
-        if (currentNote.length == 0) return;
-
-        const readByUsers = JSON.parse(read_by_users);
-        const isOfInterestForCurrentUser = readByUsers[currentUserId] != undefined;   
-        const isReadByCurrentUser = readByUsers[currentUserId]?.read;
-
-        if (!isOfInterestForCurrentUser || isReadByCurrentUser == 1) {
-            renderExpanded(id, isOfInterestForCurrentUser);
-        } else {
-            renderCollapsed(id, isOfInterestForCurrentUser, isInitialRender);
-        }
-        
-        // ====== Current user read status + read/unread button ======
-        if (isOfInterestForCurrentUser) {
-            let span = currentNote.find('.read-unread-indicators-at-right').find('.for_current_user_placeholder');
-            span.html("<span style='padding-right: 5px'> <%=t(:journal_read)%> </span>"
-                        + (isReadByCurrentUser ? 
-                        "<a class='icon icon-checked-green readButton' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + id + "/0/update_read_by_users'></a>" 
-                      : "<a class='icon icon-unchecked-red unreadButton' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + id + "/1/update_read_by_users'></a>"));
-        }
-    }
-
-    const id = "<%= journal.id %>";
-    const read_by_users = '<%= journal.read_by_users.html_safe %>';
-	const notesPreview = "<%= journal.notes.nil? ? "" : escape_javascript(journal.notes[0, 50]) %>"
-
-    var currentNote = $("#change-" + id + ".journal.has-notes");
+    var currentNote = $("#change-" + <%= journal.id %> + ".journal.has-notes");
     if (currentNote.length != 0) {
         // ====== Set the note panel blue border ======
         currentNote.addClass("advanced-messenger-note");
 
         // ====== Set the placeholders that will contain dynamically render content (that changes without page refresh) ======
-        currentNote.find('.contextual').after("<div class='read-unread-indicators-at-right' style='float: right;'><span class='for_current_user_placeholder'></span></div>");
+        currentNote.find('.contextual').after("<div class='read-unread-indicators-at-right' style='float: right;'><span class='read_checkbox_placeholder'></span><span class='users_initials_and_tooltip_placeholder'></span></div>");
+        
         const gravatar = currentNote.find(".gravatar");
         const expandCollapse = "<div class='expand-collapse-icon-placeholder'></div>";
-        if (gravatar.length == 0) {
-            currentNote.find(".note-header").prepend(expandCollapse);
-        } else {
-            gravatar.after(expandCollapse);
-        }
+        gravatar.length == 0 ? currentNote.find(".note-header").prepend(expandCollapse): gravatar.after(expandCollapse);
 
-        currentNote.find('.wiki').append("<p class='note-preview'>" + notesPreview + "... </p>");
+        currentNote.find('.wiki').html("<div class='note-content'>" + currentNote.find('.wiki').html() + "</div>");
+        currentNote.find('.wiki').append("<p class='note-preview' style='color: rgb(100, 100, 100)'></p>");
 
         // ====== Expand/collapse indicators and panel + read indicator for currrent user ======
-        renderExpandEndReadIndicatorForCurrentUser(id, read_by_users, currentUserId, notesPreview, true);
+        renderExpandAndReadIndicatorForCurrentUser("<%= journal.id %>", <%= journal.read_by_users.html_safe %>, "<%= User.current.id %>", "<%= journal.notes.nil? ? '' : escape_javascript(journal.notes[0, 130]) %>", true);
 
-        // ====== Read/Unread indicators and tooltip for other users than the logged in user ======
-        <% read_by_users = JSON.parse(journal.read_by_users) %>
-        let userCapitals;
-        let color;
-        let tooltipUserList = "";
-        let readByOthers = "<span style='padding-right: 5px'>";
-        let wereOtherNotified = false;
-        <% read_by_users.keys.each_with_index do |user_id, index| %>
-            <% if user_id != User.current.id.to_s %>
-                wereOtherNotified = true;
-                <%user = User.find(user_id)%>
-                <%read_by_user = read_by_users[read_by_users.keys[index]]%>
-                userCapitals = "<%=user.firstname%>".charAt(0).toUpperCase() + "<%=user.lastname%>".charAt(0).toUpperCase(); 
-                colorStyle = "style='color:" + (<%=read_by_user["read"] == 0%> ? RED : GREEN) + "'";
-                tooltipUserList += "<li " + colorStyle.replace(GREEN, "green") + ">" + userCapitals + "-<%=user.firstname%> <%=user.lastname%>" + " (<%=read_by_user["read"] == 0 ? t(:journal_notifications_tooltip_list_item_not_viewed) : read_by_user["date"].to_date.strftime("%d %b %Y %H:%M")%>)</li>";
-                readByOthers +="<span " + colorStyle + ">" + userCapitals + "</span>";
-                <% if index < read_by_users.keys.length() - 1%>
-                    readByOthers += ", ";
-                <% end %>
-            <% end %>
-        <% end %>
-        readByOthers += "</span>";
-
-        const readByUsers = JSON.parse(read_by_users);
-        const isOfInterestForCurrentUser = readByUsers[currentUserId] != undefined;
-        const readUnreadIndicators = currentNote.find('.read-unread-indicators-at-right');
-        readUnreadIndicators.append(isOfInterestForCurrentUser && wereOtherNotified ? " | " : "");
-        if (wereOtherNotified) {
-            readUnreadIndicators.append(readByOthers);
-            
-            // ====== tooltip ======
-            const tooltipId = "others-notifications-tooltip-<%=journal.id%>"
-            readUnreadIndicators.append("<a id='" + tooltipId + "' class='icon icon-zoom-in' title='unused but needed by tooltip'></a>");
-            $("#" + tooltipId).tooltip({
-                content: function () {
-                    return "<span>" + 
-                                "<%= t(:journal_notifications_tooltip_list_title_part_1) %> <%= journal.created_on.strftime("%d %b %Y %H:%M")%>" + 
-                                " <%= t(:journal_notifications_tooltip_list_title_part_2) %> " + 
-                                "(<span style='color:green'><%= t(:journal_notifications_tooltip_list_title_part_3) %></span>" +
-                                "/<span style='color:" + RED + "'><%= t(:journal_notifications_tooltip_list_title_part_4) %></span>) <%= t(:journal_notifications_tooltip_list_title_part_5) %>: " + 
-                            "</span>" + 
-                            "<ul>" +
-                                tooltipUserList +
-                            "</ul>";
-                },
-                classes: {
-                    "ui-tooltip": "notification-statuses"
-                }
-            });
-        }
+        // ====== Read/Unread indicators and tooltip for all users ======
+        renderReadIndicatorsForAllUsers("<%= journal.id %>", "<%= User.current.id %>", '<%=l(:label_time_ago, :time => time_tag(journal.created_on).html_safe).html_safe%>', ...<%= raw(getUsersReadStatus(journal).to_json)%>);
     }
 }
 <% end %>

@@ -8,11 +8,28 @@ body.avatars-on div.journal {
   padding-left: 38px;
 }
 
+.collapse-note-preview {
+  font-style: italic;
+  color: black;
+}
+
+.collapse-note-read-message {
+  color: green;
+}
+
+.collapse-note-unread-message {
+  color: red;
+}
+
+.collapse-note-message {
+  color: #628DB6;
+}
+
 .expand-collapse-icon-placeholder {
   display: inline !important;
 }
 
-.fixed-dialog {
+.fixed-issue-notifications-dialog {
   position: fixed !important;
   bottom: 10px;
   right: 10px;
@@ -23,20 +40,70 @@ body.avatars-on div.journal {
 .icon-checked-green { background-image: url(../images/checked_green.png) }
 .icon-unchecked-red { background-image: url(../images/unchecked_red.png) }
 .icon-down-left-arrow { background-image: url(../images/down_left_arrow.png) }
+.icon-test { background-image: url(../images/users.png) }
+.icon-chat { background-image: url(../images/chat.png) }
 
-.notifications_dialog .ui-dialog-titlebar-close {
+.notifications-dialog .ui-dialog-titlebar-close {
   background-color: transparent;
   border: none;
+}
+
+.notifications-dialog {
+  background-color : #E0EDD7 !important;
+}
+
+.notifications-dialog.unread {
+  background-color : #FFC4C4 !important;
+}
+
+.notifications-dialog > .ui-dialog-titlebar {
+  background-color : #E0EDD7;
+}
+
+.notifications-dialog.unread > .ui-dialog-titlebar {
+  background-color : #FFC4C4;
+}
+
+/* Without this, the notifications title was having big gap before and after (only in firefox). */
+.notifications-title::before, .notifications-title::after {
+  border-collapse: unset !important;
 }
 
 .ui-tooltip {
   z-index: 10000;
 }
 
-.ui-tooltip.notification-statuses {
+.ui-tooltip.journal-notifications-tooltip {
   border:1px solid #B2B2B2 !important;
   background-color:#F6F6F6 !important;
   opacity: 0.95;
   color: black;
 }
 
+.ui-tooltip.journal-notifications-tooltip ul {
+  margin-top: 5px !important;
+  padding-left: 15px !important;
+}
+
+.ui-tooltip .notifications-close-button {
+  position: absolute;
+  right: 0.3em;
+  top: 50%;
+  margin: -10px 0 0 0;
+  padding: 1px;
+}
+
+.ui-tooltip .notifications-title-text {
+  float: left;
+  margin: 0.1em 0;
+  white-space: nowrap;
+  width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-tooltip .notifications-title {
+  font-weight: bold; 
+  margin-bottom: 15px!important; 
+  position:relative;
+}

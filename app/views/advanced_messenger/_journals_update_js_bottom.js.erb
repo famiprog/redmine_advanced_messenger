@@ -1,3 +1,8 @@
+<% if @journal.frozen? || !journal.notes?%>
+  <%@unread_notification_statuses = getUnreadNotificationsForIssue(@journal.issue)%>
+  renderNotificationsStatusesPerIssue(<%=@unread_notification_statuses[0]%>, <%=@unread_notification_statuses[1]%>, <%=@unread_notification_statuses[2].to_json.html_safe%>);
+  renderAllUnreadNotificationsIndicator(<%= getUnreadNotificationsForCurrentUserCount()%>);
+<% else %>
 {
     // After a journal update, redmine resets the note content overriding the special collapsed note content (a shorter preview one) of our plugin. 
     // That's why we need to restore it
@@ -6,12 +11,11 @@
     
     const currentNote = $("#change-<%= journal.id %>.journal.has-notes");
     if (currentNote.length > 0) {
-        currentNote.find('.wiki').append("<p class='note-preview'><%= escape_javascript(journal.notes)[0, 50] %>... </p>");
-        if (currentNote.find('.expand-collapse-icon-placeholder a').hasClass("icon-toggle-plus")) {
-            currentNote.find('.wiki :not(.note-preview)').hide();
-        } else {
-            currentNote.find('.wiki .note-preview').hide();
-        }
-        currentNote.addClass("advanced-messenger-note");
+        currentNote.find('.wiki').html("<div class='note-content'>" + currentNote.find('.wiki').html() + "</div>");
+        currentNote.find('.wiki').append("<p class='note-preview' style='color: rgb(100, 100, 100)'></p>");
+        <%read_by_user = JSON.parse(journal.read_by_users)[User.current.id.to_s] || {}%>
+        renderNotesPreviewContent(<%= journal.id %>, <%=read_by_user["read"] != nil%>, <%=read_by_user["read"] != nil && read_by_user["read"] != 0%>, <%=User.current.id%>, "<%= escape_javascript(journal.notes)[0, 130] %>");
+        renderExpandedCollapsed(<%= journal.id %>, currentNote.find('.expand-collapse-icon-placeholder a').hasClass("icon-toggle-minus"), false);
     }
 }
+<%end%>
