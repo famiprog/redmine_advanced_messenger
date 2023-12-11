@@ -32,6 +32,7 @@ module AdvancedMessengerHelper
         unread_notifications_per_issue = Hash.new
 
         unread_notifications.each do |journal|
+            next if !journal.notes?
             if unread_notifications_per_issue[journal.issue.id] != nil
                 unread_notification_status = unread_notifications_per_issue[journal.issue.id]
             else
@@ -45,7 +46,7 @@ module AdvancedMessengerHelper
     end
 
     def getUnreadNotificationsForCurrentUserCount()
-        return Journal.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count;
+        return Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count;
     end
 
     def getUsersReadStatus(journal)
