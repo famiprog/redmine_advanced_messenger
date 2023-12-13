@@ -1,4 +1,4 @@
-.advanced-messenger-note {
+.advanced-messenger-bordered-panel {
     border: 1px solid #628DB6;
     margin-bottom: 5px;
     padding: 5px;
@@ -18,6 +18,10 @@ body.avatars-on div.journal {
   right: 10px;
   top: auto !important;
   left: auto !important;
+}
+
+.forum-topic .read-unread-indicators-at-right {
+  padding-top: 5px;
 }
 
 .icon-checked-green { background-image: url(../images/checked_green.png) }
@@ -51,14 +55,14 @@ body.avatars-on div.journal {
   z-index: 10000;
 }
 
-.ui-tooltip.journal-notifications-tooltip {
+.ui-tooltip.notifications-tooltip {
   border:1px solid #B2B2B2 !important;
   background-color:#F6F6F6 !important;
   opacity: 0.95;
   color: black;
 }
 
-.ui-tooltip.journal-notifications-tooltip ul {
+.ui-tooltip.notifications-tooltip ul {
   margin-top: 5px !important;
   padding-left: 15px !important;
 }
