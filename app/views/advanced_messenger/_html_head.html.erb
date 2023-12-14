@@ -15,7 +15,11 @@
     });
 <% end %>
 <%# ============= Helper javascript render methods that are reused in many parts of the application ============= %>
-<% if @topic != nil || @issue != nil%>
+<%
+    current_controller = controller.controller_name
+    current_action = controller.action_name
+%>
+<% if current_controller == 'issues' && current_action == 'show' || current_controller == 'messages' && current_action == 'show' %>
     <%= javascript_tag do %>
         const RED = "red";
         const GREEN = "#55CB85";
@@ -85,12 +89,12 @@
             const notesPreviewDiv = currentNode.find('.message-preview');
             if (isOfInterestForCurrentUser) {
                 if (isReadByCurrentUser) {
-                    notesPreviewDiv.html("<%=t(:message_collapse_read)%><span style='font-style: italic; color: black'>" + notesPreview + "...</span>");
+                    notesPreviewDiv.html("<span class='collapse-message-read'><%=t(:message_collapsed_read)%></span><span class='collapse-message-preview'>" + notesPreview + "...</span>");
                 } else {
-                    notesPreviewDiv.html("<%=t(:message_collapse_unread)%>");
+                    notesPreviewDiv.html("<span class='collapse-message-unread'><%=t(:message_collapsed_unread)%></span>");
                 }
             } else {
-                notesPreviewDiv.html(notesPreview + "...");
+                notesPreviewDiv.html("<span class='collapse-message'><%=t(:message_collapsed)%></span><span class='collapse-message-preview'>" + notesPreview + "...</span>");
             }
         }
 
@@ -99,7 +103,7 @@
             let color;
             let tooltipUserList = "";
             let usersColoredInitials = "<span style='padding-right: 5px'>";
-            let inSomeoneInterestedIn = Object.keys(users).length > 0;
+            let isSomeoneInterestedIn= Object.keys(users).length > 0;
             let i = 0;
             for (const [userId, user] of Object.entries(users)) {
                 const readStatus = readStatuses[userId] 
@@ -123,10 +127,10 @@
                     break;
                 }
             }
-            if (inSomeoneInterestedIn) {
+            if (isSomeoneInterestedIn) {
                 const readUnreadIndicators = currentNode.find('.users_initials_and_tooltip_placeholder');
                 let tooltipTriggerId = "others-notifications-tooltip-" + readableEntityId;
-                const tooltip = "<a id='" + tooltipTriggerId + "' class='icon icon-chat' title='unused but needed by tooltip' style='cursor: pointer'></a>";
+                const tooltip = "<a id='" + tooltipTriggerId + "' class='icon icon-chat' title=' ' style='cursor: pointer'></a>";
                 tooltipTriggerId = "#" + tooltipTriggerId;   
 
                 readUnreadIndicators.html((isOfInterestForCurrentUser ? " | " : "") + usersColoredInitials + tooltip);
@@ -140,7 +144,7 @@
                                 "</div>" + 
                                 "<div>" + 
                                     "<span>" + 
-                                        "<%= t(:message_notifications_tooltip_list_title).html_safe %>".replace("0", creationDate) + 
+                                        "<%= t(:message_notifications_tooltip_list_title).html_safe %>".replace("%{date}", creationDate) + 
                                     "</span>" + 
                                     "<ul>" +
                                         tooltipUserList +

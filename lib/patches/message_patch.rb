@@ -12,8 +12,7 @@ module Patches
           # TODO dana: for all messages? no filter?
           read_by_users_hash = {} 
           # Those are the users that are receiving mails when an issue is updates @see mailer.rb#deliver_issue_edit
-          users = notified_users | notified_watchers | board.notified_watchers
-          Rails.logger.info(users)
+          users = notified_users | root.notified_watchers | board.notified_watchers
           users.each do |user|
             read_by_users = {read: user.id == User.current.id ? 1 : 0, date: DateTime.now}
             read_by_users_hash[user.id.to_s] = read_by_users;

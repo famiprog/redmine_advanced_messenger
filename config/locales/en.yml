@@ -2,17 +2,20 @@
 en:
   global_popup_title: "Redmine Advanced Messenger"
   
-  notifications_dialog_go_to_first_one: "Go to first one"
-  notifications_dialog_text_for_current_user_1: "For %{user}, there are"
-  notifications_dialog_text_for_current_user_2: "<span style='color: red'> unread </span> notifications."
-  notifications_dialog_others_tooltip_text: "Unread notifications"
-  notifications_dialog_status_for_others: "Status for other users"
+  label_time_ago: "%{time} ago"
   
-  message_collapse_read: "The message is read, but collapsed. Preview: "
-  message_collapse_unread: "The message is unread. Please expand it to see its content & mark read."
-  message_notifications_tooltip_list_title: "At 0 notifications sent (<span style='color:green'>read</span>/<span style='color:red'>unread</span>) to:"
+  message_collapsed: "The message is collapsed. Preview: "
+  message_collapsed_read: "The message is read, but collapsed. Preview: "
+  message_collapsed_unread: "The message is unread. Please expand it to see its content & mark read."
+  message_notifications_tooltip_list_title: "%{date} notifications sent (<span style='color:green'>read</span>/<span style='color:red'>unread</span>) to:"
   message_notifications_tooltip_list_item_not_viewed: "unread"
   message_read: "Read"
+  
+  notifications_dialog_go_to_first_one: "Go to first one"
+  notifications_dialog_text_for_current_user: "For %{user}, there are <span id='unread-notifications-count'></span> <span style='color: red'> unread </span> notifications."
+  notifications_dialog_others_tooltip_text: "Unread notifications"
+  notifications_dialog_others_tooltip_text_all_read: "Other users have all messages read."
+  notifications_dialog_status_for_others: "Status for other users"
 
   my_page_issues_unread_notifications: "Unread issues notifications:"
   my_page_forum_unread_notifications: "Unread forum messages:"

@@ -49,21 +49,20 @@ module AdvancedMessengerHelper
     end
 
     def getUnreadNotificationsGroupByParentEntity(unread_notifications, getParent) 
-        unread_notifications_per_topic = Hash.new
+        grouped_unread_notifications = Hash.new
 
         unread_notifications.each do |entity|
             parentEntity = getParent.call(entity)
-            #TODO DB test if the topic (root message) has root= nil or roor = self 
-            if unread_notifications_per_topic[parentEntity.id] != nil
-                unread_notification_status = unread_notifications_per_topic[parentEntity.id]
+            if grouped_unread_notifications[parentEntity.id] != nil
+                unread_notification_status = grouped_unread_notifications[parentEntity.id]
             else
                 # we set user to nil because is always the current user
                 unread_notification_status = UnreadNotificationsStatus.new(0, nil, parentEntity)
-                unread_notifications_per_topic[parentEntity.id] = unread_notification_status
+                grouped_unread_notifications[parentEntity.id] = unread_notification_status
             end
             unread_notification_status.count += 1 
         end
-        return unread_notifications_per_topic
+        return grouped_unread_notifications
     end
 
     def getUnreadNotificationsForCurrentUserCount()
@@ -81,18 +80,24 @@ module AdvancedMessengerHelper
                 # no read status for this user i.e. the note is not of interest for him
                 next
             end
-            user = User.find(user_id)
-            user_short = Hash.new
-            user_short["firstname"] = user.firstname
-            user_short["lastname"] = user.lastname
-            user_short["link"] = link_to_user(user)
-            users[user_id] = user_short  
-
+            if (users[user_id] == nil)
+            	user = User.find(user_id)
+            	user_short = Hash.new
+            	user_short["firstname"] = user.firstname
+            	user_short["lastname"] = user.lastname
+            	user_short["link"] = link_to_user(user)
+            	users[user_id] = user_short  
+			end
             read_by_user = read_by_users[user_id] 
-            read_by_user["date"] = format_time(read_by_user["date"])
+            # For the moment the changing of the read status doesn't have an associated activity so no need to link to the activity page
+            #read_by_user["date"] =  l(:label_time_ago, :time => time_tag(read_by_user["date"].to_time).html_safe);
+            read_by_user["date"] =  l(:label_time_ago, :time => time_tag_without_link_to_activity(read_by_user["date"].to_time).html_safe);
             read_statuses[user_id] = read_by_user
         end
         return [users, read_statuses]
-    end    
-
+    end
+    
+    def time_tag_without_link_to_activity(time) 
+        return content_tag('abbr', distance_of_time_in_words(Time.now, time), :title => format_time(time))
+    end   
 end

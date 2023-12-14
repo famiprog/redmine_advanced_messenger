@@ -8,6 +8,23 @@ body.avatars-on div.journal {
   padding-left: 38px;
 }
 
+.collapse-message-preview {
+  font-style: italic;
+  color: black;
+}
+
+.collapse-message-read {
+  color: green;
+}
+
+.collapse-message-unread {
+  color: red;
+}
+
+.collapse-message {
+  color: #628DB6;
+}
+
 .expand-collapse-icon-placeholder {
   display: inline !important;
 }
@@ -30,25 +47,31 @@ body.avatars-on div.journal {
 .icon-test { background-image: url(../images/users.png) }
 .icon-chat { background-image: url(../images/chat.png) }
 
-.notifications_dialog .ui-dialog-titlebar-close {
+.notifications-dialog .ui-dialog-titlebar-close {
   background-color: transparent;
   border: none;
 }
 
-.notifications_dialog {
+.notifications-dialog {
   background-color : #E0EDD7 !important;
 }
 
-.notifications_dialog.unread {
+.notifications-dialog.unread {
   background-color : #FFC4C4 !important;
 }
 
-.notifications_dialog > .ui-dialog-titlebar {
+.notifications-dialog > .ui-dialog-titlebar {
   background-color : #E0EDD7;
+  border: none;
 }
 
-.notifications_dialog.unread > .ui-dialog-titlebar {
+.notifications-dialog.unread > .ui-dialog-titlebar {
   background-color : #FFC4C4;
+}
+
+/* Without this, the notifications title was having big gap before and after (only in firefox). */
+.notifications-title::before, .notifications-title::after {
+  border-collapse: unset !important;
 }
 
 .ui-tooltip {
@@ -88,4 +111,38 @@ body.avatars-on div.journal {
   font-weight: bold; 
   margin-bottom: 15px!important; 
   position:relative;
+}
+.ui-tooltip.journal-notifications-tooltip ul {
+  margin-top: 5px !important;
+  padding-left: 15px !important;
+}
+
+.ui-tooltip .notifications-close-button {
+  position: absolute;
+  right: 0.3em;
+  top: 50%;
+  margin: -10px 0 0 0;
+  padding: 1px;
+}
+
+.ui-tooltip .notifications-title-text {
+  float: left;
+  margin: 0.1em 0;
+  white-space: nowrap;
+  width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-tooltip .notifications-title {
+  font-weight: bold; 
+  margin-bottom: 15px!important; 
+  position:relative;
+}
+
+.ui-tooltip.notification-statuses {
+  border:1px solid #B2B2B2 !important;
+  background-color:#F6F6F6 !important;
+  opacity: 0.95;
+  color: black;
 }

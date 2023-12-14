@@ -20,6 +20,10 @@ class AdvancedMessengerController < ApplicationController
                                 )
   end
 
+  # The read field can have the following values
+  # 0 -> unread
+  # 1 -> read
+  # 2 -> read but collapsed
   def update_entity_read_by_users(entity, entity_name, id, read_value, is_visible, response_setup)
     if entity == nil
       Rails.logger.error("Could not find  #{entity_name} #{id}")

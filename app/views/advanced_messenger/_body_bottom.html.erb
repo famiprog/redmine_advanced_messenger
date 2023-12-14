@@ -44,11 +44,15 @@
 <%end%>
 
 <%# ============= Forum messages read/unread indicators on a topic page ============= %>
-<% if User.current.logged? and @topic != nil%>
+<%
+    current_controller = controller.controller_name
+    current_action = controller.action_name
+%>
+<% if User.current.logged? && current_controller == 'messages' && current_action == 'show' %>
     <%= javascript_tag do%>
         var messageDOMNode = $("#content").children(".contextual, h2, .message").wrapAll("<div id='topic-wrapper' class='forum-topic'></div>").parent();
         renderPluginForMessage("<%= @topic.id %>", <%= @topic.read_by_users.html_safe %>,"<%= escape_javascript(@topic.content.to_s[0, 130]) %>", 
-                                    "<%=format_time(@topic.created_on)%>", messageDOMNode, "h2", ".message", "update_message_read_by_users",
+                                    '<%=l(:label_time_ago, :time => time_tag(@topic.created_on).html_safe).html_safe%>', messageDOMNode, "h2", ".message", "update_message_read_by_users",
                                     ...<%= raw(getUsersReadStatus(@topic.read_by_users).to_json)%>);
     <% end %>
     <% if @replies != nil %>
@@ -56,7 +60,7 @@
             <%= javascript_tag do%>
                 var messageDOMNode = $("#message-<%=message.id%>")
                 renderPluginForMessage("<%= message.id %>", <%= message.read_by_users.html_safe %>,"<%= escape_javascript(message.content.to_s[0, 130]) %>", 
-                                            "<%=format_time(message.created_on)%>", messageDOMNode, ".reply-header", ".wiki", "update_message_read_by_users", 
+                                            '<%=l(:label_time_ago, :time => time_tag(message.created_on).html_safe).html_safe%>', messageDOMNode, ".reply-header", ".wiki", "update_message_read_by_users", 
                                             ...<%= raw(getUsersReadStatus(message.read_by_users).to_json)%>);
             <%end%>
         <%end%>
@@ -64,13 +68,20 @@
 <% end %>
 
 <%# ============= Bottom right unread notifications dialog (only for issue/forum topic pages) ============= %>
-<% if @topic != nil || @issue != nil%>
+<%
+    current_controller = controller.controller_name
+    current_action = controller.action_name
+%>
+<% if current_controller == 'issues' && current_action == 'show' || current_controller == 'messages' && current_action == 'show' %>
     <div id="notifications_dialog" >
-        <%=l(:notifications_dialog_text_for_current_user_1, :user => link_to_user(User.current).gsub("\"", "\'")).html_safe%> <span id="unread-notifications-count"></span> <%=t(:notifications_dialog_text_for_current_user_2).html_safe%> 
+        <%=l(:notifications_dialog_text_for_current_user, :user => link_to_user(User.current).gsub("\"", "\'")).html_safe%>
         <br/>
         <a id="go-to-first-one" class="icon icon-down-left-arrow"><%=t(:notifications_dialog_go_to_first_one)%></a> 
-        <a id="status-for-others-link" title="unused but needed by tooltip" class='icon icon-chat' style="color:#169; cursor:pointer"><%=t(:notifications_dialog_status_for_others)%></a>
-        <div id="other-users-status-list-content-holder" style="display:none">
+        <a id="status-for-others-link" title=" " class='icon icon-chat' style="color:#169; cursor:pointer"><%=t(:notifications_dialog_status_for_others)%></a>
+        <div id="other-users-status-list-content-holder" style="display:none"></div>
+        <!--By default first link inside a dialog gets auto focus (its a uiDialog feature: https://api.jqueryui.com/1.11/dialog/).
+        We don't need this, so we autofocus on another element without any graphical implication-->
+        <div autofocus></div>
         </div>
     </div>
 
@@ -82,7 +93,7 @@
             resizable: false,
             dialogClass: 'fixed-issue-notifications-dialog',
             draggable: false,
-            classes: {"ui-dialog": "ui-corner-all notifications_dialog"},
+            classes: {"ui-dialog": "ui-corner-all notifications-dialog"},
 
             // the 'title' attribute doesn't accept html. That's why we need to set the title in the 'open()' function
             open: function(event, ui) {
@@ -105,6 +116,9 @@
 
         $("#status-for-others-link").tooltip({
             content: function () {
+                if ($("#other-users-status-list-content-holder").children().length == 0) {
+                    return "<%=t(:notifications_dialog_others_tooltip_text_all_read)%>"
+                }
                 return "<span>" + 
                             "<%=t(:notifications_dialog_others_tooltip_text)%>:" +
                         "</span>" +  
@@ -123,12 +137,12 @@
             
             if (unreadNotificationsForCurrentUser == 0) {
                 $("#go-to-first-one").hide();
-                $(".notifications_dialog").removeClass("unread");
+                $(".notifications-dialog").removeClass("unread");
                 
             } else {
                 $("#go-to-first-one").attr("href", url);
                 $("#go-to-first-one").show();
-                $(".notifications_dialog").addClass("unread");
+                $(".notifications-dialog").addClass("unread");
             }
 
             let otherUsersStatussesList = "";
