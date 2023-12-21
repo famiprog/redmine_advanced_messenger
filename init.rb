@@ -21,4 +21,5 @@ Redmine::Plugin.register :redmine_advanced_messenger do
   end
 
   Journal.send(:include, Patches::JournalPatch)
+  Message.send(:include, Patches::MessagePatch)
 end

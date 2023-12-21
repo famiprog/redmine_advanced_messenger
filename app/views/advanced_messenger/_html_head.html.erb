@@ -1,15 +1,218 @@
+<%# ============= Plugin styles  ============= %>
 <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'advanced_messenger', :plugin => 'redmine_advanced_messenger' %>
 <% end %>  
+<%# ============= Global unread notifications indicator located on main title bar  ============= %>
 <%= javascript_tag do%>
-
-    function renderAllUnreadNotificationsIndicator(unreadNotificationsCount) {
+    function renderGlobalUnreadNotificationsIndicator(unreadNotificationsCount) {
         const color = unreadNotificationsCount > 0 ? "#ff4545" : "#2bff2b";
         $("#all-unread-notifications-indicator").html("<a href='/my/page'><%=t(:top_app_menu_unread_notifications)%>: <span style='color:" + color + "; font-weight:bold'>" + unreadNotificationsCount + "</span></a>");
     }
 
     jQuery( document ).ready(function() {
         $("div#loggedas").append("<span id='all-unread-notifications-indicator'><span>");
-        renderAllUnreadNotificationsIndicator(<%= getUnreadNotificationsForCurrentUserCount()%>);
+        renderGlobalUnreadNotificationsIndicator(<%= getUnreadNotificationsForCurrentUserCount()%>);
     });
+<% end %>
+<%# ============= Helper javascript render methods that are reused in many parts of the application ============= %>
+<%
+    current_controller = controller.controller_name
+    current_action = controller.action_name
+%>
+<% if current_controller == 'issues' && current_action == 'show' || current_controller == 'messages' && current_action == 'show' %>
+    <%= javascript_tag do %>
+        const RED = "red";
+        const GREEN = "#55CB85";
+
+        function renderExpandCollapseButton(expanded, currentNode, entityId, endpoint) {
+            const cssClass = expanded ? 'icon icon-toggle-minus' : 'icon icon-toggle-plus';
+            currentNode.find('.expand-collapse-icon-placeholder').html(
+                "<a class='" + cssClass + "' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + entityId + "/" + (expanded ? 2 : 1) + "/" + endpoint + "'></a>"
+            );
+        }
+
+        function renderExpandedCollapsed1(entityId, endpoint, currentNode, expanded, isInitialRender) {
+            renderExpandCollapseButton(expanded, currentNode, entityId, endpoint);
+
+            var showOrHideContent = expanded ? "show" : "hide";
+            var showOrHidePreview = expanded ? "hide" : "show";
+
+            // ======= Show or hide content ======
+            currentNode.find('.message-content')[showOrHideContent]();
+
+            currentNode.find('.details')[showOrHideContent]();
+            // setTimeout is a workarround for:
+            // At page load, for collapsed notes with images, even if we hide them they become visible again
+            setTimeout(() => currentNode.find('.thumbnails')[showOrHideContent](), isInitialRender && !expanded ? 100 : 0);
+            
+            // ====== Show or hide preview ======
+            currentNode.find('.message-preview')[showOrHidePreview]();
+        }
+
+        function renderExpandAndReadIndicatorForCurrentUser(readableEntityId, endpoint, currentNode, readByUsers, currentUserId, notesPreview, isInitialRender) {
+            if (currentNode.length == 0) return;
+
+            const isOfInterestForCurrentUser = readByUsers[currentUserId]?.read != undefined;   
+            const isReadByCurrentUser = readByUsers[currentUserId]?.read;
+            const collapsed = readByUsers[currentUserId]?.collapsed;
+
+            if (!isOfInterestForCurrentUser && !collapsed || isReadByCurrentUser == 1) {
+                renderExpandedCollapsed1(readableEntityId, endpoint, currentNode, true);
+            } else {
+                renderExpandedCollapsed1(readableEntityId, endpoint, currentNode, false, isInitialRender);
+            }
+            
+            // ====== Current user read status + read/unread button ======
+            if (isOfInterestForCurrentUser) {
+                let span = currentNode.find('.read-unread-indicators-at-right').find('.read_checkbox_placeholder');
+                span.html("<span style='padding-right: 5px'> <%=t(:message_read)%> </span>"
+                            + (isReadByCurrentUser ? 
+                            "<a class='icon icon-checked-green readButton' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + readableEntityId + "/0/" + endpoint + "'></a>" 
+                        : "<a class='icon icon-unchecked-red unreadButton' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + readableEntityId + "/1/" + endpoint + "'></a>"));
+            }
+
+            // ====== Panel border color ======
+            if (!isOfInterestForCurrentUser) {
+                currentNode.css({"border-color": "#628DB6"});
+            } else if (isReadByCurrentUser == 0) {
+                currentNode.css({"border-color": RED});
+            } else {
+                currentNode.css({"border-color": GREEN});
+            }
+
+            // ====== message-preview ======
+            renderNotesPreviewContent(currentNode, isOfInterestForCurrentUser, isReadByCurrentUser, currentUserId, notesPreview);
+
+        }
+
+        function renderNotesPreviewContent(currentNode, isOfInterestForCurrentUser, isReadByCurrentUser, currentUserId, notesPreview) {
+            const notesPreviewDiv = currentNode.find('.message-preview');
+            if (isOfInterestForCurrentUser) {
+                if (isReadByCurrentUser) {
+                    notesPreviewDiv.html("<span class='collapse-message-read'><%=t(:message_collapsed_read)%></span><span class='collapse-message-preview'>" + notesPreview + "...</span>");
+                } else {
+                    notesPreviewDiv.html("<span class='collapse-message-unread'><%=t(:message_collapsed_unread)%></span>");
+                }
+            } else {
+                notesPreviewDiv.html("<span class='collapse-message'><%=t(:message_collapsed)%></span><span class='collapse-message-preview'>" + notesPreview + "...</span>");
+            }
+        }
+
+        function renderReadIndicatorsForAllUsers(readableEntityId, currentNode, currentUserId, creationDate, users, readStatuses) {
+            let userInitials;
+            let color;
+            let tooltipUserList = "";
+            let usersColoredInitials = "<span style='padding-right: 5px'>";
+            let isSomeoneInterestedIn= Object.keys(users).length > 0;
+            let i = 0;
+            for (const [userId, user] of Object.entries(users)) {
+                const readStatus = readStatuses[userId] 
+                userInitials = user.firstname.charAt(0).toUpperCase() + user.lastname.charAt(0).toUpperCase(); 
+                colorStyle = "style='color:" + (readStatus["read"] == 0 ? RED : GREEN) + "'";
+                tooltipUserList += "<li " + colorStyle.replace(GREEN, "green") + ">" + userInitials + " - " + user.link +
+                                        " (" + (readStatus["read"] == 0 ? "<%=t(:message_notifications_tooltip_list_item_not_viewed)%>" : readStatus["date"]) + ")" + 
+                                    "</li>";
+                usersColoredInitials +="<span " + colorStyle + ">" + userInitials + "</span>";
+                if (i < Object.keys(users).length - 1) {
+                    usersColoredInitials += ", ";
+                }
+                i++;
+            }
+            usersColoredInitials += "</span>";
+
+            const isOfInterestForCurrentUser = false;
+            for (const user in users) {
+                if (user.id == currentUserId) {
+                    isOfInterestForCurrentUser = true;
+                    break;
+                }
+            }
+            if (isSomeoneInterestedIn) {
+                const readUnreadIndicators = currentNode.find('.users_initials_and_tooltip_placeholder');
+                let tooltipTriggerId = "others-notifications-tooltip-" + readableEntityId;
+                const tooltip = "<a id='" + tooltipTriggerId + "' class='icon icon-chat' title=' ' style='cursor: pointer'></a>";
+                tooltipTriggerId = "#" + tooltipTriggerId;   
+
+                readUnreadIndicators.html((isOfInterestForCurrentUser ? " | " : "") + usersColoredInitials + tooltip);
+                
+                // ====== tooltip ======
+                $(tooltipTriggerId).tooltip({
+                    content: function () {
+                        return "<div class='ui-helper-clearfix notifications-title'>" +
+                                    "<span class='ui-button-icon ui-icon ui-icon-closethick notifications-close-button'></span>" +  
+                                    "<span class='icon icon-chat notifications-title'><%=t(:global_popup_title)%></span>" +
+                                "</div>" + 
+                                "<div>" + 
+                                    "<span>" + 
+                                        "<%= t(:message_notifications_tooltip_list_title).html_safe %>".replace("%{date}", creationDate) + 
+                                    "</span>" + 
+                                    "<ul>" +
+                                        tooltipUserList +
+                                    "</ul>" +
+                                "</div>"; 
+                    },
+                    classes: {
+                        "ui-tooltip": "notifications-tooltip"
+                    },
+                    trigger: "click"
+                });
+
+                // ==============================================
+                // Logic for tooltip that opens on click, 
+                // and that closes when clicking outside or when clicking on a close button 
+                // ==============================================    
+                
+                function closeTooltip() {
+                    $(tooltipTriggerId).tooltip('close');
+                    $(tooltipTriggerId).attr('ttVisible','no');
+                }
+
+                $(tooltipTriggerId).unbind('mouseover');
+                $(tooltipTriggerId).attr('ttVisible','no');
+                
+                $(tooltipTriggerId).click(function() {
+                    if($(tooltipTriggerId).attr('ttVisible') == 'no') {
+                        
+                        // Open the tooltip on click
+                        $(tooltipTriggerId).tooltip('open');
+                        $(tooltipTriggerId).unbind('mouseleave');
+                        $(tooltipTriggerId).attr('ttVisible','yes');
+
+                        // Add handlers for closing the tooltip
+                        $(document).on("click", function (event) {
+                                // Target is not the tootltip or a child of the tooltip
+                                if ($(event.target).closest("#" + $(tooltipTriggerId).data("ui-tooltip-id")).length === 0 && $(event.target).closest(tooltipTriggerId).length === 0) {
+                                    closeTooltip();
+                                    $(this).unbind('click', arguments.callee);
+                                }
+                            }
+                        );
+                        $("#" + $(tooltipTriggerId).data("ui-tooltip-id") + " .ui-icon-closethick").click(closeTooltip);
+                    }
+                });
+            }
+        }
+
+        function setupPluginPlaceholders(parentDOMNode, headerSelector, contentSelector) {
+            parentDOMNode.addClass("advanced-messenger-bordered-panel");
+
+            // ====== Set the placeholders that will contain dynamically render content (that changes without page refresh) ======
+            (parentDOMNode.children('.contextual').length == 0) && (parentDOMNode = parentDOMNode.children(':first'));  
+            parentDOMNode.children('.contextual').after("<div class='read-unread-indicators-at-right' style='float: right;'><span class='read_checkbox_placeholder'></span><span class='users_initials_and_tooltip_placeholder'></span></div>");
+            
+            const expandCollapse = "<div class='expand-collapse-icon-placeholder'></div>";
+            var header = parentDOMNode.children(headerSelector);
+            var gravatar = header.find(".gravatar");
+            gravatar.length == 0 ? header.prepend(expandCollapse): gravatar.after(expandCollapse);     
+
+            parentDOMNode.children(contentSelector).html("<div class='message-content'>" + parentDOMNode.children(contentSelector).html() + "</div>");
+            parentDOMNode.children(contentSelector).append("<p class='message-preview' style='color: rgb(100, 100, 100)'></p>");
+        }
+
+        function renderPluginForMessage(id, read_by_users, preview, creationDate, messageDOMNode, headerSelector, contentSelector, updateReadByUsersUrl, users, readStatuses) {
+            setupPluginPlaceholders(messageDOMNode, headerSelector, contentSelector);
+            renderExpandAndReadIndicatorForCurrentUser(id, updateReadByUsersUrl, messageDOMNode, read_by_users, "<%= User.current.id %>", preview, true);     
+            renderReadIndicatorsForAllUsers(id, messageDOMNode, "<%= User.current.id %>", creationDate, users, readStatuses);"update_message_read_by_users"
+        }
+    <% end %>
 <% end %>

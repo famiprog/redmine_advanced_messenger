@@ -3,24 +3,12 @@
 {
     var currentNote = $("#change-" + <%= journal.id %> + ".journal.has-notes");
     if (currentNote.length != 0) {
-        // ====== Set the note panel blue border ======
-        currentNote.addClass("advanced-messenger-note");
-
-        // ====== Set the placeholders that will contain dynamically render content (that changes without page refresh) ======
-        currentNote.find('.contextual').after("<div class='read-unread-indicators-at-right' style='float: right;'><span class='read_checkbox_placeholder'></span><span class='users_initials_and_tooltip_placeholder'></span></div>");
-        
-        const gravatar = currentNote.find(".gravatar");
-        const expandCollapse = "<div class='expand-collapse-icon-placeholder'></div>";
-        gravatar.length == 0 ? currentNote.find(".note-header").prepend(expandCollapse): gravatar.after(expandCollapse);
-
-        currentNote.find('.wiki').html("<div class='note-content'>" + currentNote.find('.wiki').html() + "</div>");
-        currentNote.find('.wiki').append("<p class='note-preview' style='color: rgb(100, 100, 100)'></p>");
-
-        // ====== Expand/collapse indicators and panel + read indicator for currrent user ======
-        renderExpandAndReadIndicatorForCurrentUser("<%= journal.id %>", <%= journal.read_by_users.html_safe %>, "<%= User.current.id %>", "<%= journal.notes.nil? ? '' : escape_javascript(journal.notes[0, 130]) %>", true);
-
-        // ====== Read/Unread indicators and tooltip for all users ======
-        renderReadIndicatorsForAllUsers("<%= journal.id %>", "<%= User.current.id %>", '<%=l(:label_time_ago, :time => time_tag(journal.created_on).html_safe).html_safe%>', ...<%= raw(getUsersReadStatus(journal).to_json)%>);
+        renderPluginForMessage("<%= journal.id %>", 
+                                    <%= journal.read_by_users.html_safe %>,
+                                    "<%= journal.notes.nil? ? '' : escape_javascript(journal.notes[0, 130])  %>", 
+                                    '<%=l(:label_time_ago, :time => time_tag(journal.created_on).html_safe).html_safe%>', 
+                                    currentNote, ".note-header", ".wiki", "update_journal_read_by_users", 
+                                    ...<%= raw(getUsersReadStatus(journal.read_by_users).to_json)%>);
     }
 }
 <% end %>
