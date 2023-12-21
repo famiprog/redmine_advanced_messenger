@@ -5,11 +5,15 @@ en:
   label_time_ago: "%{time} ago"
   
   message_collapsed: "The message is collapsed. Preview: "
+  message_collapsed_ignored: "The message is ignored."
   message_collapsed_read: "The message is read, but collapsed. Preview: "
   message_collapsed_unread: "The message is unread. Please expand it to see its content & mark read."
-  message_notifications_tooltip_list_title: "%{date} notifications sent (<span style='color:green'>read</span>/<span style='color:red'>unread</span>) to:"
+  message_notifications_tooltip_list_title: "%{date} notifications sent (<span style='color:green'>read</span>/<span style='color:red'>unread</span>/<span style='color:#ccc'>ignored</span>) to:"
   message_notifications_tooltip_list_item_not_viewed: "unread"
+  message_ignored: "Ignored"
   message_read: "Read"
+  message_read_but_collapsed: "Read but collapsed"
+  message_unread: "Unread"
   
   notifications_dialog_go_to_first_one: "Go to first one"
   notifications_dialog_text_for_current_user: "For %{user}, there are <span id='unread-notifications-count'></span> <span style='color: red'> unread </span> notifications."
@@ -21,6 +25,8 @@ en:
   my_page_forum_unread_notifications: "Unread forum messages:"
   my_page_all_issues_notifications_read: "All issues notifications are read"
   my_page_all_forum_notifications_read: "All forum messages are read"
+  my_page_mark_all_as_ignored: "Mark all as ignored"
+  my_page_mark_all_as_ignored_confirmation: "You won't be notified about the ignored messages anymore. Are you sure you want to proceed?"
   
   top_app_menu_unread_notifications: "Unread notifications"
 

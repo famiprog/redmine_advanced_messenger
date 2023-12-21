@@ -37,7 +37,7 @@ class AdvancedMessengerController < ApplicationController
       return
     end
     read_by_users = JSON.parse(entity.read_by_users);
-    if not ["0", "1", "2"].include? read_value
+    if not ["0", "1", "2", "3"].include? read_value
       Rails.logger.error("#{read_value} is not a valid read status for a user")
       render_404
       return
@@ -62,6 +62,39 @@ class AdvancedMessengerController < ApplicationController
       read_by_users.delete(User.current.id.to_s)
     else  
       read_by_users[User.current.id.to_s] = {read: new_value.to_i, date: DateTime.now}
+    end
+  end
+
+  def ignore_all_unread_issues_notes
+    unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%');
+    ignore_all_unread_entities(unread_issues_notifications)
+  end
+
+  def ignore_all_unread_issues_notes_for_an_issue
+    unread_issue_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", params[:issue_id], '%"' + User.current.id.to_s + '":{"read":0%');
+    ignore_all_unread_entities(unread_issue_notifications)
+  end
+
+  def ignore_all_unread_forum_messages
+    unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%');
+    ignore_all_unread_entities(unread_forum_messages)
+  end
+
+  def ignore_all_unread_forum_messages_for_a_topic
+    unread_messages_for_topic = Message.where("(id = ? OR parent_id = ?) AND read_by_users ILIKE ?", params[:topic_id], params[:topic_id], '%"' + User.current.id.to_s + '":{"read":0%');
+    ignore_all_unread_entities(unread_messages_for_topic)
+  end
+
+  def ignore_all_unread_entities(unread_entities)
+    unread_entities.each_with_index do |unread_entity, index|
+      read_by_users = JSON.parse(unread_entity.read_by_users) 
+      read_by_users[User.current.id.to_s]["read"] = 3
+      unread_entity.read_by_users = read_by_users.to_json
+      unread_entity.save
+    end
+
+    respond_to do |format|
+      format.js {render inline: "location.reload();" }
     end
   end
 end

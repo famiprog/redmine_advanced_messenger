@@ -23,6 +23,7 @@
     <%= javascript_tag do %>
         const RED = "red";
         const GREEN = "#55CB85";
+        const GREY = "#ccc";
 
         function renderExpandCollapseButton(expanded, currentNode, entityId, endpoint) {
             const cssClass = expanded ? 'icon icon-toggle-minus' : 'icon icon-toggle-plus';
@@ -31,7 +32,7 @@
             );
         }
 
-        function renderExpandedCollapsed1(entityId, endpoint, currentNode, expanded, isInitialRender) {
+        function renderExpandedCollapsed(entityId, endpoint, currentNode, expanded, isInitialRender) {
             renderExpandCollapseButton(expanded, currentNode, entityId, endpoint);
 
             var showOrHideContent = expanded ? "show" : "hide";
@@ -49,49 +50,52 @@
             currentNode.find('.message-preview')[showOrHidePreview]();
         }
 
+        function changeReadByUsers(newValue, entityId, endpoint) {
+            $.ajax({url:"/advanced_messenger/" + entityId + "/" + newValue + "/" + endpoint, type:"POST"});
+        }
+
         function renderExpandAndReadIndicatorForCurrentUser(readableEntityId, endpoint, currentNode, readByUsers, currentUserId, notesPreview, isInitialRender) {
             if (currentNode.length == 0) return;
 
-            const isOfInterestForCurrentUser = readByUsers[currentUserId]?.read != undefined;   
-            const isReadByCurrentUser = readByUsers[currentUserId]?.read;
+            const isOfInterestForCurrentUser = readByUsers[currentUserId]?.read != undefined; 
+            const readValue = readByUsers[currentUserId]?.read;
+            let color = !isOfInterestForCurrentUser ? "#628DB6" : (readValue == 0 ? RED : (readValue == 3 ? GREY : GREEN)) 
             const collapsed = readByUsers[currentUserId]?.collapsed;
 
-            if (!isOfInterestForCurrentUser && !collapsed || isReadByCurrentUser == 1) {
-                renderExpandedCollapsed1(readableEntityId, endpoint, currentNode, true);
+            if (!isOfInterestForCurrentUser && !collapsed || readValue == 1) {
+                renderExpandedCollapsed(readableEntityId, endpoint, currentNode, true);
             } else {
-                renderExpandedCollapsed1(readableEntityId, endpoint, currentNode, false, isInitialRender);
+                renderExpandedCollapsed(readableEntityId, endpoint, currentNode, false, isInitialRender);
             }
             
             // ====== Current user read status + read/unread button ======
             if (isOfInterestForCurrentUser) {
-                let span = currentNode.find('.read-unread-indicators-at-right').find('.read_checkbox_placeholder');
-                span.html("<span style='padding-right: 5px'> <%=t(:message_read)%> </span>"
-                            + (isReadByCurrentUser ? 
-                            "<a class='icon icon-checked-green readButton' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + readableEntityId + "/0/" + endpoint + "'></a>" 
-                        : "<a class='icon icon-unchecked-red unreadButton' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/" + readableEntityId + "/1/" + endpoint + "'></a>"));
+                let span = currentNode.find('.read-unread-indicators-at-right').find('.read_combobox_placeholder');
+                span.html("<select style='color:" + color + ";border-color:" + color + "' onchange=\"changeReadByUsers(this.value," + readableEntityId + " , \'" + endpoint + "\' )\">" + 
+                                "<option style='color:red' " + (readValue == 0 ? "selected='selected'" : "") + " value='0'><%=t(:message_unread)%></option>" + 
+                                "<option style='color:green' " + (readValue == 1 ? "selected='selected'" : "") + " value='1'><%=t(:message_read)%></option>" +
+                                "<option style='color:green' " + (readValue == 2 ? "selected='selected'" : "") + " value='2'><%=t(:message_read_but_collapsed)%></option>" + 
+                                "<option style='color:#ccc' " + (readValue == 3 ? "selected='selected'" : "") + " value='3'><%=t(:message_ignored)%></option>" +
+                            "</select>");
             }
 
             // ====== Panel border color ======
-            if (!isOfInterestForCurrentUser) {
-                currentNode.css({"border-color": "#628DB6"});
-            } else if (isReadByCurrentUser == 0) {
-                currentNode.css({"border-color": RED});
-            } else {
-                currentNode.css({"border-color": GREEN});
-            }
-
+            currentNode.css({"border-color": color});
+            
             // ====== message-preview ======
-            renderNotesPreviewContent(currentNode, isOfInterestForCurrentUser, isReadByCurrentUser, currentUserId, notesPreview);
+            renderNotesPreviewContent(currentNode, isOfInterestForCurrentUser, readValue, currentUserId, notesPreview);
 
         }
 
-        function renderNotesPreviewContent(currentNode, isOfInterestForCurrentUser, isReadByCurrentUser, currentUserId, notesPreview) {
+        function renderNotesPreviewContent(currentNode, isOfInterestForCurrentUser, readValue, currentUserId, notesPreview) {
             const notesPreviewDiv = currentNode.find('.message-preview');
             if (isOfInterestForCurrentUser) {
-                if (isReadByCurrentUser) {
-                    notesPreviewDiv.html("<span class='collapse-message-read'><%=t(:message_collapsed_read)%></span><span class='collapse-message-preview'>" + notesPreview + "...</span>");
-                } else {
+                if (readValue == 0) {
                     notesPreviewDiv.html("<span class='collapse-message-unread'><%=t(:message_collapsed_unread)%></span>");
+                } else if (readValue == 3) {
+                    notesPreviewDiv.html("<span class='collapse-message-ignored'><%=t(:message_collapsed_ignored)%></span>");
+                } else {
+                    notesPreviewDiv.html("<span class='collapse-message-read'><%=t(:message_collapsed_read)%></span><span class='collapse-message-preview'>" + notesPreview + "...</span>");
                 }
             } else {
                 notesPreviewDiv.html("<span class='collapse-message'><%=t(:message_collapsed)%></span><span class='collapse-message-preview'>" + notesPreview + "...</span>");
@@ -108,7 +112,7 @@
             for (const [userId, user] of Object.entries(users)) {
                 const readStatus = readStatuses[userId] 
                 userInitials = user.firstname.charAt(0).toUpperCase() + user.lastname.charAt(0).toUpperCase(); 
-                colorStyle = "style='color:" + (readStatus["read"] == 0 ? RED : GREEN) + "'";
+                colorStyle = "style='color:" + (readStatus["read"] == 0 ? RED : (readStatus["read"] == 3 ? GREY : GREEN)) + "'";
                 tooltipUserList += "<li " + colorStyle.replace(GREEN, "green") + ">" + userInitials + " - " + user.link +
                                         " (" + (readStatus["read"] == 0 ? "<%=t(:message_notifications_tooltip_list_item_not_viewed)%>" : readStatus["date"]) + ")" + 
                                     "</li>";
@@ -198,7 +202,7 @@
 
             // ====== Set the placeholders that will contain dynamically render content (that changes without page refresh) ======
             (parentDOMNode.children('.contextual').length == 0) && (parentDOMNode = parentDOMNode.children(':first'));  
-            parentDOMNode.children('.contextual').after("<div class='read-unread-indicators-at-right' style='float: right;'><span class='read_checkbox_placeholder'></span><span class='users_initials_and_tooltip_placeholder'></span></div>");
+            parentDOMNode.children('.contextual').after("<div class='read-unread-indicators-at-right' style='float: right;'><span class='read_combobox_placeholder'></span><span class='users_initials_and_tooltip_placeholder'></span></div>");
             
             const expandCollapse = "<div class='expand-collapse-icon-placeholder'></div>";
             var header = parentDOMNode.children(headerSelector);

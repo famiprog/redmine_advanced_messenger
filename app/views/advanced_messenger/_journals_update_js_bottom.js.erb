@@ -17,6 +17,6 @@
         currentNote.find('.wiki').append("<p class='message-preview' style='color: rgb(100, 100, 100)'></p>");
         <%read_by_user = JSON.parse(journal.read_by_users)[User.current.id.to_s] || {}%>
         renderNotesPreviewContent(currentNode, <%=read_by_user["read"] != nil%>, <%=read_by_user["read"] != nil && read_by_user["read"] != 0%>, <%=User.current.id%>, "<%= escape_javascript(journal.notes)[0, 130] %>");
-        renderExpandedCollapsed1(<%= journal.id %>, "update_journal_read_by_users", currentNode, currentNote.find('.expand-collapse-icon-placeholder a').hasClass("icon-toggle-minus"), false);
+        renderExpandedCollapsed(<%= journal.id %>, "update_journal_read_by_users", currentNode, currentNote.find('.expand-collapse-icon-placeholder a').hasClass("icon-toggle-minus"), false);
     }
 }<%end%>
