@@ -1,0 +1,167 @@
+<%# ============= My Page notifications ============= %>
+<% if current_page?(:controller => 'my', :action => 'page') %>
+    <%= javascript_tag do %>
+        $("#my-page").before(
+            "<div id='notifications-placeholder'></div>"
+        );
+    <%end%>
+    <%issues_or_forum_data = [{
+                                grouped_unread_notifications: getUnreadNotificationsGroupByIssues(),
+                                get_link: lambda {|issue| return "/issues/" + issue.id.to_s},
+                                my_page_all_notifications_read_text: :my_page_all_issues_notifications_read,
+                                my_page_unread_notifications_text: :my_page_issues_unread_notifications,
+                            }, 
+                            {
+                                grouped_unread_notifications: getUnreadNotificationsGroupByTopic(),
+                                get_link: lambda {|topic| return "/boards/" + topic.board.id.to_s + "/topics/" + topic.id.to_s },
+                                my_page_all_notifications_read_text: :my_page_all_forum_notifications_read,
+                                my_page_unread_notifications_text: :my_page_forum_unread_notifications
+                            }]
+    %>
+
+    <%issues_or_forum_data.each do |issues_or_forum| %> 
+        <% if issues_or_forum[:grouped_unread_notifications].count == 0%>
+            <%= javascript_tag do %>
+                $("#notifications-placeholder").append(
+                    "<h3 style='color:#2A5685'><%=t(issues_or_forum[:my_page_all_notifications_read_text])%></h3>"
+                );
+            <%end%>
+        <%else%>
+            <%= javascript_tag do %>
+                html = "<h3 style='color:#2A5685'><%=t(issues_or_forum[:my_page_unread_notifications_text])%></h3><ul style='list-style-type: none; padding-inline-start: 15px; font-weight: bold;'>";
+                <%issues_or_forum[:grouped_unread_notifications].each_value do |unread_notification_status| %>  
+                    html += "<li>" + 
+                                "<a href='<%=issues_or_forum[:get_link].call(unread_notification_status.parent)%>'>" + 
+                                    "(<%=unread_notification_status.count%>) #<%=unread_notification_status.parent.id%> <%=unread_notification_status.parent.subject%>" +
+                                "</a>" + 
+                            "</li>"
+                <%end%>
+                html += "</ul>";
+                $("#notifications-placeholder").append(html);
+            <%end%>
+        <%end%>
+    <%end%>
+<%end%>
+
+<%# ============= Forum messages read/unread indicators on a topic page ============= %>
+<%
+    current_controller = controller.controller_name
+    current_action = controller.action_name
+    @users_cache = Hash.new
+%>
+<% if User.current.logged? && current_controller == 'messages' && current_action == 'show' %>
+    <%= javascript_tag do%>
+        var messageDOMNode = $("#content").children(".contextual, h2, .message").wrapAll("<div id='topic-wrapper' class='forum-topic'></div>").parent();
+        renderPluginForMessageOrJournal("<%= @topic.id %>", <%= @topic.read_by_users.html_safe %>,"<%= escape_javascript(@topic.content.to_s[0, 130]) %>", 
+                                    '<%=l(:label_time_ago, :time => time_tag(@topic.created_on).html_safe).html_safe%>', messageDOMNode, "h2", ".message", "update_message_read_by_users",
+                                    ...<%= raw(getUsersReadStatus(@topic.read_by_users).to_json)%>);
+    <% end %>
+    <% if @replies != nil %>
+        <% @replies.each do |message| %>
+            <%= javascript_tag do%>
+                var messageDOMNode = $("#message-<%=message.id%>")
+                renderPluginForMessageOrJournal("<%= message.id %>", <%= message.read_by_users.html_safe %>,"<%= escape_javascript(message.content.to_s[0, 130]) %>", 
+                                            '<%=l(:label_time_ago, :time => time_tag(message.created_on).html_safe).html_safe%>', messageDOMNode, ".reply-header", ".wiki", "update_message_read_by_users", 
+                                            ...<%= raw(getUsersReadStatus(message.read_by_users).to_json)%>);
+            <%end%>
+        <%end%>
+    <%end%>
+<% end %>
+
+<%# ============= Bottom right unread notifications dialog (only for issue/forum topic pages) ============= %>
+<% if current_controller == 'issues' && current_action == 'show' || current_controller == 'messages' && current_action == 'show' %>
+    <div id="notifications_dialog" >
+        <%=l(:notifications_dialog_text_for_current_user, :user => link_to_user(User.current).gsub("\"", "\'")).html_safe%>
+        <br/>
+        <a id="go-to-first-one" class="icon icon-down-left-arrow"><%=t(:notifications_dialog_go_to_first_one)%></a> 
+        <a id="status-for-others-link" title=" " class='icon icon-chat' style="color:#169; cursor:pointer"><%=t(:notifications_dialog_status_for_others)%></a>
+        <div id="other-users-status-list-content-holder" style="display:none"></div>
+        <!--By default first link inside a dialog gets auto focus (its a uiDialog feature: https://api.jqueryui.com/1.11/dialog/).
+        We don't need this, so we autofocus on another element without any graphical implication-->
+        <div autofocus></div>
+        </div>
+    </div>
+
+    <%= javascript_tag do%>
+        let width;
+        var dialog = $("#notifications_dialog").dialog( {
+            width: $("#sidebar").width(),
+            height: 90,
+            resizable: false,
+            dialogClass: 'fixed-issue-notifications-dialog',
+            draggable: false,
+            classes: {"ui-dialog": "ui-corner-all notifications-dialog"},
+
+            // the 'title' attribute doesn't accept html. That's why we need to set the title in the 'open()' function
+            open: function(event, ui) {
+                $(this).parent().find('.ui-dialog-titlebar .ui-dialog-title').remove();
+                $(this).parent().find('.ui-dialog-titlebar').append("<span class='ui-dialog-title icon icon-chat'><%=t(:global_popup_title)%></span>");
+            }
+        });
+
+        $(window).resize(function() {
+            $("#notifications_dialog").dialog( "option", "width", $("#sidebar").width());
+        });
+
+        $("#notifications_dialog").parent().find(".ui-dialog-titlebar").css({
+            "border" : "0px none" 
+        });
+
+        $("#notifications_dialog").parent().css({
+            "border": "0px unset"
+        })
+
+        $("#status-for-others-link").tooltip({
+            content: function () {
+                if ($("#other-users-status-list-content-holder").children().length == 0) {
+                    return "<%=t(:notifications_dialog_others_tooltip_text_all_read)%>"
+                }
+                return "<span>" + 
+                            "<%=t(:notifications_dialog_others_tooltip_text)%>:" +
+                        "</span>" +  
+                        "<ul id='other-users-status-list' style='list-style-type: none; padding-inline-start: 15px; margin-top: 5px;'>" +
+                            $("#other-users-status-list-content-holder").html() + 
+                        "</ul>";
+            },
+            classes: {
+                "ui-tooltip": "notification-statuses"
+            }
+        });
+    <% end %>
+    <%= javascript_tag do %>
+        function renderBottomRightUnreadNotificationsDialog(firstUnreadNotificationIndex, unreadNotificationsForCurrentUser, unreadNotificationsForOtherUsers, url) {
+            $("#unread-notifications-count").html(unreadNotificationsForCurrentUser);
+            
+            if (unreadNotificationsForCurrentUser == 0) {
+                $("#go-to-first-one").hide();
+                $(".notifications-dialog").removeClass("unread");
+                
+            } else {
+                $("#go-to-first-one").attr("href", url);
+                $("#go-to-first-one").show();
+                $(".notifications-dialog").addClass("unread");
+            }
+
+            let otherUsersStatussesList = "";
+            for (let key in unreadNotificationsForOtherUsers){
+                const unreadNotificationStatus = unreadNotificationsForOtherUsers[key];
+                otherUsersStatussesList += "<li>(" + unreadNotificationStatus.count + ") " + unreadNotificationStatus.user + "</li>"
+            }   
+            
+            $("#other-users-status-list-content-holder").html(otherUsersStatussesList);
+        }
+    <%end%>
+
+    <%if @issue != nil
+        unread_notification_statuses = getUnreadJournalsStatus(@issue.visible_journals_with_index)
+    elsif @replies != nil 
+        unread_notification_statuses = getUnreadMessagesStatus([*@replies, @message])
+    end%>
+    <%= javascript_tag do %>
+        renderBottomRightUnreadNotificationsDialog(<%=unread_notification_statuses[0]%>, 
+                                            <%=unread_notification_statuses[1]%>, 
+                                            <%=unread_notification_statuses[2].to_json.html_safe%>,
+                                            "<%=@issue != nil ? '#note-' + unread_notification_statuses[0].to_s : '?r=' + unread_notification_statuses[0].to_s + '#message-' + unread_notification_statuses[0].to_s%>"
+                                            );
+    <%end%>
+<%end%>
