@@ -47,11 +47,12 @@
 <%
     current_controller = controller.controller_name
     current_action = controller.action_name
+    @users_cache = Hash.new
 %>
 <% if User.current.logged? && current_controller == 'messages' && current_action == 'show' %>
     <%= javascript_tag do%>
         var messageDOMNode = $("#content").children(".contextual, h2, .message").wrapAll("<div id='topic-wrapper' class='forum-topic'></div>").parent();
-        renderPluginForMessage("<%= @topic.id %>", <%= @topic.read_by_users.html_safe %>,"<%= escape_javascript(@topic.content.to_s[0, 130]) %>", 
+        renderPluginForMessageOrJournal("<%= @topic.id %>", <%= @topic.read_by_users.html_safe %>,"<%= escape_javascript(@topic.content.to_s[0, 130]) %>", 
                                     '<%=l(:label_time_ago, :time => time_tag(@topic.created_on).html_safe).html_safe%>', messageDOMNode, "h2", ".message", "update_message_read_by_users",
                                     ...<%= raw(getUsersReadStatus(@topic.read_by_users).to_json)%>);
     <% end %>
@@ -59,7 +60,7 @@
         <% @replies.each do |message| %>
             <%= javascript_tag do%>
                 var messageDOMNode = $("#message-<%=message.id%>")
-                renderPluginForMessage("<%= message.id %>", <%= message.read_by_users.html_safe %>,"<%= escape_javascript(message.content.to_s[0, 130]) %>", 
+                renderPluginForMessageOrJournal("<%= message.id %>", <%= message.read_by_users.html_safe %>,"<%= escape_javascript(message.content.to_s[0, 130]) %>", 
                                             '<%=l(:label_time_ago, :time => time_tag(message.created_on).html_safe).html_safe%>', messageDOMNode, ".reply-header", ".wiki", "update_message_read_by_users", 
                                             ...<%= raw(getUsersReadStatus(message.read_by_users).to_json)%>);
             <%end%>
@@ -68,10 +69,6 @@
 <% end %>
 
 <%# ============= Bottom right unread notifications dialog (only for issue/forum topic pages) ============= %>
-<%
-    current_controller = controller.controller_name
-    current_action = controller.action_name
-%>
 <% if current_controller == 'issues' && current_action == 'show' || current_controller == 'messages' && current_action == 'show' %>
     <div id="notifications_dialog" >
         <%=l(:notifications_dialog_text_for_current_user, :user => link_to_user(User.current).gsub("\"", "\'")).html_safe%>

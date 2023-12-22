@@ -1,7 +1,7 @@
 <%# ============= Plugin styles  ============= %>
 <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'advanced_messenger', :plugin => 'redmine_advanced_messenger' %>
-<% end %>  
+<% end %>
 <%# ============= Global unread notifications indicator located on main title bar  ============= %>
 <%= javascript_tag do%>
     function renderGlobalUnreadNotificationsIndicator(unreadNotificationsCount) {
@@ -31,7 +31,7 @@
             );
         }
 
-        function renderExpandedCollapsed1(entityId, endpoint, currentNode, expanded, isInitialRender) {
+        function renderExpandedCollapsed(entityId, endpoint, currentNode, expanded, isInitialRender) {
             renderExpandCollapseButton(expanded, currentNode, entityId, endpoint);
 
             var showOrHideContent = expanded ? "show" : "hide";
@@ -57,9 +57,9 @@
             const collapsed = readByUsers[currentUserId]?.collapsed;
 
             if (!isOfInterestForCurrentUser && !collapsed || isReadByCurrentUser == 1) {
-                renderExpandedCollapsed1(readableEntityId, endpoint, currentNode, true);
+                renderExpandedCollapsed(readableEntityId, endpoint, currentNode, true);
             } else {
-                renderExpandedCollapsed1(readableEntityId, endpoint, currentNode, false, isInitialRender);
+                renderExpandedCollapsed(readableEntityId, endpoint, currentNode, false, isInitialRender);
             }
             
             // ====== Current user read status + read/unread button ======
@@ -209,7 +209,7 @@
             parentDOMNode.children(contentSelector).append("<p class='message-preview' style='color: rgb(100, 100, 100)'></p>");
         }
 
-        function renderPluginForMessage(id, read_by_users, preview, creationDate, messageDOMNode, headerSelector, contentSelector, updateReadByUsersUrl, users, readStatuses) {
+        function renderPluginForMessageOrJournal(id, read_by_users, preview, creationDate, messageDOMNode, headerSelector, contentSelector, updateReadByUsersUrl, users, readStatuses) {
             setupPluginPlaceholders(messageDOMNode, headerSelector, contentSelector);
             renderExpandAndReadIndicatorForCurrentUser(id, updateReadByUsersUrl, messageDOMNode, read_by_users, "<%= User.current.id %>", preview, true);     
             renderReadIndicatorsForAllUsers(id, messageDOMNode, "<%= User.current.id %>", creationDate, users, readStatuses);"update_message_read_by_users"
