@@ -1,11 +1,11 @@
 class UnreadNotificationsStatus 
     attr_accessor :count
     attr_accessor :user
-    attr_accessor :issue
+    attr_accessor :parent
 
-    def initialize(count = 0, user = nil, issue = nil)
+    def initialize(count = 0, user = nil, parent = nil)
         @count = count
         @user = user
-        @issue = issue
+        @parent = parent
     end
 end
