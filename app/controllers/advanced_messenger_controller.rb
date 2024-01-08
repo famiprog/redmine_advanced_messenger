@@ -10,7 +10,7 @@ class AdvancedMessengerController < ApplicationController
   def update_message_read_by_users
     @message = Message.find_by(id: params[:id])
     update_entity_read_by_users(@message, "message", params[:id], params[:read_by_users],
-                                lambda {|message| return true},
+                                lambda {|message| return message.visible?()},
                                 lambda {|message| 
                                         @replies =  @message.root.children
                                                                       .includes(:author, :attachments, {:board => :project})

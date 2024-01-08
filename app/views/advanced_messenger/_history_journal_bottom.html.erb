@@ -3,7 +3,7 @@
 {
     var currentNote = $("#change-" + <%= journal.id %> + ".journal.has-notes");
     if (currentNote.length != 0) {
-        renderPluginForMessage("<%= journal.id %>", 
+        renderPluginForMessageOrJournal("<%= journal.id %>", 
                                     <%= journal.read_by_users.html_safe %>,
                                     "<%= journal.notes.nil? ? '' : escape_javascript(journal.notes[0, 130])  %>", 
                                     '<%=l(:label_time_ago, :time => time_tag(journal.created_on).html_safe).html_safe%>', 
