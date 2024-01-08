@@ -140,59 +140,64 @@
                 readUnreadIndicators.html((isOfInterestForCurrentUser ? " | " : "") + usersColoredInitials + tooltip);
                 
                 // ====== tooltip ======
-                $(tooltipTriggerId).tooltip({
-                    content: function () {
-                        return "<div class='ui-helper-clearfix notifications-title'>" +
-                                    "<span class='ui-button-icon ui-icon ui-icon-closethick notifications-close-button'></span>" +  
-                                    "<span class='icon icon-chat notifications-title'><%=t(:global_popup_title)%></span>" +
-                                "</div>" + 
-                                "<div>" + 
-                                    "<span>" + 
-                                        "<%= t(:message_notifications_tooltip_list_title).html_safe %>".replace("%{date}", creationDate) + 
-                                    "</span>" + 
-                                    "<ul>" +
-                                        tooltipUserList +
-                                    "</ul>" +
-                                "</div>"; 
-                    },
-                    classes: {
-                        "ui-tooltip": "notifications-tooltip"
-                    },
-                    trigger: "click"
-                });
+                // the `ready` function was needed because otherwise the `show` / `hide` effect didn't had any effect 
+                $(document).ready(function() {
+                    $(tooltipTriggerId).tooltip({
+                        content: function () {
+                            return "<div class='ui-helper-clearfix notifications-title'>" +
+                                        "<span class='ui-button-icon ui-icon ui-icon-closethick notifications-close-button'></span>" +  
+                                        "<span class='icon icon-chat notifications-title'><%=t(:global_popup_title)%></span>" +
+                                    "</div>" + 
+                                    "<div>" + 
+                                        "<span>" + 
+                                            "<%= t(:message_notifications_tooltip_list_title).html_safe %>".replace("%{date}", creationDate) + 
+                                        "</span>" + 
+                                        "<ul>" +
+                                            tooltipUserList +
+                                        "</ul>" +
+                                    "</div>"; 
+                        },
+                        classes: {
+                            "ui-tooltip": "notifications-tooltip"
+                        },
+                        trigger: "click",
+                        show: { delay: 0},
+                        hide: { delay: 0},
+                    });
 
-                // ==============================================
-                // Logic for tooltip that opens on click, 
-                // and that closes when clicking outside or when clicking on a close button 
-                // ==============================================    
-                
-                function closeTooltip() {
-                    $(tooltipTriggerId).tooltip('close');
-                    $(tooltipTriggerId).attr('ttVisible','no');
-                }
-
-                $(tooltipTriggerId).unbind('mouseover');
-                $(tooltipTriggerId).attr('ttVisible','no');
-                
-                $(tooltipTriggerId).click(function() {
-                    if($(tooltipTriggerId).attr('ttVisible') == 'no') {
-                        
-                        // Open the tooltip on click
-                        $(tooltipTriggerId).tooltip('open');
-                        $(tooltipTriggerId).unbind('mouseleave');
-                        $(tooltipTriggerId).attr('ttVisible','yes');
-
-                        // Add handlers for closing the tooltip
-                        $(document).on("click", function (event) {
-                                // Target is not the tootltip or a child of the tooltip
-                                if ($(event.target).closest("#" + $(tooltipTriggerId).data("ui-tooltip-id")).length === 0 && $(event.target).closest(tooltipTriggerId).length === 0) {
-                                    closeTooltip();
-                                    $(this).unbind('click', arguments.callee);
-                                }
-                            }
-                        );
-                        $("#" + $(tooltipTriggerId).data("ui-tooltip-id") + " .ui-icon-closethick").click(closeTooltip);
+                    // ==============================================
+                    // Logic for tooltip that opens on click, 
+                    // and that closes when clicking outside or when clicking on a close button 
+                    // ==============================================    
+                    
+                    function closeTooltip() {
+                        $(tooltipTriggerId).tooltip('close');
+                        $(tooltipTriggerId).attr('ttVisible','no');
                     }
+
+                    $(tooltipTriggerId).unbind('mouseover');
+                    $(tooltipTriggerId).attr('ttVisible','no');
+                    
+                    $(tooltipTriggerId).click(function() {
+                        if($(tooltipTriggerId).attr('ttVisible') == 'no') {
+                            
+                            // Open the tooltip on click
+                            $(tooltipTriggerId).tooltip('open');
+                            $(tooltipTriggerId).unbind('mouseleave');
+                            $(tooltipTriggerId).attr('ttVisible','yes');
+
+                            // Add handlers for closing the tooltip
+                            $(document).on("click", function (event) {
+                                    // Target is not the tootltip or a child of the tooltip
+                                    if ($(event.target).closest("#" + $(tooltipTriggerId).data("ui-tooltip-id")).length === 0 && $(event.target).closest(tooltipTriggerId).length === 0) {
+                                        closeTooltip();
+                                        $(this).unbind('click', arguments.callee);
+                                    }
+                                }
+                            );
+                            $("#" + $(tooltipTriggerId).data("ui-tooltip-id") + " .ui-icon-closethick").click(closeTooltip);
+                        }
+                    });
                 });
             }
         }
