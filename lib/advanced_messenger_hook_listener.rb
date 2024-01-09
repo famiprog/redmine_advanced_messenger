@@ -1,9 +1,7 @@
 class AdvancedMessengerHookListener < Redmine::Hook::ViewListener
     
     render_on :view_layouts_base_html_head, :partial => "advanced_messenger/html_head"
-    render_on :view_issues_show_description_bottom, :partial => "advanced_messenger/global_notifications_render_functions"
-    render_on :view_issues_show_details_bottom, :partial => "advanced_messenger/issue_notifications"
-    render_on :view_layouts_base_body_bottom, :partial => "advanced_messenger/my_page_notifications"
+    render_on :view_layouts_base_body_bottom, :partial => "advanced_messenger/body_bottom"
     
     def view_issues_history_journal_bottom(context={ })
         context[:controller].send(:render_to_string, {
