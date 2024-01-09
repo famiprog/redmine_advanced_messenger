@@ -64,4 +64,14 @@ class AdvancedMessengerController < ApplicationController
       read_by_users[User.current.id.to_s] = {read: new_value.to_i, date: DateTime.now}
     end
   end
+
+  def unread_notifications_count()
+      unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count;
+      unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count
+
+      respond_to do |format|
+        format.json { render json: {count: unread_forum_messages + unread_issues_notifications}, status: 200 }
+        format.html
+      end
+  end
 end
