@@ -25,7 +25,7 @@ en:
   my_page_forum_unread_notifications: "Unread forum messages:"
   my_page_all_issues_notifications_read: "All issues notifications are read"
   my_page_all_forum_notifications_read: "All forum messages are read"
-  my_page_mark_all_as_ignored: "Mark all as ignored"
+  my_page_mark_all_as_ignored: "Mark all unread as ignored"
   my_page_mark_all_as_ignored_confirmation: "You won't be notified about the ignored messages anymore. Are you sure you want to proceed?"
   
   top_app_menu_unread_notifications: "Unread notifications"

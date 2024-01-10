@@ -141,6 +141,9 @@
                 
                 // ====== tooltip ======
                 // the `ready` function was needed because otherwise the `show` / `hide` effect didn't had any effect 
+                // This was described as a solution to a slightly different problem related to jquery ui tooltip not displaying, 
+                // but it worked also for our problem:
+                // https://stackoverflow.com/questions/15534061/jquery-tooltip-not-displaying
                 $(document).ready(function() {
                     $(tooltipTriggerId).tooltip({
                         content: function () {
