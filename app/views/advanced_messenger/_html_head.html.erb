@@ -27,7 +27,7 @@
                 },
                 error: function(xhr, status, error) {
                     console.error('Error on getting unread_notifications_count. Status: ' + status + '. Error: ' + error);
-                    $("#all-unread-notifications-indicator").html("! An error occured. Check the console").css("color", "rgb(255, 140, 140)");
+                    $("#all-unread-notifications-indicator").html("<span style='color:rgb(255, 140, 140)'>! An error occured. Check the console</span>");
                 }
             });
         }
