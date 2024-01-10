@@ -27,7 +27,7 @@ en:
   # Plugin settings messages
   show_unread_notifications: Show "Unread notifications" in header bar
   unread_notifications_update_interval: Update "Unread notifications" interval
-  unread_notifications_update_interval_note: seconds
+  unread_notifications_update_interval_note: E.g. 60. In seconds
 
 
   
