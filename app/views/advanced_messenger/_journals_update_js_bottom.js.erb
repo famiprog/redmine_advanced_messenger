@@ -1,21 +1,22 @@
 <% if @journal.frozen? || !journal.notes?%>
-  <%@unread_notification_statuses = getUnreadNotificationsForIssue(@journal.issue)%>
-  renderNotificationsStatusesPerIssue(<%=@unread_notification_statuses[0]%>, <%=@unread_notification_statuses[1]%>, <%=@unread_notification_statuses[2].to_json.html_safe%>);
-  renderAllUnreadNotificationsIndicator(<%= getUnreadNotificationsForCurrentUserCount()%>);
-<% else %>
-{
-    // After a journal update, redmine resets the note content overriding the special collapsed note content (a shorter preview one) of our plugin. 
-    // That's why we need to restore it
-    // It also resets the currentNote css class, removing our custom css class
+    // ====== Journal note was deleted ======
+    // So we need to update the global unread notifications indicators
+    <%@unread_notification_statuses = getUnreadJournalsStatus(@journal.issue.visible_journals_with_index)%>
+    renderBottomRightUnreadNotificationsDialog(<%=@unread_notification_statuses[0]%>, <%=@unread_notification_statuses[1]%>, <%=@unread_notification_statuses[2].to_json.html_safe%>);
+    renderGlobalUnreadNotificationsIndicator(<%= getUnreadNotificationsForCurrentUserCount()%>);
+<% else %>{
+    // ====== Journal note was updated ======
+    // In this case redmine resets the note content 
+    // and deletes the preview div added by our plugin. That's why we need to restore it
+    // It also resets the note css class, removing our custom css class
     // (see journals/update.js.erb)
     
     const currentNote = $("#change-<%= journal.id %>.journal.has-notes");
     if (currentNote.length > 0) {
-        currentNote.find('.wiki').html("<div class='note-content'>" + currentNote.find('.wiki').html() + "</div>");
-        currentNote.find('.wiki').append("<p class='note-preview' style='color: rgb(100, 100, 100)'></p>");
+        currentNote.find('.wiki').html("<div class='message-content'>" + currentNote.find('.wiki').html() + "</div>");
+        currentNote.find('.wiki').append("<p class='message-preview' style='color: rgb(100, 100, 100)'></p>");
         <%read_by_user = JSON.parse(journal.read_by_users)[User.current.id.to_s] || {}%>
-        renderNotesPreviewContent(<%= journal.id %>, <%=read_by_user["read"] != nil%>, <%=read_by_user["read"] != nil && read_by_user["read"] != 0%>, <%=User.current.id%>, "<%= escape_javascript(journal.notes)[0, 130] %>");
-        renderExpandedCollapsed(<%= journal.id %>, currentNote.find('.expand-collapse-icon-placeholder a').hasClass("icon-toggle-minus"), false);
+        renderNotesPreviewContent(currentNode, <%=read_by_user["read"] != nil%>, <%=read_by_user["read"] != nil && read_by_user["read"] != 0%>, <%=User.current.id%>, "<%= escape_javascript(journal.notes)[0, 130] %>");
+        renderExpandedCollapsed(<%= journal.id %>, "update_journal_read_by_users", currentNode, currentNote.find('.expand-collapse-icon-placeholder a').hasClass("icon-toggle-minus"), false);
     }
-}
-<%end%>
+}<%end%>
