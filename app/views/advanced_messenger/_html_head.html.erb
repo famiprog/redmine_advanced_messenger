@@ -1,19 +1,43 @@
 <%# ============= Plugin styles  ============= %>
 <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'advanced_messenger', :plugin => 'redmine_advanced_messenger' %>
-<% end %>
+<% end %>  
 <%# ============= Global unread notifications indicator located on main title bar  ============= %>
-<%= javascript_tag do%>
-    function renderGlobalUnreadNotificationsIndicator(unreadNotificationsCount) {
-        const color = unreadNotificationsCount > 0 ? "#ff4545" : "#2bff2b";
-        $("#all-unread-notifications-indicator").html("<a href='/my/page'><%=t(:top_app_menu_unread_notifications)%>: <span style='color:" + color + "; font-weight:bold'>" + unreadNotificationsCount + "</span></a>");
-    }
-
-    jQuery( document ).ready(function() {
-        $("div#loggedas").append("<span id='all-unread-notifications-indicator'><span>");
-        renderGlobalUnreadNotificationsIndicator(<%= getUnreadNotificationsForCurrentUserCount()%>);
-    });
-<% end %>
+<%if (AdvancedMessengerSettings.get_setting(:show_unread_notifications) == '1')%>
+    <%= javascript_tag do%>
+        function renderGlobalUnreadNotificationsIndicator(unreadNotificationsCount) {
+            if ($("#all-unread-notifications-indicator").length > 0) {
+                const color = unreadNotificationsCount > 0 ? "#ff4545" : "#2bff2b";
+                $("#all-unread-notifications-indicator").html("<a href='/my/page'><%=t(:top_app_menu_unread_notifications)%>: <span style='color:" + color + "; font-weight:bold'>" + unreadNotificationsCount + "</span></a>");
+            }
+        }
+        function requestAndRenderGlobalUnreadNotificationsIndicator() {
+            $.ajax({
+                url: '/advanced_messenger/unread_notifications_count', // The URL of your Rails controller action
+                type: 'GET',
+                dataType: 'json',
+                beforeSend: function() { 
+                    $("#all-unread-notifications-indicator").addClass('ajax-loading'); 
+                },
+                complete: function() { 
+                    $("#all-unread-notifications-indicator").removeClass('ajax-loading'); 
+                },
+                success: function(result) {
+                    renderGlobalUnreadNotificationsIndicator(result.count)
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error on getting unread_notifications_count. Status: ' + status + '. Error: ' + error);
+                    $("#all-unread-notifications-indicator").html("<span style='color:rgb(255, 140, 140)'>! An error occured. Check the console</span>");
+                }
+            });
+        }
+        jQuery( document ).ready(function() {
+            $("div#loggedas").append("<span id='all-unread-notifications-indicator'><span>");
+            requestAndRenderGlobalUnreadNotificationsIndicator();
+            setInterval(requestAndRenderGlobalUnreadNotificationsIndicator, <%=AdvancedMessengerSettings.get_setting(:unread_notifications_update_interval)%> * 1000);
+        });
+    <% end %>
+<%end%>
 <%# ============= Helper javascript render methods that are reused in many parts of the application ============= %>
 <%
     current_controller = controller.controller_name
