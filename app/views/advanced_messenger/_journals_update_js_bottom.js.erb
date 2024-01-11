@@ -1,8 +1,8 @@
-<% if @journal.frozen? || !@journal.notes?%>
+<% if @journal.frozen? || !journal.notes?%>
     // ====== Journal note was deleted ======
     // So we need to update the global unread notifications indicators
     <%@unread_notification_statuses = getUnreadJournalsStatus(@journal.issue.visible_journals_with_index)%>
-    renderBottomRightUnreadNotificationsDialog(<%=@unread_notification_statuses[0]%>, <%=@unread_notification_statuses[1]%>, <%=@unread_notification_statuses[2].to_json.html_safe%>, "/advanced_messenger/<%=@journal.issue.id%>/ignore_all_unread_issues_notes");
+    renderBottomRightUnreadNotificationsDialog(<%=@unread_notification_statuses[0]%>, <%=@unread_notification_statuses[1]%>, <%=@unread_notification_statuses[2].to_json.html_safe%>);
     renderGlobalUnreadNotificationsIndicator(<%= getUnreadNotificationsForCurrentUserCount()%>);
 <% else %>{
     // ====== Journal note was updated ======

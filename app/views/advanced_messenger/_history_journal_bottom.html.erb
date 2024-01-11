@@ -1,16 +1,14 @@
-<%if User.current.logged? %>
-    <%= javascript_tag do %>
-    // We need to enclose the code in a block {} because otherwise we get a javascript compilation error about variables/constants being declared many times
-    {
-        var currentNote = $("#change-" + <%= journal.id %> + ".journal.has-notes");
-        if (currentNote.length != 0) {
-            renderPluginForMessageOrJournal("<%= journal.id %>", 
-                                        <%= journal.read_by_users.html_safe %>,
-                                        "<%= journal.notes.nil? ? '' : escape_javascript(journal.notes[0, 130])  %>", 
-                                        '<%=l(:label_time_ago, :time => time_tag(journal.created_on).html_safe).html_safe%>', 
-                                        currentNote, ".note-header", ".wiki", "update_journal_read_by_users", 
-                                        ...<%= raw(getUsersReadStatus(journal.read_by_users).to_json)%>);
-        }
+<%= javascript_tag do %>
+// We need to enclose the code in a block {} because otherwise we get a javascript compilation error about variables/constants being declared many times
+{
+    var currentNote = $("#change-" + <%= journal.id %> + ".journal.has-notes");
+    if (currentNote.length != 0) {
+        renderPluginForMessageOrJournal("<%= journal.id %>", 
+                                    <%= journal.read_by_users.html_safe %>,
+                                    "<%= journal.notes.nil? ? '' : escape_javascript(journal.notes[0, 130])  %>", 
+                                    '<%=l(:label_time_ago, :time => time_tag(journal.created_on).html_safe).html_safe%>', 
+                                    currentNote, ".note-header", ".wiki", "update_journal_read_by_users", 
+                                    ...<%= raw(getUsersReadStatus(journal.read_by_users).to_json)%>);
     }
-    <% end %>
-<%end%>
+}
+<% end %>

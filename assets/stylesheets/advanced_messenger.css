@@ -13,20 +13,16 @@ body.avatars-on div.journal {
   color: black;
 }
 
-.collapse-message {
-  color: #628DB6;
-}
-
-.collapse-message-ignored {
-  color: #ccc;
-}
-
 .collapse-message-read {
   color: green;
 }
 
 .collapse-message-unread {
   color: red;
+}
+
+.collapse-message {
+  color: #628DB6;
 }
 
 .expand-collapse-icon-placeholder {
@@ -47,19 +43,9 @@ body.avatars-on div.journal {
 
 .icon-checked-green { background-image: url(../images/checked_green.png) }
 .icon-unchecked-red { background-image: url(../images/unchecked_red.png) }
-.icon-delete-message { background-image: url(../images/delete-message.png) }
 .icon-down-left-arrow { background-image: url(../images/down_left_arrow.png) }
 .icon-test { background-image: url(../images/users.png) }
 .icon-chat { background-image: url(../images/chat.png) }
-
-.my-page-notifications { 
-  margin-bottom: 15px; 
-}
-
-.my-page-notifications > ul { 
-  margin-top: 5px;
-  margin-bottom: 5px; 
-}
 
 .notifications-dialog .ui-dialog-titlebar-close {
   background-color: transparent;
@@ -86,14 +72,6 @@ body.avatars-on div.journal {
 /* Without this, the notifications title was having big gap before and after (only in firefox). */
 .notifications-title::before, .notifications-title::after {
   border-collapse: unset !important;
-}
-
-.read_combobox_placeholder {
-  padding-right: 5px;
-}
-
-.read_combobox_placeholder > select {
-  height: auto;
 }
 
 .ui-tooltip {

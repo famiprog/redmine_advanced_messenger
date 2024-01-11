@@ -8,13 +8,6 @@ Redmine::Plugin.register :redmine_advanced_messenger do
   url 'https://github.com/famiprog/redmine-advanced-messenger'
   author_url 'https://github.com/famiprog'
 
-  # default values for settings, and its render
-  # Note: default values appear only when there are no settings saved in db.
-  settings :default => {'empty' => true, 
-                        :show_unread_notifications => '1', 
-                        :unread_notifications_update_interval => 60}, 
-            :partial => 'settings/advanced_messenger_settings'
-
   # need the helper to be available in _issue_notifications.html.erb 
   if Rails.version > '6.0' # Redmine 5.0
     Rails.application.config.after_initialize do

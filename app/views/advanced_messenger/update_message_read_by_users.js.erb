@@ -2,5 +2,5 @@ var node = $("#<%=@message.id == @message.root.id ? 'topic-wrapper'.html_safe : 
 renderExpandAndReadIndicatorForCurrentUser("<%= @message.id %>", "update_message_read_by_users", node, <%= @message.read_by_users.html_safe %>, "<%= User.current.id %>", "<%= escape_javascript(@message.content.to_s[0, 130]) %>");
 renderReadIndicatorsForAllUsers(<%=@message.id%>, node, "<%= User.current.id %>", '<%=l(:label_time_ago, :time => time_tag(@message.created_on).html_safe).html_safe%>', ...<%= raw(getUsersReadStatus(@message.read_by_users).to_json)%>);
 
-renderBottomRightUnreadNotificationsDialog(<%=@unread_notification_statuses[0]%>, <%=@unread_notification_statuses[1]%>, <%=@unread_notification_statuses[2].to_json.html_safe%>, "<%='?r=' + @unread_notification_statuses[0].to_s + '#message-' + @unread_notification_statuses[0].to_s%>", "/advanced_messenger/<%=@message.id%>/ignore_all_unread_forum_messages");
+renderBottomRightUnreadNotificationsDialog(<%=@unread_notification_statuses[0]%>, <%=@unread_notification_statuses[1]%>, <%=@unread_notification_statuses[2].to_json.html_safe%>, "<%='?r=' + @unread_notification_statuses[0].to_s + '#message-' + @unread_notification_statuses[0].to_s%>");
 renderGlobalUnreadNotificationsIndicator(<%= getUnreadNotificationsForCurrentUserCount()%>);
