@@ -47,7 +47,6 @@
 <%
     current_controller = controller.controller_name
     current_action = controller.action_name
-    @users_cache = Hash.new
 %>
 <% if User.current.logged? && current_controller == 'messages' && current_action == 'show' %>
     <%= javascript_tag do%>

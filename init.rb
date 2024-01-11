@@ -13,7 +13,8 @@ Redmine::Plugin.register :redmine_advanced_messenger do
     Rails.application.config.after_initialize do
       # this is to expose helper methods to the hook class as they are used inside the controller hooks
       Redmine::Hook::Helper.include AdvancedMessengerHelper
-    end
+      ApplicationController.send(:include, ApplicationControllerPatch)
+	end
   else
     Rails.configuration.to_prepare do
       Redmine::Hook::Helper.include AdvancedMessengerHelper
