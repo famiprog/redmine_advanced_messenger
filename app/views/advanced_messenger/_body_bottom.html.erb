@@ -79,7 +79,7 @@
 <% end %>
 
 <%# ============= Bottom right unread notifications dialog (only for issue/forum topic pages) ============= %>
-<% if current_controller == 'issues' && current_action == 'show' || current_controller == 'messages' && current_action == 'show' %>
+<% if  User.current.logged? && (current_controller == 'issues'  || current_controller == 'messages') && current_action == 'show' %>
     <div id="notifications_dialog" >
         <%=l(:notifications_dialog_text_for_current_user, :user => link_to_user(User.current).gsub("\"", "\'")).html_safe%>
         <div style="padding-top: 10px">

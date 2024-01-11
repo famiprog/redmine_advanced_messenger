@@ -9,7 +9,6 @@ module Patches
 
     module InstanceMethods
       def create_read_by_users
-          # TODO dana: for all messages? no filter?
           read_by_users_hash = {} 
           # Those are the users that are receiving mails when an issue is updates @see mailer.rb#deliver_issue_edit
           users = notified_users | root.notified_watchers | board.notified_watchers
