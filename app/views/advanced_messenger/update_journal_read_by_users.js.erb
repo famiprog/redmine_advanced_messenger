@@ -2,5 +2,5 @@ var node = $("#change-" + <%= @journal.id %> + ".journal.has-notes");
 renderExpandAndReadIndicatorForCurrentUser("<%= @journal.id %>", "update_journal_read_by_users", node, <%= @journal.read_by_users.html_safe %>, "<%= User.current.id %>", "<%= escape_javascript(@journal.notes.to_s[0, 130]) %>");
 renderReadIndicatorsForAllUsers(<%=@journal.id%>, node, "<%= User.current.id %>", '<%=l(:label_time_ago, :time => time_tag(@journal.created_on).html_safe).html_safe%>', ...<%= raw(getUsersReadStatus(@journal.read_by_users).to_json)%>);
 
-renderBottomRightUnreadNotificationsDialog(<%=@unread_notification_statuses[0]%>, <%=@unread_notification_statuses[1]%>, <%=@unread_notification_statuses[2].to_json.html_safe%>, "<%='#note-' + @unread_notification_statuses[0].to_s%>");
+renderBottomRightUnreadNotificationsDialog(<%=@unread_notification_statuses[0]%>, <%=@unread_notification_statuses[1]%>, <%=@unread_notification_statuses[2].to_json.html_safe%>, "<%='#note-' + @unread_notification_statuses[0].to_s%>", "/advanced_messenger/<%=@journal.issue.id%>/ignore_all_unread_issues_notes");
 renderGlobalUnreadNotificationsIndicator(<%= getUnreadNotificationsForCurrentUserCount()%>);
