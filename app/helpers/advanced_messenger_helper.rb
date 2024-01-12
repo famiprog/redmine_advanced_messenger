@@ -74,21 +74,18 @@ module AdvancedMessengerHelper
     def getUsersReadStatus(read_by_users)
         read_by_users = JSON.parse(read_by_users)
         read_statuses = Hash.new
-        # For the moment the global users cache is implemented only for forum messages
-        # There is an open issue to implement it also for issues notes: https://redmine.xops-online.com/issues/33177
-        users_cache = @users_cache != nil ? @users_cache : Hash.new
         read_by_users.keys.each_with_index do |user_id, index|
             if (!read_by_users[user_id]["read"]) 
                 # no read status for this user i.e. the note is not of interest for him
                 next
             end
-            if (users_cache[user_id] == nil)
+            if (@users_cache[user_id] == nil)
             	user = User.find(user_id)
             	user_short = Hash.new
             	user_short["firstname"] = user.firstname
             	user_short["lastname"] = user.lastname
             	user_short["link"] = link_to_user(user)
-            	users_cache[user_id] = user_short  
+            	@users_cache[user_id] = user_short 
 			end
             read_by_user = read_by_users[user_id] 
             # For the moment the changing of the read status doesn't have an associated activity so no need to link to the activity page
@@ -96,7 +93,7 @@ module AdvancedMessengerHelper
             read_by_user["date"] =  l(:label_time_ago, :time => time_tag_without_link_to_activity(read_by_user["date"].to_time).html_safe);
             read_statuses[user_id] = read_by_user
         end
-        return [users_cache, read_statuses]
+        return [@users_cache, read_statuses]
     end
     
     def time_tag_without_link_to_activity(time) 
