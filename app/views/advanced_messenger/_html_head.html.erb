@@ -58,20 +58,18 @@
 
         function renderExpandedCollapsed(entityId, endpoint, currentNode, expanded, isInitialRender) {
             renderExpandCollapseButton(expanded, currentNode, entityId, endpoint);
+            if (<%=AdvancedMessengerSettings.get_setting(:disable_fix_for_scroll_to_anchor) != '1'%> && isInitialRender) {
+                return;
+            }
 
-            var showOrHideContent = expanded ? "show" : "hide";
-            var showOrHidePreview = expanded ? "hide" : "show";
-
+            var showOrHide = (node, isVisible) => isVisible ? node.removeClass("hidden") : node.addClass("hidden") 
             // ======= Show or hide content ======
-            currentNode.find('.message-content')[showOrHideContent]();
-
-            currentNode.find('.details')[showOrHideContent]();
-            // setTimeout is a workarround for:
-            // At page load, for collapsed notes with images, even if we hide them they become visible again
-            setTimeout(() => currentNode.find('.thumbnails')[showOrHideContent](), isInitialRender && !expanded ? 100 : 0);
-            
+            showOrHide(currentNode.find('.message-content'), expanded);
+            showOrHide(currentNode.find('.details'), expanded);
+            showOrHide(currentNode.find('.thumbnails'), expanded);
+            showOrHide(currentNode.find('.attachments'), expanded);
             // ====== Show or hide preview ======
-            currentNode.find('.message-preview')[showOrHidePreview]();
+            showOrHide(currentNode.find('.message-preview'), !expanded);
         }
 
         function changeReadByUsers(newValue, entityId, endpoint) {
@@ -87,7 +85,7 @@
             const collapsed = readByUsers[currentUserId]?.collapsed;
 
             if (!isOfInterestForCurrentUser && !collapsed || readValue == 1) {
-                renderExpandedCollapsed(readableEntityId, endpoint, currentNode, true);
+                renderExpandedCollapsed(readableEntityId, endpoint, currentNode, true, isInitialRender);
             } else {
                 renderExpandedCollapsed(readableEntityId, endpoint, currentNode, false, isInitialRender);
             }
@@ -107,7 +105,10 @@
             currentNode.css({"border-color": color});
             
             // ====== message-preview ======
-            renderNotesPreviewContent(currentNode, isOfInterestForCurrentUser, readValue, currentUserId, notesPreview);
+            if (<%=AdvancedMessengerSettings.get_setting(:disable_fix_for_scroll_to_anchor) == '1'%> || !isInitialRender) {
+                // On initial render the notes preview is rendered directly on the server (@see IssuesAndMessagesControllerPatch)
+                renderNotesPreviewContent(currentNode, isOfInterestForCurrentUser, readValue, currentUserId, notesPreview);
+            }
 
         }
 
@@ -241,8 +242,10 @@
             var gravatar = header.find(".gravatar");
             gravatar.length == 0 ? header.prepend(expandCollapse): gravatar.after(expandCollapse);     
 
-            parentDOMNode.children(contentSelector).html("<div class='message-content'>" + parentDOMNode.children(contentSelector).html() + "</div>");
-            parentDOMNode.children(contentSelector).append("<p class='message-preview' style='color: rgb(100, 100, 100)'></p>");
+            if (<%=AdvancedMessengerSettings.get_setting(:disable_fix_for_scroll_to_anchor) == '1'%>) {
+                parentDOMNode.find(contentSelector).html("<div class='message-content'>" + parentDOMNode.find(contentSelector).html() + "</div>");
+                parentDOMNode.find(contentSelector).append("<p class='message-preview' style='color: rgb(100, 100, 100)'></p>");
+            }
         }
 
         function renderPluginForMessageOrJournal(id, read_by_users, preview, creationDate, messageDOMNode, headerSelector, contentSelector, updateReadByUsersUrl, users, readStatuses) {

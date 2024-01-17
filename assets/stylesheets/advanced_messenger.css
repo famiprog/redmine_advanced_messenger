@@ -168,3 +168,7 @@ body.avatars-on div.journal {
   opacity: 0.95;
   color: black;
 }
+
+.hidden {
+  display: none !important;
+}
