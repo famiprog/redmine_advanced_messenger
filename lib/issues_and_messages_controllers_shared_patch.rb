@@ -1,4 +1,4 @@
-module IssuesAndMessagesControllerPatch
+module IssuesAndMessagesControllersSharedPatch
     def self.included(base)
       base.send(:include, InstanceMethods)
       base.send(:before_action, :init_users_cache, only: [:show])
@@ -24,7 +24,6 @@ module IssuesAndMessagesControllerPatch
           if read_by_current_user == nil || read_by_current_user["read"] == 1 || read_by_current_user["read"] == nil && !read_by_current_user["collapsed"]
             expanded = true
           end 
-          
           #==========Add the content preview besides the actual content and hide/show the content/content preview==============
           truncated_notes = escape_javascript(getPreview.call(entity))
           if (read_by_current_user != nil && read_by_current_user["read"] != nil) 
@@ -40,8 +39,10 @@ module IssuesAndMessagesControllerPatch
           end
 
           to_replace = getRegExToHideContent.call(entity.id.to_s) 
-          with = "\\1<div class='message-content" + (!expanded ? " hidden" : "") + "'>\\2</div>" +
-                  "<p class='message-preview" + (expanded ? " hidden" : "") + "' style='color: rgb(100, 100, 100)'>" + (!expanded ? note_preview : "") + "</p>\\3"  
+          with = "\\1<div class='message-content" + (!expanded ? " hidden" : "") + "'>\\2</div>" 
+                  +"<p class='message-preview" + (expanded ? " hidden" : "") + "'>" 
+                    + (!expanded ? note_preview : "") 
+                  + "</p>\\3"  
           response.body = response.body.gsub(/#{to_replace}/, with)
 
           #==========In case not expanded hide other elements(e.g : .details, .thumbnails, .attachments divs)==============

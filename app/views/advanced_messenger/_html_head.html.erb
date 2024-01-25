@@ -45,6 +45,7 @@
 %>
 <% if current_controller == 'issues' && current_action == 'show' || current_controller == 'messages' && current_action == 'show' %>
     <%= javascript_tag do %>
+        const disableFixForScrollAnchor = <%=AdvancedMessengerSettings.get_setting(:disable_fix_for_scroll_to_anchor) == '1'%>
         const RED = "red";
         const GREEN = "#55CB85";
         const GREY = "#ccc";
@@ -58,7 +59,7 @@
 
         function renderExpandedCollapsed(entityId, endpoint, currentNode, expanded, isInitialRender) {
             renderExpandCollapseButton(expanded, currentNode, entityId, endpoint);
-            if (<%=AdvancedMessengerSettings.get_setting(:disable_fix_for_scroll_to_anchor) != '1'%> && isInitialRender) {
+            if ( !disableFixForScrollAnchor && isInitialRender) {
                 return;
             }
 
@@ -105,8 +106,8 @@
             currentNode.css({"border-color": color});
             
             // ====== message-preview ======
-            if (<%=AdvancedMessengerSettings.get_setting(:disable_fix_for_scroll_to_anchor) == '1'%> || !isInitialRender) {
-                // On initial render the notes preview is rendered directly on the server (@see IssuesAndMessagesControllerPatch)
+            if (disableFixForScrollAnchor || !isInitialRender) {
+                // On initial render the notes preview is rendered directly on the server (@see IssuesAndMessagesControllersSharedPatch)
                 renderNotesPreviewContent(currentNode, isOfInterestForCurrentUser, readValue, currentUserId, notesPreview);
             }
 
@@ -244,7 +245,7 @@
 
             if (<%=AdvancedMessengerSettings.get_setting(:disable_fix_for_scroll_to_anchor) == '1'%>) {
                 parentDOMNode.find(contentSelector).html("<div class='message-content'>" + parentDOMNode.find(contentSelector).html() + "</div>");
-                parentDOMNode.find(contentSelector).append("<p class='message-preview' style='color: rgb(100, 100, 100)'></p>");
+                parentDOMNode.find(contentSelector).append("<p class='message-preview'></p>");
             }
         }
 

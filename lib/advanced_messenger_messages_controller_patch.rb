@@ -2,6 +2,7 @@
 module AdvancedMessengerMessagesControllerPatch
     include ActionView::Helpers::JavaScriptHelper
     def self.included(base)
+      IssuesAndMessagesControllersSharedPatch.included(base)
       base.send(:include, InstanceMethods)
       base.send(:after_action, :expand_collapse_messages, only: [:show])
     end

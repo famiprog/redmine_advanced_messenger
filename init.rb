@@ -23,8 +23,6 @@ Redmine::Plugin.register :redmine_advanced_messenger do
       Redmine::Hook::Helper.include AdvancedMessengerHelper
       IssuesController.send(:include, AdvancedMessengerIssuesControllerPatch)
       MessagesController.send(:include, AdvancedMessengerMessagesControllerPatch)
-      IssuesController.send(:include, IssuesAndMessagesControllerPatch)
-      MessagesController.send(:include, IssuesAndMessagesControllerPatch)
 	end
   else
     Rails.configuration.to_prepare do
