@@ -8,3 +8,9 @@
     <%= number_field_tag "settings[unread_notifications_update_interval]", Setting.plugin_redmine_advanced_messenger[:unread_notifications_update_interval], :size => 60 %>
     <em class="info"><%= l(:unread_notifications_update_interval_note) %></em>
 </p>
+<p>
+    <label for="settings_disable_fix_for_scroll_to_anchor"><%= l(:disable_fix_for_scroll_to_anchor) %></label>
+    <%= hidden_field_tag 'settings[disable_fix_for_scroll_to_anchor]', 0, :id => nil %>
+    <%= check_box_tag 'settings[disable_fix_for_scroll_to_anchor]', 1, Setting.plugin_redmine_advanced_messenger[:disable_fix_for_scroll_to_anchor] == '1' %>
+    <em class="info"><%=raw l(:disable_fix_for_scroll_to_anchor_note) %></em>
+</p>

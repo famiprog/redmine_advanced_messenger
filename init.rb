@@ -12,6 +12,7 @@ Redmine::Plugin.register :redmine_advanced_messenger do
   # Note: default values appear only when there are no settings saved in db.
   settings :default => {'empty' => true, 
                         :show_unread_notifications => '1', 
+                        :disable_fix_for_scroll_to_anchor => '0',
                         :unread_notifications_update_interval => 60}, 
             :partial => 'settings/advanced_messenger_settings'
 
@@ -20,8 +21,8 @@ Redmine::Plugin.register :redmine_advanced_messenger do
     Rails.application.config.after_initialize do
       # this is to expose helper methods to the hook class as they are used inside the controller hooks
       Redmine::Hook::Helper.include AdvancedMessengerHelper
-      IssuesController.send(:include, IssuesAndMessagesControllerPatch)
-      MessagesController.send(:include, IssuesAndMessagesControllerPatch)
+      IssuesController.send(:include, AdvancedMessengerIssuesControllerPatch)
+      MessagesController.send(:include, AdvancedMessengerMessagesControllerPatch)
 	end
   else
     Rails.configuration.to_prepare do

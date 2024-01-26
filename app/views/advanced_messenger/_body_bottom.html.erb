@@ -62,7 +62,7 @@
     <%= javascript_tag do%>
         var messageDOMNode = $("#content").children(".contextual, h2, .message").wrapAll("<div id='topic-wrapper' class='forum-topic'></div>").parent();
         renderPluginForMessageOrJournal("<%= @topic.id %>", <%= @topic.read_by_users.html_safe %>,"<%= escape_javascript(@topic.content.to_s[0, 130]) %>", 
-                                    '<%=l(:label_time_ago, :time => time_tag(@topic.created_on).html_safe).html_safe%>', messageDOMNode, "h2", ".message", "update_message_read_by_users",
+                                    '<%=l(:label_time_ago, :time => time_tag(@topic.created_on).html_safe).html_safe%>', messageDOMNode, "h2", ".wiki", "update_message_read_by_users",
                                     ...<%= raw(getUsersReadStatus(@topic.read_by_users).to_json)%>);
     <% end %>
     <% if @replies != nil %>
