@@ -39,10 +39,10 @@ module IssuesAndMessagesControllersSharedPatch
           end
 
           to_replace = getRegExToHideContent.call(entity.id.to_s) 
-          with = "\\1<div class='message-content" + (!expanded ? " hidden" : "") + "'>\\2</div>" 
-                  +"<p class='message-preview" + (expanded ? " hidden" : "") + "'>" 
-                    + (!expanded ? note_preview : "") 
-                  + "</p>\\3"  
+          with = "\\1<div class='message-content" + (!expanded ? " hidden" : "") + "'>\\2</div>" +
+                  "<p class='message-preview" + (expanded ? " hidden" : "") + "'>" + 
+                      (!expanded ? note_preview : "") +
+                  "</p>\\3"  
           response.body = response.body.gsub(/#{to_replace}/, with)
 
           #==========In case not expanded hide other elements(e.g : .details, .thumbnails, .attachments divs)==============
