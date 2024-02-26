@@ -4,7 +4,10 @@ module Patches
   module JournalPatch
     def self.included(base)
       base.send(:include, InstanceMethods)
-      base.send(:before_create, :create_read_by_users)
+      # Initially the read_by_users was populated `before_create`.
+      # It was moved to `after_create_commit` as a workaround to the fact that the
+      # `notified_mentiones` are computed only `after_save` (@see mentionable#parse_mentions) 
+      base.send(:after_create_commit, :create_read_by_users)
     end
 
     module InstanceMethods
@@ -18,6 +21,7 @@ module Patches
             read_by_users_hash[user.id.to_s] = read_by_users;
           end
           self.read_by_users = read_by_users_hash.to_json
+          self.save
         end
       end
     end
