@@ -4,24 +4,27 @@ module Patches
   module JournalPatch
     def self.included(base)
       base.send(:include, InstanceMethods)
-      # Initially the read_by_users was populated `before_create`.
-      # It was moved to `after_create_commit` as a workaround to the fact that the
-      # `notified_mentiones` are computed only `after_save` (@see mentionable#parse_mentions) 
-      base.send(:after_create_commit, :create_read_by_users)
+      base.send(:before_create, :create_read_by_users)
     end
 
     module InstanceMethods
       def create_read_by_users
         if (notes.present?) 
           read_by_users_hash = {} 
-          # Those are the users that are receiving mails when an issue is updates @see mailer.rb#deliver_issue_edit
-          users = notified_users | notified_watchers | notified_mentions | journalized.notified_mentions
+          # The `notified_mentions` (used by mailer) are computed `after_save` (@see mentionable#parse_mentions)
+          # But here we need it `before_create`, that's why we need to compute them here also
+          # `get_mentioned_users` is private inside `Mentionable` module that's why we need to call it this way
+          notified_mentiones = self.send(:get_mentioned_users, nil, notes);
+          journalized_notified_mentiones = self.send(:get_mentioned_users, nil, journalized.notes);
+          # These are the users that are receiving mails when an issue is updated @see mailer.rb#deliver_issue_edit
+          users = notified_users | notified_watchers | 
+                  (notified_mentiones == nil ? [] : notified_mentiones) | 
+                  (journalized_notified_mentiones == nil ? [] : journalized_notified_mentiones);
           users.each do |user|
             read_by_users = {read: user.id == User.current.id ? 1 : 0, date: DateTime.now}
             read_by_users_hash[user.id.to_s] = read_by_users;
           end
           self.read_by_users = read_by_users_hash.to_json
-          self.save
         end
       end
     end
