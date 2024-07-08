@@ -160,10 +160,10 @@
             if (isSomeoneInterestedIn) {
                 const readUnreadIndicators = currentNode.find('.users_initials_and_tooltip_placeholder');
                 let tooltipTriggerId = "others-notifications-tooltip-" + readableEntityId;
-                const tooltip = "<a id='" + tooltipTriggerId + "' class='icon icon-chat' title=' ' style='cursor: pointer'></a>";
+                const tooltipIcon = "<a class='icon icon-chat' style='cursor: pointer'></a>";
                 tooltipTriggerId = "#" + tooltipTriggerId;   
 
-                readUnreadIndicators.html((isOfInterestForCurrentUser ? " | " : "") + usersColoredInitials + tooltip);
+                readUnreadIndicators.html((isOfInterestForCurrentUser ? " | " : "") + usersColoredInitials + tooltipIcon);
                 
                 // ====== tooltip ======
                 // the `ready` function was needed because otherwise the `show` / `hide` effect didn't had any effect 
@@ -231,12 +231,12 @@
             }
         }
 
-        function setupPluginPlaceholders(parentDOMNode, headerSelector, contentSelector) {
+        function setupPluginPlaceholders(id, parentDOMNode, headerSelector, contentSelector) {
             parentDOMNode.addClass("advanced-messenger-bordered-panel");
 
             // ====== Set the placeholders that will contain dynamically render content (that changes without page refresh) ======
-            (parentDOMNode.children('.contextual').length == 0) && (parentDOMNode = parentDOMNode.children(':first'));  
-            parentDOMNode.children('.contextual').after("<div class='read-unread-indicators-at-right' style='float: right;'><span class='read_combobox_placeholder'></span><span class='users_initials_and_tooltip_placeholder'></span></div>");
+            (parentDOMNode.children('.contextual').length == 0) && (parentDOMNode = parentDOMNode.children(':first')); 
+			parentDOMNode.children('.contextual').after("<div class='read-unread-indicators-at-right' style='float: right;'><span class='read_combobox_placeholder'></span><span id='others-notifications-tooltip-" + id + "' title=' ' style='cursor: pointer' class='users_initials_and_tooltip_placeholder'></span></div>");
             
             const expandCollapse = "<div class='expand-collapse-icon-placeholder'></div>";
             var header = parentDOMNode.children(headerSelector);
@@ -250,7 +250,7 @@
         }
 
         function renderPluginForMessageOrJournal(id, read_by_users, preview, creationDate, messageDOMNode, headerSelector, contentSelector, updateReadByUsersUrl, users, readStatuses) {
-            setupPluginPlaceholders(messageDOMNode, headerSelector, contentSelector);
+            setupPluginPlaceholders(id, messageDOMNode, headerSelector, contentSelector);
             renderExpandAndReadIndicatorForCurrentUser(id, updateReadByUsersUrl, messageDOMNode, read_by_users, "<%= User.current.id %>", preview, true);     
             renderReadIndicatorsForAllUsers(id, messageDOMNode, "<%= User.current.id %>", creationDate, users, readStatuses);"update_message_read_by_users"
         }
