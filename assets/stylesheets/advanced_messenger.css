@@ -170,5 +170,5 @@ body.avatars-on div.journal {
 }
 
 .hidden {
-  display: none !important;
+  display: none;
 }
