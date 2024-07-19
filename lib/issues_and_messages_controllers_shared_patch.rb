@@ -25,26 +25,44 @@ module IssuesAndMessagesControllersSharedPatch
             expanded = true
           end 
           #==========Add the content preview besides the actual content and hide/show the content/content preview==============
-          truncated_notes = escape_javascript(getPreview.call(entity))
+          truncated_notes = CGI::escapeHTML(getPreview.call(entity))
           if (read_by_current_user != nil && read_by_current_user["read"] != nil) 
             if (read_by_current_user["read"] == 0) 
-              note_preview = "<span class='collapse-message-unread'>" + t(:message_collapsed_unread) + "</span>"
+              note_preview = "<span class='collapse-message-unread'>
+                                #{t(:message_collapsed_unread)}
+                              </span>"
             elsif (read_by_current_user["read"] == 3)
-              note_preview ="<span class='collapse-message-ignored'>" + t(:message_collapsed_ignored) + "</span>"
+              note_preview ="<span class='collapse-message-ignored'>
+                                #{t(:message_collapsed_ignored)}
+                              </span>"
             else
-              note_preview ="<span class='collapse-message-read'>" + t(:message_collapsed_read) + "</span><span class='collapse-message-preview'>" + truncated_notes + "...</span>"
+              note_preview ="<span class='collapse-message-read'>
+                                #{t(:message_collapsed_read)}
+                              </span>
+                              <span class='collapse-message-preview'>
+                                #{truncated_notes}...
+                              </span>"
             end
           else 
-            note_preview = "<span class='collapse-message'>" + t(:message_collapsed) + "</span><span class='collapse-message-preview'>" + truncated_notes + "...</span>"
+            note_preview = "<span class='collapse-message'>
+                              #{t(:message_collapsed)}
+                            </span>
+                            <span class='collapse-message-preview'> 
+                              #{truncated_notes}...
+                            </span>"
           end
 
-          to_replace = getRegExToHideContent.call(entity.id.to_s) 
-          with = "\\1<div class='message-content" + (!expanded ? " hidden" : "") + "'>\\2</div>" +
-                  "<p class='message-preview" + (expanded ? " hidden" : "") + "'>" + 
-                      (!expanded ? note_preview : "") +
-                  "</p>\\3"  
+          to_replace = getRegExToHideContent.call(entity.id.to_s)
+          with = "\\1
+                  <div class='message-content #{!expanded ? " hidden" : ""}'>
+                    \\2
+                  </div>
+                  <p class='message-preview #{expanded ? " hidden" : ""}'> 
+                    #{!expanded ? note_preview : ""} 
+                  </p>
+                  \\3"                
           response.body = response.body.gsub(/#{to_replace}/, with)
-
+          
           #==========In case not expanded hide other elements(e.g : .details, .thumbnails, .attachments divs)==============
           if !expanded
             getRegExesToHideOtherElements.call(entity.id.to_s).each do |regExToHideElement|

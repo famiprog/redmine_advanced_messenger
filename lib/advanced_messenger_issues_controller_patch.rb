@@ -12,7 +12,10 @@ module AdvancedMessengerIssuesControllerPatch
     
     module InstanceMethods
       def expand_collapse_notes
-        expand_collapse_notes_or_messages(@journals, lambda {|journal| journal.notes[0, 130]}, lambda {|journal| journal.notes.nil?},
+        expand_collapse_notes_or_messages(
+              @journals, 
+              lambda {|journal| journal.notes[0, 130]}, 
+              lambda {|journal| journal.notes.nil?},
               # This regular expresion catches:
               #   <div id="journal-42-notes" class="wiki">
               #     <p>my note content</p>
