@@ -26,11 +26,14 @@ module IssuesAndMessagesControllersSharedPatch
           end 
           #==========Add the content preview besides the actual content and hide/show the content/content preview==============
           truncated_notes = CGI::escapeHTML(getPreview.call(entity))
+<<<<<<< HEAD
           # This was added because of https://redmine.xops-online.com/issues/35061
           # This happens because `truncated_notes` goes as the second parameter (the `replacement` parameter) of the gsub function.
           # And inside this `replacement` there can be some special constructions: https://www.rubydoc.info/stdlib/core/String:gsub 
           # As the above documentation suggests, the `\` should be escaped, if we want to prevent the interpretation of those constructions
           truncated_notes = truncated_notes.gsub("\\", "\\\\\\\\")
+=======
+>>>>>>> branch 'dana-RM35061-problems-with-a-collapse-note-at-page-refresh' of https://github.com/famiprog/redmine_advanced_messenger.git
           if (read_by_current_user != nil && read_by_current_user["read"] != nil) 
             if (read_by_current_user["read"] == 0) 
               note_preview = "<span class='collapse-message-unread'>
