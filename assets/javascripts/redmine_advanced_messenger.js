@@ -18,6 +18,7 @@ function registerPWAServiceWorker() {
     }
 }
 
+// c.f https://stackoverflow.com/a/41749865 check manifest display, needs to update this method if it will be change
 function checkPWA() {
     return window.matchMedia('(display-mode: standalone)').matches
 }
@@ -26,23 +27,25 @@ function refreshPWA(badgeValue) {
     if (!checkPWA()) {
         return;
     }
-    // needs to refresh and redirect to PWA start url
+    // needs to refresh and redirect to PWA start url if somehow the user succeeded to navigate to another url
     if (!window.location.href.endsWith(PWA_START_URL)) {
         window.location.href = PWA_START_URL;
         return;
     }
 
     // change app badge if the value was changed
+    // use session storage in order to don't have the stored value, in this way when the app will be open the code will be trigger for remaining unread notifications
     if (sessionStorage.getItem(PWA_BADGE_VALUE) != badgeValue) {
         sessionStorage.setItem(PWA_BADGE_VALUE, badgeValue);
         // check for support first and set the value displayed for PWA badge
         if (navigator.setAppBadge) {
             navigator.setAppBadge(badgeValue);
         }
-        // send notification
+        // show notification
         showNotification();
         // refresh page
         window.location.href = PWA_START_URL;
+        return;
     }
 
     // change all links with target="_blank" except the links with href = PWA_START_URL
@@ -61,7 +64,7 @@ function showNotification() {
     }
     var notification = new Notification("Redmine", {
         body: "New redmine notifications!",
-        // the id for notification, needs to be unique
+        // the id for notification needs to be unique
         tag: "RedmineAdvancedMessengerNotification_" + new Date().toUTCString(),
         icon: "../../favicon.ico",
     });
