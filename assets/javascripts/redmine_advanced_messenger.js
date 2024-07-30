@@ -4,6 +4,9 @@ const TIMER_CLOSING_OLD_NOTIFICATIONS = 5; // seconds
 
 // register service worker
 function registerPWAServiceWorker() {
+    if (!checkPWA()) {
+        return;
+    }
     if (navigator.serviceWorker) {
         window.addEventListener("load", async function () {
             try {
@@ -11,6 +14,7 @@ function registerPWAServiceWorker() {
                     .then((registration) => {
                         console.log("Service worker registration succeeded:", registration);
                     })
+                askUserForNotificationPermission();
             } catch (error) {
                 console.log("service worker not registered", error);
             }
@@ -36,13 +40,15 @@ function refreshPWA(badgeValue) {
     // change app badge if the value was changed
     // use session storage in order to don't have the stored value, in this way when the app will be open the code will be trigger for remaining unread notifications
     if (sessionStorage.getItem(PWA_BADGE_VALUE) != badgeValue) {
-        sessionStorage.setItem(PWA_BADGE_VALUE, badgeValue);
         // check for support first and set the value displayed for PWA badge
         if (navigator.setAppBadge) {
             navigator.setAppBadge(badgeValue);
         }
-        // show notification
-        showNotification();
+        // show notification just if badge value is greater than 0 AND will not be displayed when the application is just started
+        if (sessionStorage.getItem(PWA_BADGE_VALUE) != null && badgeValue > 0) {
+            showNotification();
+        }
+        sessionStorage.setItem(PWA_BADGE_VALUE, badgeValue);
         // refresh page
         window.location.href = PWA_START_URL;
         return;
@@ -58,8 +64,17 @@ function refreshPWA(badgeValue) {
     });
 }
 
+function askUserForNotificationPermission() {
+    if (Notification && !["denied", "granted"].includes(Notification.permission)) {
+        Notification.requestPermission().then((permission) => {
+            console.log("User permission for notifications was: ", permission);
+        })
+    }
+}
+
 function showNotification() {
-    if (Notification.permission != "granted") {
+    // Stop if user permission was not granted
+    if (Notification && Notification.permission != "granted") {
         return;
     }
     var notification = new Notification("Redmine", {
