@@ -37,14 +37,14 @@ module AdvancedMessengerHelper
     end
 
     def getUnreadNotificationsGroupByIssues() 
-        unread_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
+        unread_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').order("updated_on desc")
         getIssue = lambda {|entity| return entity.issue }
         return getUnreadNotificationsGroupByParentEntity(unread_notifications, getIssue)
     end
 
     def getUnreadNotificationsGroupByTopic() 
         getTopic = lambda {|entity| return entity.root }
-        unread_notifications = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
+        unread_notifications = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').order("updated_on desc")
         return getUnreadNotificationsGroupByParentEntity(unread_notifications, getTopic);
     end
 

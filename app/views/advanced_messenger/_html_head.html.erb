@@ -1,11 +1,20 @@
 <%# ============= Plugin styles  ============= %>
 <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'advanced_messenger', :plugin => 'redmine_advanced_messenger' %>
+    <%# ============= PWA Manifest   ============= %>
+    <%= auto_discovery_link_tag :json, '../../plugin_assets/redmine_advanced_messenger/pwa/manifest.json', { rel: "manifest" } %>
 <% end %>  
+<%# ============= Plugin JS script  ============= %>
+<%= javascript_include_tag 'redmine_advanced_messenger', plugin: 'redmine_advanced_messenger' %>
+<%# ============= Register PWA service worker  ============= %>
+<%= javascript_tag do%>
+    registerPWAServiceWorker();
+<% end %>
 <%# ============= Global unread notifications indicator located on main title bar  ============= %>
 <%if (AdvancedMessengerSettings.get_setting(:show_unread_notifications) == '1')%>
     <%= javascript_tag do%>
         function renderGlobalUnreadNotificationsIndicator(unreadNotificationsCount) {
+            refreshPWA(unreadNotificationsCount);
             if ($("#all-unread-notifications-indicator").length > 0) {
                 const color = unreadNotificationsCount > 0 ? "#ff4545" : "#2bff2b";
                 $("#all-unread-notifications-indicator").html("<a href='/my/page'><%=t(:top_app_menu_unread_notifications)%>: <span style='color:" + color + "; font-weight:bold'>" + unreadNotificationsCount + "</span></a>");
