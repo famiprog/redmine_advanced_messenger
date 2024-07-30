@@ -32,6 +32,6 @@
   "id": "/my/page",
   "start_url": "/my/page",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#3E5B76",
   "background_color": "#ffffff"
 }
