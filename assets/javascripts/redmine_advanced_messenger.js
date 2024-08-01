@@ -39,13 +39,14 @@ function refreshPWA(badgeValue) {
 
     // change app badge if the value was changed
     // use session storage in order to don't have the stored value, in this way when the app will be open the code will be trigger for remaining unread notifications
-    if (sessionStorage.getItem(PWA_BADGE_VALUE) != badgeValue) {
+    var currentBadgeValue = sessionStorage.getItem(PWA_BADGE_VALUE);
+    if (currentBadgeValue != badgeValue) {
         // check for support first and set the value displayed for PWA badge
         if (navigator.setAppBadge) {
             navigator.setAppBadge(badgeValue);
         }
-        // show notification just if badge value is greater than 0 AND will not be displayed when the application is just started
-        if (sessionStorage.getItem(PWA_BADGE_VALUE) != null && badgeValue > 0) {
+        // show notification just if badge value is greater than current badge value AND will not be displayed when the application is just started
+        if (currentBadgeValue != null && badgeValue > currentBadgeValue) {
             showNotification();
         }
         sessionStorage.setItem(PWA_BADGE_VALUE, badgeValue);
