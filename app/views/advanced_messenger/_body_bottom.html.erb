@@ -58,7 +58,7 @@
     current_controller = controller.controller_name
     current_action = controller.action_name
 %>
-<% if User.current.logged? && current_controller == 'messages' && current_action == 'show' %>
+<% if User.current.logged? && current_controller == 'messages' && current_action == 'show' && @topic != nil %>
     <%= javascript_tag do%>
         var messageDOMNode = $("#content").children(".contextual, h2, .message").wrapAll("<div id='topic-wrapper' class='forum-topic'></div>").parent();
         renderPluginForMessageOrJournal("<%= @topic.id %>", <%= @topic.read_by_users.html_safe %>,"<%= escape_javascript(@topic.content.to_s[0, 130]) %>", 
@@ -173,13 +173,16 @@
         unread_notification_statuses = getUnreadJournalsStatus(@issue.visible_journals_with_index)
     elsif @replies != nil 
         unread_notification_statuses = getUnreadMessagesStatus([*@replies, @message])
-    end%>
-    <%= javascript_tag do %>
-        renderBottomRightUnreadNotificationsDialog(<%=unread_notification_statuses[0]%>, 
-                                            <%=unread_notification_statuses[1]%>, 
-                                            <%=unread_notification_statuses[2].to_json.html_safe%>,
-                                            "<%=@issue != nil ? '#note-' + unread_notification_statuses[0].to_s : '?r=' + unread_notification_statuses[0].to_s + '#message-' + unread_notification_statuses[0].to_s%>",
-                                            "/advanced_messenger/<%=@issue != nil ? @issue.id : @message.id%>/ignore_all_unread_<%=@issue != nil ? 'issues_notes' : 'forum_messages'%> "
-                                            );
+    end
+    if unread_notification_statuses != nil
+    %>
+        <%= javascript_tag do %>
+            renderBottomRightUnreadNotificationsDialog(<%=unread_notification_statuses[0]%>, 
+                                                <%=unread_notification_statuses[1]%>, 
+                                                <%=unread_notification_statuses[2].to_json.html_safe%>,
+                                                "<%=@issue != nil ? '#note-' + unread_notification_statuses[0].to_s : '?r=' + unread_notification_statuses[0].to_s + '#message-' + unread_notification_statuses[0].to_s%>",
+                                                "/advanced_messenger/<%=@issue != nil ? @issue.id : @message.id%>/ignore_all_unread_<%=@issue != nil ? 'issues_notes' : 'forum_messages'%> "
+                                                );
+        <%end%>
     <%end%>
 <%end%>
