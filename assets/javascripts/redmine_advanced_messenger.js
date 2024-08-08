@@ -20,6 +20,13 @@ function registerPWAServiceWorker() {
             }
         });
     }
+
+    window.onclick = ((e) => {
+        // open all links in a new browser window except the PWA start url 
+        if (e.target.localName == 'a' && !e.target.href.endsWith(PWA_START_URL)) {
+            window.open(e.target.href);
+        }
+    })
 }
 
 // c.f https://stackoverflow.com/a/41749865 check manifest display, needs to update this method if it will be change
@@ -54,15 +61,6 @@ function refreshPWA(badgeValue) {
         window.location.href = PWA_START_URL;
         return;
     }
-
-    // change all links with target="_blank" except the links with href = PWA_START_URL
-    jQuery(document).ready(function () {
-        $('a').each(function () {
-            if (!$(this).attr('href').endsWith(PWA_START_URL)) {
-                $(this).attr('target', '_blank')
-            }
-        });
-    });
 }
 
 function askUserForNotificationPermission() {
