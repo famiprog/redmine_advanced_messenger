@@ -24,6 +24,7 @@ function registerPWAServiceWorker() {
     window.onclick = ((e) => {
         // open all links in a new browser window except the PWA start url 
         if (e.target.localName == 'a' && !e.target.href.endsWith(PWA_START_URL)) {
+            e.preventDefault();
             window.open(e.target.href);
         }
     })
