@@ -1,4 +1,4 @@
-# redmine-advanced-messenger
+# Redmine Advanced Messenger
 
 ## Featurebook
 
