@@ -35,7 +35,7 @@ When the status is green, **"+"/"-" toggles** between "Read" <-> "Read but colla
 * GIVEN status = "Read but collapsed", WHEN click on "+" (to expand), THEN new status = "Read"
 
 `@Scenario`
-## WHEN the status "Read but collapsed" is selected, THEN ...
+## WHEN the status "Ignored" is selected, THEN ...
 
 * ... the color (border and dropdown) is gray,
 * AND the note content is fully hidden.
