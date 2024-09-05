@@ -1,5 +1,6 @@
 {
   "short_name": "RedmineAdvMess",
+  "//name": "Constant `name` must be in sync with `global_popup_title` and the corresponding text in @see config/locales/en.yml, cf. issue #35272. Ensure that any changes are applied consistently in both locations.",
   "name": "Redmine Advanced Messenger",
   "icons": [
     {
