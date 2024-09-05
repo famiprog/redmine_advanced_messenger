@@ -14,3 +14,14 @@
     <%= check_box_tag 'settings[disable_fix_for_scroll_to_anchor]', 1, Setting.plugin_redmine_advanced_messenger[:disable_fix_for_scroll_to_anchor] == '1' %>
     <em class="info"><%=raw l(:disable_fix_for_scroll_to_anchor_note) %></em>
 </p>
+<p>
+    <label for="settings_select_roles_to_exclude"><%= l(:select_roles_to_exclude) %></label>
+    <% allowed_roles = Setting.plugin_redmine_advanced_messenger[:allowed_roles] || [] %>
+    <%# adaptat din app/views/roles/_form.html.erb %>
+    <% Role.givable.sorted.each do |role| %>
+    <label class="block role_managed_role">
+        <%= check_box_tag 'settings[allowed_roles][]', role.id, allowed_roles.include?(role.id.to_s), id: nil %>
+        <%= role.name %>
+    </label>
+    <% end %>
+</p>

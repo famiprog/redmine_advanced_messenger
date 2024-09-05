@@ -13,7 +13,8 @@ Redmine::Plugin.register :redmine_advanced_messenger do
   settings :default => {'empty' => true, 
                         :show_unread_notifications => '1', 
                         :disable_fix_for_scroll_to_anchor => '0',
-                        :unread_notifications_update_interval => 60}, 
+                        :unread_notifications_update_interval => 60,
+                        :allowed_roles => [] }, 
             :partial => 'settings/advanced_messenger_settings'
 
   # need the helper to be available in _issue_notifications.html.erb 
@@ -32,4 +33,5 @@ Redmine::Plugin.register :redmine_advanced_messenger do
 
   Journal.send(:include, Patches::JournalPatch)
   Message.send(:include, Patches::MessagePatch)
+  Mailer.send(:include, Patches::MailerPatch)
 end
