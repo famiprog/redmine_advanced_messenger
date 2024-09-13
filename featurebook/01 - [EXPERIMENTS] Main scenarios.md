@@ -4,11 +4,11 @@ Go to [Featurebook > Index](../FEATUREBOOK.md)
 
 <table><tr><td>
 
+`@Scenario` `whenWritesNote()`<br/>
 **GIVEN an user writes a note (or forum message), WHEN page renders, THEN 1/ the recipients are displayed ...**
-      
 </td></tr><tr>
 <td>
-  
+      
 ... AND 2/ one can see who read it and who didn't
 
 ![whenDisplayed](img/whenDisplayed.png)
@@ -31,13 +31,12 @@ Mentioning someone (e.g. @john.doe) in a note does send an email to that person 
 
 We did the necessary to capture such emails as well.
 </details>
-
 </td></tr></table>
 
 <table><tr><td>
 
+`@Scenario` `whenWritesNote()`<br/>
 **AND WHEN click on the "yellow callout" icon, THEN a popup w/ detailed info appears**
-
 </td></tr><tr>
 <td>
 
@@ -46,6 +45,5 @@ We did the necessary to capture such emails as well.
 We see again the initials and status (color). Plus user name (clickable) and the time when the message was read. The time is relative, and hoverable for absolute time:
 
 ![hoverOnTime](img/hoverOnTime.png)
-
 </td></tr></table>
 
