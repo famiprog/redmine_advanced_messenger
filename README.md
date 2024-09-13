@@ -5,7 +5,10 @@
 See [FEATUREBOOK.md](FEATUREBOOK.md) for detailed description and screenshots.
 
 ## Install
-This plugin needs the postgres extension ```pg_trgm```, but the instalation of the migration scripts can fail to install this extension because of insufficient rights. 
+
+For the moment only PostgreSQL is supported. We will gladly accept PRs that add support for other DBs. For a new DB, the main actions are: 1/ find an equivalent to [pg_trgm](https://www.postgresql.org/docs/current/pgtrgm.html) to be able to perform quick searches. 2/ Adapt the SQL syntax. 3/ Perform a series of manual tests, to check if the features are working.
+
+This plugin needs the postgres extension [pg_trgm](https://www.postgresql.org/docs/current/pgtrgm.html). The install scripts contains the commands needed to activate it, but they can fail to install this extension because of insufficient rights. 
 
 In this case the ```pg_trgm``` extension should be installed manually by:
 1. connecting to the DB as a super user (e.g. ```psql -U postgres redmine```)
