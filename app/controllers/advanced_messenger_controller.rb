@@ -84,11 +84,15 @@ class AdvancedMessengerController < ApplicationController
       return
     end
 
-    unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count;
+    unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
     unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count
 
+    # Filter out private notifications the user can't view
+    viewable_unread_issues_notifications = unread_issues_notifications.select do |notification|
+      is_journal_visible(notification)
+    end
     respond_to do |format|
-      format.json { render json: {count: unread_forum_messages + unread_issues_notifications}, status: 200 }
+      format.json { render json: {count: unread_forum_messages + viewable_unread_issues_notifications.count}, status: 200 }
       format.html
     end
   end

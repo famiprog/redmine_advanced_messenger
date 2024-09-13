@@ -53,6 +53,9 @@ module AdvancedMessengerHelper
 
         unread_notifications.each do |entity|
             parentEntity = getParent.call(entity)
+            # Determine if the entity is visible to the user
+            entity_is_visible = entity_visible_to_user?(entity, parentEntity.project)
+            next unless entity_is_visible
             if grouped_unread_notifications[parentEntity.id] != nil
                 unread_notification_status = grouped_unread_notifications[parentEntity.id]
             else
@@ -61,8 +64,20 @@ module AdvancedMessengerHelper
                 grouped_unread_notifications[parentEntity.id] = unread_notification_status
             end
             unread_notification_status.count += 1 
+            unread_notification_status.unread_journals << entity
         end
         return grouped_unread_notifications
+    end
+
+    def entity_visible_to_user?(entity, project)
+        if entity.is_a?(Journal)
+            user_can_view_private_notes = User.current.allowed_to?(:view_private_notes, project)
+            user_can_view_issues = User.current.allowed_to?(:view_issues, project)
+            return false unless user_can_view_issues
+            return !entity.private_notes? || user_can_view_private_notes
+        else
+            return true
+        end
     end
 
     def getUnreadNotificationsForCurrentUserCount()
