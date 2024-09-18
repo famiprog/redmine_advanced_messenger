@@ -35,7 +35,7 @@ function checkPWA() {
     return window.matchMedia('(display-mode: standalone)').matches
 }
 
-function refreshPWA(badgeValue) {
+function refreshPWA(badgeValue, taskId, message, url) {
     if (!checkPWA()) {
         return;
     }
@@ -55,7 +55,7 @@ function refreshPWA(badgeValue) {
         }
         // show notification just if badge value is greater than current badge value AND will not be displayed when the application is just started
         if (currentBadgeValue != null && badgeValue > currentBadgeValue) {
-            showNotification();
+            showNotification(taskId, message, url);
         }
         sessionStorage.setItem(PWA_BADGE_VALUE, badgeValue);
         // refresh page
@@ -72,16 +72,17 @@ function askUserForNotificationPermission() {
     }
 }
 
-function showNotification() {
+function showNotification(taskId, message, url) {
     // Stop if user permission was not granted
     if (Notification && Notification.permission != "granted") {
         return;
     }
     var notification = new Notification("Redmine", {
-        body: "New redmine notifications!",
+        body: `Task #${taskId}: ${message}`,
         // the id for notification needs to be unique
         tag: "RedmineAdvancedMessengerNotification_" + new Date().toUTCString(),
         icon: "../../favicon.ico",
+        data: { url: url }  // Include the URL to the unread message
     });
 
     setTimeout(() => {

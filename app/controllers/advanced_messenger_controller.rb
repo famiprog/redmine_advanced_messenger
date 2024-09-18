@@ -84,11 +84,38 @@ class AdvancedMessengerController < ApplicationController
       return
     end
 
-    unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count;
-    unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count
+    unread_issues_notifications = Journal
+                                    .where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
+                                    .order('created_on DESC')
+  
+    unread_forum_messages = Message
+                              .where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
+                              .order('created_on DESC')
+  
+    issue_notifications = unread_issues_notifications.map do |journal|
+      {
+        notificationId: journal.id,
+        taskId: journal.journalized_id,
+        message: journal.notes,
+        url: "/issues/#{journal.journalized_id}#note-#{journal.id}",
+        created_on: journal.created_on
+      }
+    end
+  
+    forum_notifications = unread_forum_messages.map do |message|
+      {
+        notificationId: message.id,
+        taskId: message.parent_id,
+        message: message.content,
+        url: "/boards/#{message.board_id}/topics/#{message.parent_id || message.id}#message-#{message.id}",
+        created_on: message.created_on
+      }
+    end
+  
+    all_notifications = (issue_notifications + forum_notifications).sort_by { |n| n[:created_on] }.reverse
 
     respond_to do |format|
-      format.json { render json: {count: unread_forum_messages + unread_issues_notifications}, status: 200 }
+      format.json { render json: {count: all_notifications.count, notifications: all_notifications}, status: 200 }
       format.html
     end
   end
