@@ -33,12 +33,7 @@ module Patches
         @journal_details = journal.visible_details
         @issue_url = url_for(controller: 'issues', action: 'show', id: issue, anchor: "change-#{journal.id}")
 
-        if Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser'
-          @note_teaser = ActionController::Base.helpers.truncate(journal.notes, length: 100, omission: '...')
-          mail_content = @note_teaser
-        else
-          mail_content = journal.notes
-        end
+        mail_content = mail_content_with_teaser(journal.notes)
 
         subject = "[#{issue.project.name} - #{issue.tracker.name} ##{issue.id}] "
         subject += "(#{issue.status.name}) " if journal.new_value_for('status_id') && Setting.show_status_changes_in_mail_subject?
@@ -60,12 +55,7 @@ module Patches
         @user = user
         @message_url = url_for(message.event_url)
 
-        if Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser'
-          @message_teaser = ActionController::Base.helpers.truncate(message.content, length: 100, omission: '...')
-          mail_content = @message_teaser
-        else
-          mail_content = message.content
-        end
+        mail_content = mail_content_with_teaser(message.content)
 
         subject = "[#{message.board.project.name} - #{message.board.name} - msg#{message.root.id}] #{message.subject}"
 
@@ -73,6 +63,15 @@ module Patches
           format.text { render plain: mail_content }
           format.html { render html: mail_content.html_safe }
         end
+      end
+    end
+
+    # Helper method for handling teaser or full mail content
+    def mail_content_with_teaser(content)
+      if Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser'
+        ActionController::Base.helpers.truncate(content, length: 100, omission: '...')
+      else
+        content
       end
     end
   end
