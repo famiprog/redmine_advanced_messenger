@@ -43,5 +43,8 @@ en:
   notification_mail_content_description: W/ "Teaser" (which is the default), the notification email doesn't contain the note text, but only a small teaser text inviting to open the note in Redmine. This forces the receiver to read in Redmine, and thus mark as read. Otherwise the receiver might read from the email, w/o the motivation to go in Redmine and mark as read.
   teaser: Teaser
   whole_note: Whole note
+  select_roles_to_exclude: Select roles to exclude from email notifications
+  select_roles_to_exclude_note: >
+   People that have installed and use the PWA will probably use this feature. They are notified by the app, in the taskbar. So receiving emails is redundant and pollutes the mailbox. Note: this applies only for messages intercepted by Redmine Advanced Messenger. Not all the email messages.
 
   
