@@ -11,7 +11,7 @@
 </ul>
 
 <% if Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' %>
-  <%= truncate(@journal.notes, length: 100, omission: '...') %>
+  <%= escape_javascript(h(truncate(@journal.notes, length: 100, omission: '...'))) %>
 <% else %>
   <%= textilizable(@journal, :notes, :only_path => false) %>
 <% end %>
