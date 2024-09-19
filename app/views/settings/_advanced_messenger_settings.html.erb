@@ -16,11 +16,11 @@
 </p>
 <p>
     <label for="settings_select_roles_to_exclude"><%= l(:select_roles_to_exclude) %></label>
-    <% allowed_roles = Setting.plugin_redmine_advanced_messenger[:allowed_roles] || [] %>
+    <% roles_not_sent_email = Setting.plugin_redmine_advanced_messenger[:roles_not_sent_email] || [] %>
     <%# adapted from _crispico_plugin_settings_menu.html.erb %>
     <%= select_tag(
-        'settings[allowed_roles][]',
-        options_from_collection_for_select(Role.givable.sorted, 'id', 'name', allowed_roles),
+        'settings[roles_not_sent_email][]',
+        options_from_collection_for_select(Role.givable.sorted, 'id', 'name', roles_not_sent_email),
         multiple: true,
         style: 'height: 100px;'
     ) %>
