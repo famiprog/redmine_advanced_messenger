@@ -15,6 +15,11 @@
     <em class="info"><%=raw l(:disable_fix_for_scroll_to_anchor_note) %></em>
 </p>
 <p>
+    <label for="settings_notification_mail_content"><%= l(:notification_mail_content) %></label>
+    <%= select_tag 'settings[notifications_mail_option]', options_for_select([[l(:teaser), 'teaser'], [l(:whole_note), 'whole_note']], Setting.plugin_redmine_advanced_messenger[:notifications_mail_option]), include_blank: false %>
+    <em class="info"><%= l(:notification_mail_content_description) %></em>
+</p>
+<p>
     <label for="settings_select_roles_to_exclude"><%= l(:select_roles_to_exclude) %></label>
     <% roles_not_sent_email = Setting.plugin_redmine_advanced_messenger[:roles_not_sent_email] || [] %>
     <%# adapted from _crispico_plugin_settings_menu.html.erb %>
