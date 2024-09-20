@@ -7,9 +7,7 @@
     <%end%>
     <%issues_or_forum_data = [{
                                 grouped_unread_notifications: getUnreadNotificationsGroupByIssues(),
-                                get_link: lambda {|issue| 
-                                    unread_notification_statuses = getUnreadJournalsStatus(issue.visible_journals_with_index)
-                                    return "/issues/" + issue.id.to_s + "#note-" + unread_notification_statuses[0].to_s                                    # last_journal_id = Journal.where(journalized_id: issue.id, journalized_type: 'Issue').count
+                                get_link: lambda {|issue| return "/issues/" + issue.id.to_s + "#note-" + getUnreadJournalsStatus(issue.visible_journals_with_index)[0].to_s
                                 },
                                 my_page_all_notifications_read_text: :my_page_all_issues_notifications_read,
                                 my_page_unread_notifications_text: :my_page_issues_unread_notifications,

@@ -22,7 +22,7 @@
         }
         function requestAndRenderGlobalUnreadNotificationsIndicator() {
             $.ajax({
-                url: '/advanced_messenger/unread_notifications_count', // The URL of your Rails controller action
+                url: '/advanced_messenger/unread_notifications_count',
                 type: 'GET',
                 dataType: 'json',
                 beforeSend: function() { 
@@ -53,6 +53,7 @@
                             sessionStorage.setItem('latestNotificationId', latestNotification.notificationId);
                         } else {
                             console.log("No new notifications.");
+                            renderGlobalUnreadNotificationsIndicator(result.count);
                         }
                     } else {
                         console.log("No notifications found.");
