@@ -1,6 +1,8 @@
 ## Unreleased
 
-* [Enhancements to Notification and Link Handling in My Page and PWA](https://github.com/famiprog/redmine_advanced_messenger/pull/34)
+* [Don't send emails for notifications intercepted by Redmine Advanced Messenger, based on roles](https://github.com/famiprog/redmine_advanced_messenger/pull/28)
+* [Add option to send either a teaser or the whole note in notification emails](https://github.com/famiprog/redmine_advanced_messenger/pull/31)
+* [Enhancements to notification and link handling in My Page and PWA](https://github.com/famiprog/redmine_advanced_messenger/pull/34)
 
 ## v1.3.0
 
