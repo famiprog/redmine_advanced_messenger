@@ -35,7 +35,7 @@ function checkPWA() {
     return window.matchMedia('(display-mode: standalone)').matches
 }
 
-function refreshPWA(badgeValue, taskId, message, url) {
+function refreshPWA(badgeValue, notifications) {
     if (!checkPWA()) {
         return;
     }
@@ -47,18 +47,35 @@ function refreshPWA(badgeValue, taskId, message, url) {
 
     // change app badge if the value was changed
     // use session storage in order to don't have the stored value, in this way when the app will be open the code will be trigger for remaining unread notifications
-    var currentBadgeValue = sessionStorage.getItem(PWA_BADGE_VALUE);
-    if (currentBadgeValue != badgeValue) {
+    const currentBadgeValue = sessionStorage.getItem(PWA_BADGE_VALUE);
+    const badgeChanged = currentBadgeValue != badgeValue;
+    if (badgeChanged) {
         // check for support first and set the value displayed for PWA badge
         if (navigator.setAppBadge) {
             navigator.setAppBadge(badgeValue);
         }
-        // show notification just if badge value is greater than current badge value AND will not be displayed when the application is just started
-        if (currentBadgeValue != null) {
-            showNotification(taskId, message, url);
-        }
         sessionStorage.setItem(PWA_BADGE_VALUE, badgeValue);
-        // refresh page
+    }
+
+    if (notifications && notifications.length > 0) {
+        let delay = 0;
+        notifications.forEach(function (notification) {
+            setTimeout(function () {
+                showNotification(notification.taskId, notification.message, notification.url);
+            }, delay);
+            delay += 1000; // Increase the delay by 1 second (1000 ms) for each subsequent notification
+        });
+
+        // Add notifications to sessionStorage so they won't be resent
+        const storedNotifications = JSON.parse(sessionStorage.getItem('PWA_NOTIFICATIONS') || '[]');
+        const updatedNotifications = storedNotifications.concat(notifications);
+        sessionStorage.setItem('PWA_NOTIFICATIONS', JSON.stringify(updatedNotifications));
+        // Delay the page refresh to happen after all notifications have been shown
+        setTimeout(function () {
+            window.location.href = PWA_START_URL;
+        }, delay);
+    } else if (badgeChanged) {
+        // If no notifications and the badge value changed, refresh the page
         window.location.href = PWA_START_URL;
         return;
     }

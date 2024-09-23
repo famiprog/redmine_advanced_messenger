@@ -112,7 +112,7 @@ class AdvancedMessengerController < ApplicationController
       }
     end
   
-    all_notifications = (issue_notifications + forum_notifications).sort_by { |n| n[:created_on] }.reverse
+    all_notifications = (issue_notifications + forum_notifications).sort_by { |n| n[:created_on] }
 
     respond_to do |format|
       format.json { render json: {count: all_notifications.count, notifications: all_notifications}, status: 200 }

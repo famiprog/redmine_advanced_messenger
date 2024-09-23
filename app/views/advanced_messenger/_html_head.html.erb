@@ -13,8 +13,8 @@
 <%# ============= Global unread notifications indicator located on main title bar  ============= %>
 <%if (AdvancedMessengerSettings.get_setting(:show_unread_notifications) == '1')%>
     <%= javascript_tag do%>
-        function renderGlobalUnreadNotificationsIndicator(unreadNotificationsCount, taskId, message, url) {
-            refreshPWA(unreadNotificationsCount, taskId, message, url);
+        function renderGlobalUnreadNotificationsIndicator(unreadNotificationsCount, notifications) {
+            refreshPWA(unreadNotificationsCount, notifications);
             if ($("#all-unread-notifications-indicator").length > 0) {
                 const color = unreadNotificationsCount > 0 ? "#ff4545" : "#2bff2b";
                 $("#all-unread-notifications-indicator").html("<a href='/my/page'><%=t(:top_app_menu_unread_notifications)%>: <span style='color:" + color + "; font-weight:bold'>" + unreadNotificationsCount + "</span></a>");
@@ -32,31 +32,32 @@
                     $("#all-unread-notifications-indicator").removeClass('ajax-loading'); 
                 },
                 success: function(result) {
-                    console.log("AJAX response:", result);
-
-                    // Check if we have notifications
                     if (result.notifications && result.notifications.length > 0) {
-                        // Assuming the latest notification is the first one in the sorted array
-                        const latestNotification = result.notifications[0];
+                        // Get the stored notifications from sessionStorage (those already notified)
+                        let storedNotifications = JSON.parse(sessionStorage.getItem('PWA_NOTIFICATIONS') || '[]');
 
-                        // Store the latest notification details in sessionStorage to track new notifications
-                        const previousNotificationId = sessionStorage.getItem('latestNotificationId');
+                        // Filter out notifications that have already been read
+                        const unreadNotificationIds = result.notifications.map(n => n.notificationId);
+                        const filteredStoredNotifications = storedNotifications.filter(storedNotification =>
+                            unreadNotificationIds.includes(storedNotification.notificationId)
+                        );
 
-                        // Check if the notification is new (i.e., different from the last stored one)
-                        if (previousNotificationId !== latestNotification.notificationId.toString()) {
-                            console.log("New notification found:", latestNotification);
+                        // Update sessionStorage to only store unread notifications
+                        sessionStorage.setItem('PWA_NOTIFICATIONS', JSON.stringify(filteredStoredNotifications));
 
-                            // Send notification to user for the latest notification
-                            renderGlobalUnreadNotificationsIndicator(result.count, latestNotification.taskId, latestNotification.message, latestNotification.url);
+                        // Filter out notifications that have already been notified
+                        var newNotifications = result.notifications.filter(function (notification) {
+                            return !storedNotifications.some(function (storedNotification) {
+                                return storedNotification.notificationId === notification.notificationId;
+                            });
+                        });
 
-                            // Store the latest notification's notificationId in sessionStorage for future checks
-                            sessionStorage.setItem('latestNotificationId', latestNotification.notificationId);
-                        } else {
-                            console.log("No new notifications.");
-                            renderGlobalUnreadNotificationsIndicator(result.count);
+                        // If we have new notifications, call refreshPWA with the new notifications list
+                        if (newNotifications.length > 0) {
+                            refreshPWA(result.count, newNotifications);
                         }
+                        renderGlobalUnreadNotificationsIndicator(result.count);
                     } else {
-                        console.log("No notifications found.");
                         renderGlobalUnreadNotificationsIndicator(result.count);
                     }
                 },
