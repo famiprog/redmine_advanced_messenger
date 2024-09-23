@@ -54,7 +54,7 @@ function refreshPWA(badgeValue, taskId, message, url) {
             navigator.setAppBadge(badgeValue);
         }
         // show notification just if badge value is greater than current badge value AND will not be displayed when the application is just started
-        if (currentBadgeValue != null && badgeValue > currentBadgeValue) {
+        if (currentBadgeValue != null) {
             showNotification(taskId, message, url);
         }
         sessionStorage.setItem(PWA_BADGE_VALUE, badgeValue);
