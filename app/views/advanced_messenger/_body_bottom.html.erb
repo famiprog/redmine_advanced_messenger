@@ -7,15 +7,14 @@
     <%end%>
     <%issues_or_forum_data = [{
                                 grouped_unread_notifications: getUnreadNotificationsGroupByIssues(),
-                                get_link: lambda {|issue| return "/issues/" + issue.id.to_s + "#note-" + getUnreadJournalsStatus(issue.visible_journals_with_index)[0].to_s
-                                },
+                                get_link: lambda {|issue| return "/issues/" + issue.id.to_s + "#note-" + getUnreadJournalsStatus(issue.visible_journals_with_index)[0].to_s },
                                 my_page_all_notifications_read_text: :my_page_all_issues_notifications_read,
                                 my_page_unread_notifications_text: :my_page_issues_unread_notifications,
                                 mark_all_ignored_link: "ignore_all_unread_issues_notes"
                             }, 
                             {
                                 grouped_unread_notifications: getUnreadNotificationsGroupByTopic(),
-                                get_link: lambda {|topic| return "/boards/" + topic.board.id.to_s + "/topics/" + topic.id.to_s },
+                                get_link: lambda {|topic| return "/boards/" + topic.board.id.to_s + "/topics/" + topic.id.to_s + "#message-" + Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')[0].id.to_s },
                                 my_page_all_notifications_read_text: :my_page_all_forum_notifications_read,
                                 my_page_unread_notifications_text: :my_page_forum_unread_notifications,
                                 mark_all_ignored_link: "ignore_all_unread_forum_messages"
