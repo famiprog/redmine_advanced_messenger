@@ -61,9 +61,9 @@ function refreshPWA(badgeValue, notifications) {
         let delay = 0;
         notifications.forEach(function (notification) {
             setTimeout(function () {
-                showNotification(notification.taskId, notification.message, notification.url);
+                showNotification(notification.taskType, notification.taskId, notification.message, notification.url);
             }, delay);
-            delay += 1000; // Increase the delay by 1 second (1000 ms) for each subsequent notification
+            delay += 1000; // Increase the delay by 1 second for each subsequent notification
         });
 
         // Add notifications to sessionStorage so they won't be resent
@@ -109,13 +109,13 @@ function askUserForNotificationPermission() {
 // }
 
 // notification sent through service-worker
-function showNotification(taskId, message, url) {
+function showNotification(taskType, taskId, message, url) {
     Notification.requestPermission().then((result) => {
         if (result == "granted") {
             navigator.serviceWorker.getRegistration("../../plugin_assets/redmine_advanced_messenger/pwa/service-worker.js")
                 .then((registration) => {
                     registration.showNotification("Redmine", {
-                        body: `Task #${taskId}: ${message}`,
+                        body: `${taskType} #${taskId}: ${message}`,
                         tag: "RedmineAdvancedMessengerNotification_" + new Date().toUTCString(),
                         icon: "../../favicon.ico",
                         data: { url: url },

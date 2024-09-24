@@ -96,6 +96,7 @@ class AdvancedMessengerController < ApplicationController
       {
         notificationId: journal.id,
         taskId: journal.journalized_id,
+        taskType: "Issue",
         message: journal.notes,
         url: "/issues/#{journal.journalized_id}#note-#{journal.journalized.journals.index(journal) + 1}",
         created_on: journal.created_on
@@ -106,6 +107,7 @@ class AdvancedMessengerController < ApplicationController
       {
         notificationId: message.id,
         taskId: message.parent_id,
+        taskType: "Forum",
         message: message.content,
         url: "/boards/#{message.board_id}/topics/#{message.parent_id}#message-#{message.id}",
         created_on: message.created_on
