@@ -89,25 +89,6 @@ function askUserForNotificationPermission() {
     }
 }
 
-// functia initiala adaptata, notificarea nu poate fi procesata de service-worker
-// function showNotification(taskId, message, url) {
-//     // Stop if user permission was not granted
-//     if (Notification && Notification.permission != "granted") {
-//         return;
-//     }
-//     var notification = new Notification("Redmine", {
-//         body: `Task #${taskId}: ${message}`,
-//         // the id for notification needs to be unique
-//         tag: "RedmineAdvancedMessengerNotification_" + new Date().toUTCString(),
-//         icon: "../../favicon.ico",
-//         data: { url: url }
-//     });
-
-//     setTimeout(() => {
-//         notification.close();
-//     }, TIMER_CLOSING_OLD_NOTIFICATIONS * 1000);
-// }
-
 // notification sent through service-worker
 function showNotification(taskType, taskId, message, url) {
     Notification.requestPermission().then((result) => {
