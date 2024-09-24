@@ -28,14 +28,11 @@ self.addEventListener('notificationclick', function(event) {
     const promiseChain = clients.matchAll({
         type: 'window',
         includeUncontrolled: true
-    }).then((windowClients) => {
-        for (let client of windowClients) {
-            if (client.url === urlToOpen && 'focus' in client) {
-                return client.focus();
-            }
-        }
+    }).then(() => {
         if (clients.openWindow) {
             return clients.openWindow(urlToOpen);
+        } else {
+            console.log('clients.openWindow is not supported by this browser');
         }
     });
     event.waitUntil(promiseChain);
