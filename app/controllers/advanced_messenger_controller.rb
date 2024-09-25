@@ -109,7 +109,7 @@ class AdvancedMessengerController < ApplicationController
         taskId: message.parent_id,
         taskType: "Forum",
         message: message.content,
-        url: "/boards/#{message.board_id}/topics/#{message.parent_id}#message-#{message.id}",
+        url: "/boards/#{message.board_id}/topics/#{message.parent_id}?page=#{((Message.where(parent_id: message.parent_id).order(:created_on).index(message) + 1).to_f / MessagesController::REPLIES_PER_PAGE).ceil}#message-#{message.id}",
         created_on: message.created_on
       }
     end
