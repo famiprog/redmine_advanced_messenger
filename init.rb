@@ -4,7 +4,7 @@ Redmine::Plugin.register :redmine_advanced_messenger do
   name 'Redmine Advanced Messenger plugin'
   author 'famiprog'
   description 'For detailed documentation see the link below.'
-  version '1.3.0'
+  version '1.3.1-SNAPSHOT'
   url 'https://github.com/famiprog/redmine-advanced-messenger'
   author_url 'https://github.com/famiprog'
 
@@ -13,7 +13,9 @@ Redmine::Plugin.register :redmine_advanced_messenger do
   settings :default => {'empty' => true, 
                         :show_unread_notifications => '1', 
                         :disable_fix_for_scroll_to_anchor => '0',
-                        :unread_notifications_update_interval => 60}, 
+                        :unread_notifications_update_interval => 60,
+                        :notifications_mail_option => 'teaser',
+                        :roles_not_sent_email => [] }, 
             :partial => 'settings/advanced_messenger_settings'
 
   # need the helper to be available in _issue_notifications.html.erb 
@@ -32,4 +34,5 @@ Redmine::Plugin.register :redmine_advanced_messenger do
 
   Journal.send(:include, Patches::JournalPatch)
   Message.send(:include, Patches::MessagePatch)
+  Mailer.send(:include, Patches::MailerPatch)
 end
