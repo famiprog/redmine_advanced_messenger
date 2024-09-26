@@ -1,4 +1,5 @@
 class AdvancedMessengerController < ApplicationController
+  include AdvancedMessengerHelper
 
   def update_journal_read_by_users
     if !User.current.logged?
