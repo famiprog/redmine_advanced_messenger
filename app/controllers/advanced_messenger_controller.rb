@@ -86,11 +86,9 @@ class AdvancedMessengerController < ApplicationController
 
     unread_issues_notifications = Journal
                                     .where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
-                                    .order('created_on DESC')
   
     unread_forum_messages = Message
                               .where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
-                              .order('created_on DESC')
   
     issue_notifications = unread_issues_notifications.map do |journal|
       {
@@ -98,7 +96,7 @@ class AdvancedMessengerController < ApplicationController
         taskId: journal.journalized_id,
         taskType: "Issue",
         message: journal.notes,
-        url: "/issues/#{journal.journalized_id}#note-#{journal.journalized.journals.index(journal) + 1}",
+        url: "/issues/#{journal.journalized_id}#note-#{journal.journalized.journals.order(:created_on).index(journal) + 1}",
         created_on: journal.created_on
       }
     end

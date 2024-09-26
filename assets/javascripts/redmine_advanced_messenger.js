@@ -57,7 +57,7 @@ function refreshPWA(badgeValue, notifications) {
         sessionStorage.setItem(PWA_BADGE_VALUE, badgeValue);
     }
 
-    if (notifications && notifications.length > 0) {
+    if (notifications.length > 0) {
         let delay = 0;
         notifications.forEach(function (notification) {
             setTimeout(function () {

@@ -32,33 +32,29 @@
                     $("#all-unread-notifications-indicator").removeClass('ajax-loading'); 
                 },
                 success: function(result) {
-                    if (result.notifications && result.notifications.length > 0) {
+                    if (result.notifications.length > 0) {
                         // Get the stored notifications from sessionStorage (those already notified)
-                        let storedNotifications = JSON.parse(sessionStorage.getItem('PWA_NOTIFICATIONS') || '[]');
+                        let notificationsAlreadyShownInPWA = JSON.parse(sessionStorage.getItem('PWA_NOTIFICATIONS') || '[]');
 
                         // Filter out notifications that have already been read
                         const unreadNotificationIds = result.notifications.map(n => n.notificationId);
-                        const filteredStoredNotifications = storedNotifications.filter(storedNotification =>
+                        const unreadNotificationsAlreadyShownInPWA = notificationsAlreadyShownInPWA.filter(storedNotification =>
                             unreadNotificationIds.includes(storedNotification.notificationId)
                         );
 
                         // Update sessionStorage to only store unread notifications
-                        sessionStorage.setItem('PWA_NOTIFICATIONS', JSON.stringify(filteredStoredNotifications));
+                        sessionStorage.setItem('PWA_NOTIFICATIONS', JSON.stringify(unreadNotificationsAlreadyShownInPWA));
 
                         // Filter out notifications that have already been notified
                         var newNotifications = result.notifications.filter(function (notification) {
-                            return !storedNotifications.some(function (storedNotification) {
+                            return !unreadNotificationsAlreadyShownInPWA.some(function (storedNotification) {
                                 return storedNotification.notificationId === notification.notificationId;
                             });
                         });
 
-                        // If we have new notifications, call refreshPWA with the new notifications list
-                        if (newNotifications.length > 0) {
-                            refreshPWA(result.count, newNotifications);
-                        }
-                        renderGlobalUnreadNotificationsIndicator(result.count);
+                        renderGlobalUnreadNotificationsIndicator(result.count, newNotifications);
                     } else {
-                        renderGlobalUnreadNotificationsIndicator(result.count);
+                        renderGlobalUnreadNotificationsIndicator(result.count, []);
                     }
                 },
                 error: function(xhr, status, error) {
