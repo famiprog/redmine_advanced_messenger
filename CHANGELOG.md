@@ -1,5 +1,7 @@
 ## Unreleased
 
+* [Don't send emails for notifications intercepted by Redmine Advanced Messenger, based on roles](https://github.com/famiprog/redmine_advanced_messenger/pull/28)
+* [Add option to send either a teaser or the whole note in notification emails](https://github.com/famiprog/redmine_advanced_messenger/pull/31)
 * [Remove private note notifications for users without permission to view them](https://github.com/famiprog/redmine_advanced_messenger/pull/32)
 
 ## v1.3.0
