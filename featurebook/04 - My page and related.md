@@ -62,16 +62,14 @@ Thanks to this feature, we enable near real time communication capabilities. I.e
 
 `@Scenario:`
 
-## WHEN a new note or message is added to a thread the user is watching, ...
+## GIVEN installed as PWA, WHEN a new unread note/message, ...
 
-* THEN a notification is displayed via the service worker (PWA),
-* AND it includes the type of the task (i.e., "Issue" or "Forum"),
-* AND it includes the number of the task,
-* AND it includes a preview of the message content,
+* THEN a notification is displayed,
+![notification](img/notification.png)
 
 `@Scenario:`
 
-## GIVEN a new notification is displayed, ...
+## GIVEN a notification is displayed, ...
 
 * WHEN the user clicks on the notification,
 * THEN it opens a new browser tab that displays directly that note/message.
