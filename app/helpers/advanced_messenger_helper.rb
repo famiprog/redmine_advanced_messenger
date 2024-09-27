@@ -53,6 +53,8 @@ module AdvancedMessengerHelper
 
         unread_notifications.each do |entity|
             parentEntity = getParent.call(entity)
+            # Determine if the entity is visible to the user
+            next unless !entity.is_a?(Journal) || is_journal_visible(entity)
             if grouped_unread_notifications[parentEntity.id] != nil
                 unread_notification_status = grouped_unread_notifications[parentEntity.id]
             else
@@ -66,9 +68,15 @@ module AdvancedMessengerHelper
     end
 
     def getUnreadNotificationsForCurrentUserCount()
-        unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count;
-        unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count
-        return unread_forum_messages + unread_issues_notifications;
+        unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
+        unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
+
+        # Filter out private notifications the user can't view
+        viewable_unread_issues_notifications = unread_issues_notifications.select do |notification|
+            is_journal_visible(notification)
+        end
+
+        return unread_forum_messages.count + viewable_unread_issues_notifications.count;
     end
 
     def getUsersReadStatus(read_by_users)
@@ -105,4 +113,12 @@ module AdvancedMessengerHelper
     def time_tag_without_link_to_activity(time) 
         return content_tag('abbr', distance_of_time_in_words(Time.now, time), :title => format_time(time))
     end   
+
+    def is_journal_visible (journal)
+        return journal.journalized.visible? && User.current.allowed_to?(:view_issues, journal.journalized.project) && (!journal.private_notes? || User.current.allowed_to?(:view_private_notes, journal.journalized.project) || journal.user.id == User.current.id)
+    end
+
+    def is_message_visible (message)
+        return message.visible?();  
+    end
 end

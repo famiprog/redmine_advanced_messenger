@@ -1,5 +1,6 @@
 # English strings go here for Rails i18n
 en:
+  # Constant `global_popup_title` must be in sync with `name` and the corresponding text in @see assets/pwa/manifest.json, cf. issue #35272. Ensure that any changes are applied consistently in both locations.
   global_popup_title: "Redmine Advanced Messenger"
   
   label_time_ago: "%{time} ago"
@@ -45,6 +46,6 @@ en:
   whole_note: Whole note
   select_roles_to_exclude: Select roles to exclude from email notifications
   select_roles_to_exclude_note: >
-   People that have installed and use the PWA will probably use this feature. They are notified by the app, in the taskbar. So receiving emails is redundant and pollutes the mailbox. Note: this applies only for messages intercepted by Redmine Advanced Messenger. Not all the email messages.
+   People that have installed and use the PWA will probably use this feature. They are notified by the app, in the taskbar. So receiving emails is redundant and pollutes the mailbox. Note: this applies only for messages intercepted by %{title}. Not all the email messages.
 
   

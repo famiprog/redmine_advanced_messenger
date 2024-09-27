@@ -87,110 +87,112 @@
 
 <%# ============= Bottom right unread notifications dialog (only for issue/forum topic pages) ============= %>
 <% if  User.current.logged? && (current_controller == 'issues'  || current_controller == 'messages') && current_action == 'show' %>
-    <div id="notifications_dialog" >
-        <%=l(:notifications_dialog_text_for_current_user, :user => link_to_user(User.current).gsub("\"", "\'")).html_safe%>
-        <div style="padding-top: 10px">
-            <div style="display:flex; gap:10px;">
-                <a id="go-to-first-one" class="icon icon-down-left-arrow"><%=t(:notifications_dialog_go_to_first_one)%></a>
-                <a id="mark-all-unread-ignored" class='icon icon-delete-message' data-remote='true' rel='nofollow' data-method='post' data-confirm='<%=t(:my_page_mark_all_as_ignored_confirmation)%>'><%=t(:my_page_mark_all_as_ignored)%></a> 
-            </div>
-            <a id="status-for-others-link" title=" " class='icon icon-chat' style="color:#169; cursor:pointer"><%=t(:notifications_dialog_status_for_others)%></a>
-            
-            <div id="other-users-status-list-content-holder" style="display:none"></div>
-            <!--By default first link inside a dialog gets auto focus (its a uiDialog feature: https://api.jqueryui.com/1.11/dialog/).
-            We don't need this, so we autofocus on another element without any graphical implication-->
-            <div autofocus></div>
+    <% if @issue.is_a?(Issue) && Issue.exists?(@issue.id) || @message.is_a?(Message) && Message.exists?(@message.id) %>
+        <div id="notifications_dialog" >
+            <%=l(:notifications_dialog_text_for_current_user, :user => link_to_user(User.current).gsub("\"", "\'")).html_safe%>
+            <div style="padding-top: 10px">
+                <div style="display:flex; gap:10px;">
+                    <a id="go-to-first-one" class="icon icon-down-left-arrow"><%=t(:notifications_dialog_go_to_first_one)%></a>
+                    <a id="mark-all-unread-ignored" class='icon icon-delete-message' data-remote='true' rel='nofollow' data-method='post' data-confirm='<%=t(:my_page_mark_all_as_ignored_confirmation)%>'><%=t(:my_page_mark_all_as_ignored)%></a> 
+                </div>
+                <a id="status-for-others-link" title=" " class='icon icon-chat' style="color:#169; cursor:pointer"><%=t(:notifications_dialog_status_for_others)%></a>
+                
+                <div id="other-users-status-list-content-holder" style="display:none"></div>
+                <!--By default first link inside a dialog gets auto focus (its a uiDialog feature: https://api.jqueryui.com/1.11/dialog/).
+                We don't need this, so we autofocus on another element without any graphical implication-->
+                <div autofocus></div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <%= javascript_tag do%>
-        let width;
-        var dialog = $("#notifications_dialog").dialog( {
-            width: $("#sidebar").width(),
-            minHeight: "auto",
-            resizable: false,
-            dialogClass: 'fixed-issue-notifications-dialog',
-            draggable: false,
-            classes: {"ui-dialog": "ui-corner-all notifications-dialog"},
+        <%= javascript_tag do%>
+            let width;
+            var dialog = $("#notifications_dialog").dialog( {
+                width: $("#sidebar").width(),
+                minHeight: "auto",
+                resizable: false,
+                dialogClass: 'fixed-issue-notifications-dialog',
+                draggable: false,
+                classes: {"ui-dialog": "ui-corner-all notifications-dialog"},
 
-            // the 'title' attribute doesn't accept html. That's why we need to set the title in the 'open()' function
-            open: function(event, ui) {
-                $(this).parent().find('.ui-dialog-titlebar .ui-dialog-title').remove();
-                $(this).parent().find('.ui-dialog-titlebar').append("<span class='ui-dialog-title icon icon-chat'><%=t(:global_popup_title)%></span>");
-            }
-        });
-
-        $(window).resize(function() {
-            $("#notifications_dialog").dialog( "option", "width", $("#sidebar").width());
-        });
-
-        $("#notifications_dialog").parent().find(".ui-dialog-titlebar").css({
-            "border" : "0px none" 
-        });
-
-        $("#notifications_dialog").parent().css({
-            "border": "0px unset"
-        })
-
-        $("#status-for-others-link").tooltip({
-            content: function () {
-                if ($("#other-users-status-list-content-holder").children().length == 0) {
-                    return "<%=t(:notifications_dialog_others_tooltip_text_all_read)%>"
+                // the 'title' attribute doesn't accept html. That's why we need to set the title in the 'open()' function
+                open: function(event, ui) {
+                    $(this).parent().find('.ui-dialog-titlebar .ui-dialog-title').remove();
+                    $(this).parent().find('.ui-dialog-titlebar').append("<span class='ui-dialog-title icon icon-chat'><%=t(:global_popup_title)%></span>");
                 }
-                return "<span>" + 
-                            "<%=t(:notifications_dialog_others_tooltip_text)%>:" +
-                        "</span>" +  
-                        "<ul id='other-users-status-list' style='list-style-type: none; padding-inline-start: 15px; margin-top: 5px;'>" +
-                            $("#other-users-status-list-content-holder").html() + 
-                        "</ul>";
-            },
-            classes: {
-                "ui-tooltip": "notification-statuses"
-            }
-        });
-    <% end %>
-    <%= javascript_tag do %>
-        function renderBottomRightUnreadNotificationsDialog(firstUnreadNotificationIndex, unreadNotificationsForCurrentUser, unreadNotificationsForOtherUsers, url, ignoreAllUrl) {
-            $("#unread-notifications-count").html(unreadNotificationsForCurrentUser);
-            
-            if (unreadNotificationsForCurrentUser == 0) {
-                $("#go-to-first-one").hide();
-                $("#mark-all-unread-ignored").hide();
-                $(".notifications-dialog").removeClass("unread");
-                
-            } else {
-                $("#go-to-first-one").attr("href", url);
-                $("#go-to-first-one").show();
-                $("#mark-all-unread-ignored").attr("href", ignoreAllUrl);
-                $("#mark-all-unread-ignored").show();
-                $(".notifications-dialog").addClass("unread");
-            }
+            });
 
-            let otherUsersStatussesList = "";
-            for (let key in unreadNotificationsForOtherUsers){
-                const unreadNotificationStatus = unreadNotificationsForOtherUsers[key];
-                otherUsersStatussesList += "<li>(" + unreadNotificationStatus.count + ") " + unreadNotificationStatus.user + "</li>"
-            }   
-            
-            $("#other-users-status-list-content-holder").html(otherUsersStatussesList);
-        }
-    <%end%>
+            $(window).resize(function() {
+                $("#notifications_dialog").dialog( "option", "width", $("#sidebar").width());
+            });
 
-    <%if @issue != nil
-        unread_notification_statuses = getUnreadJournalsStatus(@issue.visible_journals_with_index)
-    elsif @replies != nil 
-        unread_notification_statuses = getUnreadMessagesStatus([*@replies, @message])
-    end
-    if unread_notification_statuses != nil
-    %>
+            $("#notifications_dialog").parent().find(".ui-dialog-titlebar").css({
+                "border" : "0px none" 
+            });
+
+            $("#notifications_dialog").parent().css({
+                "border": "0px unset"
+            })
+
+            $("#status-for-others-link").tooltip({
+                content: function () {
+                    if ($("#other-users-status-list-content-holder").children().length == 0) {
+                        return "<%=t(:notifications_dialog_others_tooltip_text_all_read)%>"
+                    }
+                    return "<span>" + 
+                                "<%=t(:notifications_dialog_others_tooltip_text)%>:" +
+                            "</span>" +  
+                            "<ul id='other-users-status-list' style='list-style-type: none; padding-inline-start: 15px; margin-top: 5px;'>" +
+                                $("#other-users-status-list-content-holder").html() + 
+                            "</ul>";
+                },
+                classes: {
+                    "ui-tooltip": "notification-statuses"
+                }
+            });
+        <% end %>
         <%= javascript_tag do %>
-            renderBottomRightUnreadNotificationsDialog(<%=unread_notification_statuses[0]%>, 
-                                                <%=unread_notification_statuses[1]%>, 
-                                                <%=unread_notification_statuses[2].to_json.html_safe%>,
-                                                "<%=@issue != nil ? '#note-' + unread_notification_statuses[0].to_s : '?r=' + unread_notification_statuses[0].to_s + '#message-' + unread_notification_statuses[0].to_s%>",
-                                                "/advanced_messenger/<%=@issue != nil ? @issue.id : @message.id%>/ignore_all_unread_<%=@issue != nil ? 'issues_notes' : 'forum_messages'%> "
-                                                );
+            function renderBottomRightUnreadNotificationsDialog(firstUnreadNotificationIndex, unreadNotificationsForCurrentUser, unreadNotificationsForOtherUsers, url, ignoreAllUrl) {
+                $("#unread-notifications-count").html(unreadNotificationsForCurrentUser);
+                
+                if (unreadNotificationsForCurrentUser == 0) {
+                    $("#go-to-first-one").hide();
+                    $("#mark-all-unread-ignored").hide();
+                    $(".notifications-dialog").removeClass("unread");
+                    
+                } else {
+                    $("#go-to-first-one").attr("href", url);
+                    $("#go-to-first-one").show();
+                    $("#mark-all-unread-ignored").attr("href", ignoreAllUrl);
+                    $("#mark-all-unread-ignored").show();
+                    $(".notifications-dialog").addClass("unread");
+                }
+
+                let otherUsersStatussesList = "";
+                for (let key in unreadNotificationsForOtherUsers){
+                    const unreadNotificationStatus = unreadNotificationsForOtherUsers[key];
+                    otherUsersStatussesList += "<li>(" + unreadNotificationStatus.count + ") " + unreadNotificationStatus.user + "</li>"
+                }   
+                
+                $("#other-users-status-list-content-holder").html(otherUsersStatussesList);
+            }
         <%end%>
-    <%end%>
+
+        <%if @issue != nil
+            unread_notification_statuses = getUnreadJournalsStatus(@issue.visible_journals_with_index)
+        elsif @replies != nil 
+            unread_notification_statuses = getUnreadMessagesStatus([*@replies, @message])
+        end
+        if unread_notification_statuses != nil
+        %>
+            <%= javascript_tag do %>
+                renderBottomRightUnreadNotificationsDialog(<%=unread_notification_statuses[0]%>, 
+                                                    <%=unread_notification_statuses[1]%>, 
+                                                    <%=unread_notification_statuses[2].to_json.html_safe%>,
+                                                    "<%=@issue != nil ? '#note-' + unread_notification_statuses[0].to_s : '?r=' + unread_notification_statuses[0].to_s + '#message-' + unread_notification_statuses[0].to_s%>",
+                                                    "/advanced_messenger/<%=@issue != nil ? @issue.id : @message.id%>/ignore_all_unread_<%=@issue != nil ? 'issues_notes' : 'forum_messages'%> "
+                                                    );
+            <%end%>
+        <%end%>
+    <% end %>
 <%end%>

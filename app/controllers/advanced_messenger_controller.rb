@@ -1,4 +1,5 @@
 class AdvancedMessengerController < ApplicationController
+  include AdvancedMessengerHelper
 
   def update_journal_read_by_users
     if !User.current.logged?
@@ -84,13 +85,15 @@ class AdvancedMessengerController < ApplicationController
       return
     end
 
-    unread_issues_notifications = Journal
-                                    .where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
+    unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
   
-    unread_forum_messages = Message
-                              .where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
+    unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
   
-    issue_notifications = unread_issues_notifications.map do |journal|
+    viewable_unread_issues_notifications = unread_issues_notifications.select do |notification|
+        is_journal_visible(notification)
+    end
+    
+    issue_notifications = viewable_unread_issues_notifications.map do |journal|
       {
         notificationId: journal.id,
         taskId: journal.journalized_id,
@@ -115,7 +118,7 @@ class AdvancedMessengerController < ApplicationController
     all_notifications = (issue_notifications + forum_notifications).sort_by { |n| n[:created_on] }
 
     respond_to do |format|
-      format.json { render json: {count: all_notifications.count, notifications: all_notifications}, status: 200 }
+      format.json { render json: {count: getUnreadNotificationsForCurrentUserCount(), notifications: all_notifications}, status: 200 }
       format.html
     end
   end
@@ -174,15 +177,5 @@ class AdvancedMessengerController < ApplicationController
     respond_to do |format|
       format.js {render inline: "location.reload();" }
     end
-  end
-
-  # private helper method
-  def is_journal_visible (journal)
-    return journal.journalized.visible? && (!journal.private_notes? || User.current.allowed_to?(:view_private_notes, journal.journalized.project) || journal.user.id == User.current.id)
-  end
-
-  # private helper method
-  def is_message_visible (message)
-    return message.visible?();  
   end
 end
