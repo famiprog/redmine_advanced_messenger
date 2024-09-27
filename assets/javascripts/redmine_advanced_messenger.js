@@ -35,7 +35,7 @@ function checkPWA() {
     return window.matchMedia('(display-mode: standalone)').matches
 }
 
-function refreshPWA(badgeValue) {
+function refreshPWA(badgeValue, notifications) {
     if (!checkPWA()) {
         return;
     }
@@ -47,18 +47,35 @@ function refreshPWA(badgeValue) {
 
     // change app badge if the value was changed
     // use session storage in order to don't have the stored value, in this way when the app will be open the code will be trigger for remaining unread notifications
-    var currentBadgeValue = sessionStorage.getItem(PWA_BADGE_VALUE);
-    if (currentBadgeValue != badgeValue) {
+    const currentBadgeValue = sessionStorage.getItem(PWA_BADGE_VALUE);
+    const badgeChanged = currentBadgeValue != badgeValue;
+    if (badgeChanged) {
         // check for support first and set the value displayed for PWA badge
         if (navigator.setAppBadge) {
             navigator.setAppBadge(badgeValue);
         }
-        // show notification just if badge value is greater than current badge value AND will not be displayed when the application is just started
-        if (currentBadgeValue != null && badgeValue > currentBadgeValue) {
-            showNotification();
-        }
         sessionStorage.setItem(PWA_BADGE_VALUE, badgeValue);
-        // refresh page
+    }
+
+    if (notifications.length > 0) {
+        let delay = 0;
+        notifications.forEach(function (notification) {
+            setTimeout(function () {
+                showNotification(notification.taskType, notification.taskId, notification.message, notification.url);
+            }, delay);
+            delay += 1000; // Increase the delay by 1 second for each subsequent notification
+        });
+
+        // Add notifications to sessionStorage so they won't be resent
+        const storedNotifications = JSON.parse(sessionStorage.getItem('PWA_NOTIFICATIONS') || '[]');
+        const updatedNotifications = storedNotifications.concat(notifications);
+        sessionStorage.setItem('PWA_NOTIFICATIONS', JSON.stringify(updatedNotifications));
+        // Delay the page refresh to happen after all notifications have been shown
+        setTimeout(function () {
+            window.location.href = PWA_START_URL;
+        }, delay);
+    } else if (badgeChanged) {
+        // If no notifications and the badge value changed, refresh the page
         window.location.href = PWA_START_URL;
         return;
     }
@@ -72,19 +89,19 @@ function askUserForNotificationPermission() {
     }
 }
 
-function showNotification() {
-    // Stop if user permission was not granted
-    if (Notification && Notification.permission != "granted") {
-        return;
-    }
-    var notification = new Notification("Redmine", {
-        body: "New redmine notifications!",
-        // the id for notification needs to be unique
-        tag: "RedmineAdvancedMessengerNotification_" + new Date().toUTCString(),
-        icon: "../../favicon.ico",
+// notification sent through service-worker
+function showNotification(taskType, taskId, message, url) {
+    Notification.requestPermission().then((result) => {
+        if (result == "granted") {
+            navigator.serviceWorker.getRegistration("../../plugin_assets/redmine_advanced_messenger/pwa/service-worker.js")
+                .then((registration) => {
+                    registration.showNotification("Redmine", {
+                        body: `${taskType} #${taskId}: ${message}`,
+                        tag: "RedmineAdvancedMessengerNotification_" + new Date().toUTCString(),
+                        icon: "../../favicon.ico",
+                        data: { url: url },
+                    });
+                });
+        }
     });
-
-    setTimeout(() => {
-        notification.close();
-    }, TIMER_CLOSING_OLD_NOTIFICATIONS * 1000);
 }

@@ -21,3 +21,19 @@ self.addEventListener('fetch', (event) => {
                 }
             }));
 })
+
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close();
+    const urlToOpen = new URL(event.notification.data.url, self.location.origin).href;
+    const promiseChain = clients.matchAll({
+        type: 'window',
+        includeUncontrolled: true
+    }).then(() => {
+        if (clients.openWindow) {
+            return clients.openWindow(urlToOpen);
+        } else {
+            console.log('clients.openWindow is not supported by this browser');
+        }
+    });
+    event.waitUntil(promiseChain);
+});
