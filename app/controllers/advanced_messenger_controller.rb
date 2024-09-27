@@ -1,4 +1,5 @@
 class AdvancedMessengerController < ApplicationController
+  include AdvancedMessengerHelper
 
   def update_journal_read_by_users
     if !User.current.logged?
@@ -84,11 +85,8 @@ class AdvancedMessengerController < ApplicationController
       return
     end
 
-    unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count;
-    unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count
-
     respond_to do |format|
-      format.json { render json: {count: unread_forum_messages + unread_issues_notifications}, status: 200 }
+      format.json { render json: {count: getUnreadNotificationsForCurrentUserCount()}, status: 200 }
       format.html
     end
   end
@@ -147,15 +145,5 @@ class AdvancedMessengerController < ApplicationController
     respond_to do |format|
       format.js {render inline: "location.reload();" }
     end
-  end
-
-  # private helper method
-  def is_journal_visible (journal)
-    return journal.journalized.visible? && (!journal.private_notes? || User.current.allowed_to?(:view_private_notes, journal.journalized.project) || journal.user.id == User.current.id)
-  end
-
-  # private helper method
-  def is_message_visible (message)
-    return message.visible?();  
   end
 end
