@@ -69,6 +69,7 @@ function refreshPWA(badgeValue, notifications) {
                 }, delay);
                 delay += 1000; // Increase the delay by 1 second for each subsequent notification
                 // Without this delay, notifications would be sent one after another too quickly, causing only the last one to be received
+                // e.g., if the delay is 500ms, only the odd notifications would be shown
             });
         }
 
@@ -104,7 +105,7 @@ function showNotification(taskType, taskId, message, url) {
                 .then((registration) => {
                     registration.showNotification("Redmine", {
                         body: `${taskType} #${taskId}: ${message}`,
-                        tag: "RedmineAdvancedMessengerNotification_" + new Date().toUTCString(),
+                        tag: "RedmineAdvancedMessengerNotification_" + new Date().getTime().toString(),
                         icon: "../../favicon.ico",
                         data: { url: url },
                     });
