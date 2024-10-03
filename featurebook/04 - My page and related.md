@@ -21,7 +21,7 @@ Customizations are possible:
 ## WHEN "My page" renders, THEN it lists the unread notes and forum posts
 
 * ... in format: number of unread notes for an issue + issue title,
-* AND the list entries are links pointing to the corresponding issue/forum post,
+* AND the list entries are links pointing to the first unread note/message from the corresponding issue/forum post,
 * AND they are sorted so: most recent note on top.
 
 ![myPage](img/myPage.png)
@@ -58,3 +58,18 @@ Thanks to this feature, we enable near real time communication capabilities. I.e
 * For 2/, for most cases, we should be covered by 1/. And there is also a timer that periodically checks that we are still on "My page". And if not => redirect.
 
 </details>
+
+
+`@Scenario:`
+
+## GIVEN installed as PWA, WHEN a new unread note/message, ...
+
+* THEN a notification is displayed,
+![notification](img/notification.png)
+
+`@Scenario:`
+
+## GIVEN a notification is displayed, ...
+
+* WHEN the user clicks on the notification,
+* THEN it opens a new browser tab that displays directly that note/message.
