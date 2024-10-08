@@ -59,18 +59,26 @@ function refreshPWA(badgeValue, notifications) {
 
     if (notifications.length > 0) {
         let delay = 0;
-        notifications.forEach(function (notification) {
-            setTimeout(function () {
-                showNotification(notification.taskType, notification.taskId, notification.message, notification.url);
-            }, delay);
-            delay += 1000; // Increase the delay by 1 second for each subsequent notification
-        });
+        if (!sessionStorage.getItem('PWA_FIRST_RUN')) {
+            // On the first run, skip sending notifications and mark the session as initialized
+            sessionStorage.setItem('PWA_FIRST_RUN', 'false');
+        } else {
+            notifications.forEach(function (notification) {
+                setTimeout(function () {
+                    showNotification(notification.taskType, notification.taskId, notification.message, notification.url);
+                }, delay);
+                delay += 1000; // Increase the delay by 1 second for each subsequent notification
+                // Without this delay, notifications would be sent one after another too quickly, causing only the last one to be received
+                // e.g., if the delay is 500ms, only the odd notifications would be shown
+            });
+        }
 
         // Add notifications to sessionStorage so they won't be resent
         const storedNotifications = JSON.parse(sessionStorage.getItem('PWA_NOTIFICATIONS') || '[]');
         const updatedNotifications = storedNotifications.concat(notifications);
         sessionStorage.setItem('PWA_NOTIFICATIONS', JSON.stringify(updatedNotifications));
         // Delay the page refresh to happen after all notifications have been shown
+        // Without this delay, the page refresh would interrupt the notifications from being sent
         setTimeout(function () {
             window.location.href = PWA_START_URL;
         }, delay);
@@ -97,7 +105,7 @@ function showNotification(taskType, taskId, message, url) {
                 .then((registration) => {
                     registration.showNotification("Redmine", {
                         body: `${taskType} #${taskId}: ${message}`,
-                        tag: "RedmineAdvancedMessengerNotification_" + new Date().toUTCString(),
+                        tag: "RedmineAdvancedMessengerNotification_" + new Date().getTime().toString(),
                         icon: "../../favicon.ico",
                         data: { url: url },
                     });

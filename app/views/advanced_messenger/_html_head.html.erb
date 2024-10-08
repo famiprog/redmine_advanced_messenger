@@ -46,7 +46,7 @@
                         sessionStorage.setItem('PWA_NOTIFICATIONS', JSON.stringify(unreadNotificationsAlreadyShownInPWA));
 
                         // Filter out notifications that have already been notified
-                        var newNotifications = result.notifications.filter(function (notification) {
+                        let newNotifications = result.notifications.filter(function (notification) {
                             return !unreadNotificationsAlreadyShownInPWA.some(function (storedNotification) {
                                 return storedNotification.notificationId === notification.notificationId;
                             });
