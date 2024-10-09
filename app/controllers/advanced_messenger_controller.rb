@@ -84,38 +84,42 @@ class AdvancedMessengerController < ApplicationController
       render_403
       return
     end
-
-    unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
-  
-    unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
-  
-    viewable_unread_issues_notifications = unread_issues_notifications.select do |notification|
-        is_journal_visible(notification)
-    end
     
-    issue_notifications = viewable_unread_issues_notifications.map do |journal|
-      {
-        notificationId: journal.id,
-        taskId: journal.journalized_id,
-        taskType: "Issue",
-        message: journal.notes,
-        url: "/issues/#{journal.journalized_id}#note-#{journal.journalized.journals.order(:created_on).index(journal) + 1}",
-        created_on: journal.created_on
-      }
+    # read the details and compose notifications only if we are called from PWA (needs them to compose the notifications)
+    # for the rest, use getUnreadNotificationsForCurrentUserCount()
+    all_notifications = []
+    if params[:for_pwa] == "true"
+      unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
+      unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
+    
+      viewable_unread_issues_notifications = unread_issues_notifications.select do |notification|
+          is_journal_visible(notification)
+      end
+      
+      issue_notifications = viewable_unread_issues_notifications.map do |journal|
+        {
+          notificationId: journal.id,
+          taskId: journal.journalized_id,
+          taskType: "Issue",
+          message: journal.notes,
+          url: "/issues/#{journal.journalized_id}#note-#{journal.journalized.journals.order(:created_on).index(journal) + 1}",
+          created_on: journal.created_on
+        }
+      end
+    
+      forum_notifications = unread_forum_messages.map do |message|
+        {
+          notificationId: message.id,
+          taskId: message.parent_id.nil? ? message.id : message.parent_id,
+          taskType: "Forum",
+          message: message.content,
+          url: message.parent_id.nil? ? "/boards/#{message.board_id}/topics/#{message.id}" : "/boards/#{message.board_id}/topics/#{message.parent_id}?page=#{((Message.where(parent_id: message.parent_id).order(:created_on).index(message) + 1).to_f / MessagesController::REPLIES_PER_PAGE).ceil}#message-#{message.id}",
+          created_on: message.created_on
+        }
+      end
+    
+      all_notifications = (issue_notifications + forum_notifications).sort_by { |n| n[:created_on] }
     end
-  
-    forum_notifications = unread_forum_messages.map do |message|
-      {
-        notificationId: message.id,
-        taskId: message.parent_id.nil? ? message.id : message.parent_id,
-        taskType: "Forum",
-        message: message.content,
-        url: message.parent_id.nil? ? "/boards/#{message.board_id}/topics/#{message.id}" : "/boards/#{message.board_id}/topics/#{message.parent_id}?page=#{((Message.where(parent_id: message.parent_id).order(:created_on).index(message) + 1).to_f / MessagesController::REPLIES_PER_PAGE).ceil}#message-#{message.id}",
-        created_on: message.created_on
-      }
-    end
-  
-    all_notifications = (issue_notifications + forum_notifications).sort_by { |n| n[:created_on] }
 
     respond_to do |format|
       format.json { render json: {count: getUnreadNotificationsForCurrentUserCount(), notifications: all_notifications}, status: 200 }

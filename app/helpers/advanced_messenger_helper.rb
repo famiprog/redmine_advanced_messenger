@@ -69,14 +69,14 @@ module AdvancedMessengerHelper
 
     def getUnreadNotificationsForCurrentUserCount()
         unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
-        unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
+        unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count
 
         # Filter out private notifications the user can't view
         viewable_unread_issues_notifications = unread_issues_notifications.select do |notification|
             is_journal_visible(notification)
         end
 
-        return unread_forum_messages.count + viewable_unread_issues_notifications.count;
+        return unread_forum_messages + viewable_unread_issues_notifications.count;
     end
 
     def getUsersReadStatus(read_by_users)

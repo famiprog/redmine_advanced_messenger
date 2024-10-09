@@ -22,7 +22,7 @@
         }
         function requestAndRenderGlobalUnreadNotificationsIndicator() {
             $.ajax({
-                url: '/advanced_messenger/unread_notifications_count',
+                url: '/advanced_messenger/unread_notifications_count?for_pwa=' + checkPWA(),
                 type: 'GET',
                 dataType: 'json',
                 beforeSend: function() { 
