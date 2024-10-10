@@ -31,6 +31,11 @@ en:
   
   top_app_menu_unread_notifications: "Unread notifications"
 
+  ram_new_note_added: "A new note was added. Please click to see it in Redmine: %{id}"
+  ram_new_note_added_text: "A new node was added. Please see it here: %{id}"
+  ram_new_message_added: "A new message was posted. Please click to see it in Redmine: %{id}"
+  ram_new_message_added_text: "A new message was posted. Please see it here: %{id}"
+
   # Plugin settings messages
   show_unread_notifications: Show "Unread notifications" in header bar
   unread_notifications_update_interval: Update "Unread notifications" interval

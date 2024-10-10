@@ -11,9 +11,9 @@
 </ul>
 
 <% if Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' %>
-  <%= escape_javascript(h(truncate(@journal.notes, length: 100, omission: '...'))) %>
+  <%= l(:ram_new_note_added, :id => link_to("##{@journal.journalized_id}#note-#{@journal.journalized.journals.order(:created_on).index(@journal) + 1}", @issue_url)).html_safe %>
 <% else %>
   <%= textilizable(@journal, :notes, :only_path => false) %>
+  <hr />
+  <%= render :partial => 'issue', :formats => [:html], :locals => { :issue => @issue, :user => @user, :issue_url => @issue_url } %>
 <% end %>
-<hr />
-<%= render :partial => 'issue', :formats => [:html], :locals => { :issue => @issue, :user => @user, :issue_url => @issue_url } %>

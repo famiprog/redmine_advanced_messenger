@@ -2,10 +2,9 @@
 <%= @message.author %>
 
 <% if Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' %>
-  <%= truncate(@message.content, length: 100, omission: '...') %>
+<%= l(:ram_new_message_added_text, :id => @message_url) %>
 <% else %>
-  <%= @message.content %>
-<% end %>
+<%= @message.content %>
 
 <% if @message.attachments.any? -%>
 ---<%= l(:label_attachment_plural).ljust(37, '-') %>
@@ -13,3 +12,4 @@
 <%= attachment.filename %> (<%= number_to_human_size(attachment.filesize) %>)
 <% end -%>
 <% end -%>
+<% end %>

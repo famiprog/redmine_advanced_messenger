@@ -5,11 +5,13 @@
 <% end -%>
 
 <% if @journal.notes? -%>
-  <% if Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' %>
-    <%= truncate(@journal.notes, length: 100, omission: '...') %>
-  <% else %>
-    <%= @journal.notes %>
-  <% end %>
+  <% if Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' -%>
+<%= l(:ram_new_note_added_text, :id => @issue_url) %>
+  <% else -%>
+<%= @journal.notes %>
+  <% end -%>
 <% end -%>
+<% if Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] != 'teaser' %>
 ----------------------------------------
 <%= render :partial => 'issue', :formats => [:text], :locals => { :issue => @issue, :user => @user, :issue_url => @issue_url } %>
+<% end %>
