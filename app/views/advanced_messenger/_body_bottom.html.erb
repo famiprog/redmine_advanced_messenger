@@ -50,7 +50,6 @@
                             "</li>"
                 <%end%>
                 content += "</ul>";
-                content += "<a class='icon icon-delete-message' data-remote='true' rel='nofollow' data-method='post' href='/advanced_messenger/<%=issues_or_forum[:mark_all_ignored_link]%>' data-confirm='<%=t(:my_page_mark_all_as_ignored_confirmation)%>'><%=t(:my_page_mark_all_as_ignored)%></a>";
                 $("#notifications-placeholder").append(
                     "<div class='my-page-notifications'>"
                         + content
@@ -69,17 +68,17 @@
 <% if User.current.logged? && current_controller == 'messages' && current_action == 'show' && @topic != nil %>
     <%= javascript_tag do%>
         var messageDOMNode = $("#content").children(".contextual, h2, .message").wrapAll("<div id='topic-wrapper' class='forum-topic'></div>").parent();
-        renderPluginForMessageOrJournal("<%= @topic.id %>", <%= @topic.read_by_users.html_safe %>,"<%= escape_javascript(@topic.content.to_s[0, 130]) %>", 
+        renderPluginForMessageOrJournal("<%= @topic.id %>", <%= @topic.read_by_users.html_safe %>,"<%= truncate_message_and_escape_javascript(@topic.content.to_s) %>", 
                                     '<%=l(:label_time_ago, :time => time_tag(@topic.created_on).html_safe).html_safe%>', messageDOMNode, "h2", ".wiki", "update_message_read_by_users",
-                                    ...<%= raw(getUsersReadStatus(@topic.read_by_users).to_json)%>);
+                                    <%= raw(getUsersReadStatus(@topic.read_by_users).to_json)%>);
     <% end %>
     <% if @replies != nil %>
         <% @replies.each do |message| %>
             <%= javascript_tag do%>
                 var messageDOMNode = $("#message-<%=message.id%>")
-                renderPluginForMessageOrJournal("<%= message.id %>", <%= message.read_by_users.html_safe %>,"<%= escape_javascript(message.content.to_s[0, 130]) %>", 
+                renderPluginForMessageOrJournal("<%= message.id %>", <%= message.read_by_users.html_safe %>,"<%= truncate_message_and_escape_javascript(message.content.to_s) %>", 
                                             '<%=l(:label_time_ago, :time => time_tag(message.created_on).html_safe).html_safe%>', messageDOMNode, ".reply-header", ".wiki", "update_message_read_by_users", 
-                                            ...<%= raw(getUsersReadStatus(message.read_by_users).to_json)%>);
+                                            <%= raw(getUsersReadStatus(message.read_by_users).to_json)%>);
             <%end%>
         <%end%>
     <%end%>
@@ -93,7 +92,6 @@
             <div style="padding-top: 10px">
                 <div style="display:flex; gap:10px;">
                     <a id="go-to-first-one" class="icon icon-down-left-arrow"><%=t(:notifications_dialog_go_to_first_one)%></a>
-                    <a id="mark-all-unread-ignored" class='icon icon-delete-message' data-remote='true' rel='nofollow' data-method='post' data-confirm='<%=t(:my_page_mark_all_as_ignored_confirmation)%>'><%=t(:my_page_mark_all_as_ignored)%></a> 
                 </div>
                 <a id="status-for-others-link" title=" " class='icon icon-chat' style="color:#169; cursor:pointer"><%=t(:notifications_dialog_status_for_others)%></a>
                 

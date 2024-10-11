@@ -14,7 +14,7 @@ module AdvancedMessengerIssuesControllerPatch
       def expand_collapse_notes
         expand_collapse_notes_or_messages(
               @journals, 
-              lambda {|journal| journal.notes[0, 130]}, 
+              lambda {|journal| truncate_message(journal.notes)}, 
               lambda {|journal| journal.notes.nil?},
               # This regular expresion catches:
               #   <div id="journal-42-notes" class="wiki">

@@ -1,4 +1,7 @@
 module AdvancedMessengerHelper
+    # needed for truncate_message for using escape_javascript and truncate methods
+    include ActionView::Helpers::JavaScriptHelper
+    include ActionView::Helpers::TextHelper
 
     def getUnreadJournalsStatus(journals)
         return getUnreadEntitiesStatus(journals, "indice", lambda {|entity| return entity.notes? });
@@ -120,5 +123,19 @@ module AdvancedMessengerHelper
 
     def is_message_visible (message)
         return message.visible?();  
+    end
+
+    def truncate_message_and_escape_javascript(message, options = {length: 150, omission: "...", escape: false})
+        return escape_javascript(truncate_message(message, options))
+    end    
+
+    # Truncate the message if it's not blank.
+    # Type options = { length, omission, separator, escape }, default: {length: 150, omission: "...", escape: false}
+    # Default length is 150, so the real length for the message will be 147 because the default for omission contains 3 characters as well and disable escape for HTML.
+    # Check https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-truncate for more documentation.
+    def truncate_message(message, options = {length: 150, omission: "...", escape: false})
+        Rails.logger.warn message
+        Rails.logger.warn message.blank? ? "" : truncate(message, options)
+        return message.blank? ? "" : truncate(message, options)
     end
 end
