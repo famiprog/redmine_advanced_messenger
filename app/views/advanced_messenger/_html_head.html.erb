@@ -152,10 +152,10 @@
                 } else if (readValue == 3) {
                     notesPreviewDiv.html("<span class='collapse-message-ignored'><%=t(:message_collapsed_ignored)%></span>");
                 } else {
-                    notesPreviewDiv.html("<span class='collapse-message-read'><%=t(:message_collapsed_read)%></span><span class='collapse-message-preview'>" + notesPreview + "...</span>");
+                    notesPreviewDiv.html("<span class='collapse-message-read'><%=t(:message_collapsed_read)%></span><span class='collapse-message-preview'>" + notesPreview + "</span>");
                 }
             } else {
-                notesPreviewDiv.html("<span class='collapse-message'><%=t(:message_collapsed)%></span><span class='collapse-message-preview'>" + notesPreview + "...</span>");
+                notesPreviewDiv.html("<span class='collapse-message'><%=t(:message_collapsed)%></span><span class='collapse-message-preview'>" + notesPreview + "</span>");
             }
         }
 

@@ -65,7 +65,7 @@ function refreshPWA(badgeValue, notifications) {
         } else {
             notifications.forEach(function (notification) {
                 setTimeout(function () {
-                    showNotification(notification.taskType, notification.taskId, notification.message, notification.url);
+                    showNotification(notification.title, notification.message, { url: notification.url });
                 }, delay);
                 delay += 1000; // Increase the delay by 1 second for each subsequent notification
                 // Without this delay, notifications would be sent one after another too quickly, causing only the last one to be received
@@ -97,17 +97,23 @@ function askUserForNotificationPermission() {
     }
 }
 
-// notification sent through service-worker
-function showNotification(taskType, taskId, message, url) {
+/** 
+ * Notification sent through service-worker.
+ * @param title - Notification title.
+ * @param body - Notification content.
+ * @param data - Notification data (any) which can be used by notificationclick event listener in service-worker. For example { url: "issueUrl"}.
+*/
+function showNotification(title, body, data) {
     Notification.requestPermission().then((result) => {
         if (result == "granted") {
             navigator.serviceWorker.getRegistration("../../plugin_assets/redmine_advanced_messenger/pwa/service-worker.js")
                 .then((registration) => {
-                    registration.showNotification("Redmine", {
-                        body: `${taskType} #${taskId}: ${message}`,
+                    registration.showNotification(title, {
+                        body: body,
                         tag: "RedmineAdvancedMessengerNotification_" + new Date().getTime().toString(),
                         icon: "../../favicon.ico",
-                        data: { url: url },
+                        data: data,
+                        requireInteraction: true,
                     });
                 });
         }

@@ -2,7 +2,7 @@
 <%= @message.author %>
 
 <% if Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' %>
-  <%= truncate(@message.content, length: 100, omission: '...') %>
+  <%= truncate_message(@message.content) %>
 <% else %>
   <%= @message.content %>
 <% end %>

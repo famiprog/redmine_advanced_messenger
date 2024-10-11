@@ -17,7 +17,7 @@ module AdvancedMessengerMessagesControllerPatch
         # It both adds only two capture groups so it can add the "hidden" css class between them:
         #   \\1 hidden\\2 
         
-      expand_collapse_notes_or_messages([@topic], lambda {|message| message.content.to_s[0, 130]}, lambda {|message| false},
+      expand_collapse_notes_or_messages([@topic], lambda {|message| truncate_message(message.content.to_s)}, lambda {|message| false},
        # The following regexp catches:
         #   <div class="message">
         #     <div class="wiki">
@@ -34,7 +34,7 @@ module AdvancedMessengerMessagesControllerPatch
         # This regexp resambles to the initial part of the one above, except the capturing groups and the "wiki" keyword)
         lambda {|message_id| ['(class="message">(?:(?!id="message-)(?:.|\n))*?class="attachments)(")']})
 
-      expand_collapse_notes_or_messages(@replies, lambda {|message| message.content.to_s[0, 130]}, lambda {|message| false},
+      expand_collapse_notes_or_messages(@replies, lambda {|message| truncate_message(message.content.to_s)}, lambda {|message| false},
         # The following regexp it catches:
         #   <div class="message reply" id="message-800">
         #     <div class="wiki">

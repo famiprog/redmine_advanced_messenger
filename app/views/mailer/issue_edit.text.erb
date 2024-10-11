@@ -6,7 +6,7 @@
 
 <% if @journal.notes? -%>
   <% if Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' %>
-    <%= truncate(@journal.notes, length: 100, omission: '...') %>
+    <%= truncate_message(@journal.notes) %>
   <% else %>
     <%= @journal.notes %>
   <% end %>

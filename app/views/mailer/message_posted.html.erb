@@ -2,7 +2,7 @@
 <em><%= @message.author %></em>
 
 <% if Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' %>
-  <%= escape_javascript(h(truncate(@message.content, length: 100, omission: '...'))) %>
+  <%= escape_javascript(h(truncate_message(@message.content))) %>
 <% else %>
   <%= textilizable(@message, :content, :only_path => false) %>
 <% end %>

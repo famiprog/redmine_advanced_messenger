@@ -16,7 +16,7 @@
         currentNote.find('.wiki').html("<div class='message-content'>" + currentNote.find('.wiki').html() + "</div>");
         currentNote.find('.wiki').append("<p class='message-preview' style='color: rgb(100, 100, 100)'></p>");
         <%read_by_user = JSON.parse(journal.read_by_users)[User.current.id.to_s] || {}%>
-        renderNotesPreviewContent(currentNote, <%=read_by_user["read"] != nil%>, <%=read_by_user["read"] != nil && read_by_user["read"] != 0%>, <%=User.current.id%>, "<%= escape_javascript(journal.notes[0, 130]) %>");
+        renderNotesPreviewContent(currentNote, <%=read_by_user["read"] != nil%>, <%=read_by_user["read"] != nil && read_by_user["read"] != 0%>, <%=User.current.id%>, "<%= truncate_message_and_escape_javascript(journal.notes) %>");
         renderExpandedCollapsed(<%= journal.id %>, "update_journal_read_by_users", currentNote, currentNote.find('.expand-collapse-icon-placeholder a').hasClass("icon-toggle-minus"), false);
         currentNote.addClass("advanced-messenger-bordered-panel");
     }   

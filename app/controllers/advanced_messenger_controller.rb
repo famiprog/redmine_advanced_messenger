@@ -89,6 +89,7 @@ class AdvancedMessengerController < ApplicationController
     # for the rest, use getUnreadNotificationsForCurrentUserCount()
     all_notifications = []
     if params[:for_pwa] == "true"
+      # This can be generalized in two methods which call next SQL-s, in order to make the code easy to maintains
       unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
       unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
     
@@ -100,7 +101,8 @@ class AdvancedMessengerController < ApplicationController
         {
           notificationId: journal.id,
           taskId: journal.journalized_id,
-          taskType: "Issue",
+          taskSubject: journal.issue.subject,
+          taskType: t(:label_issue),
           message: journal.notes,
           url: "/issues/#{journal.journalized_id}#note-#{journal.journalized.journals.order(:created_on).index(journal) + 1}",
           created_on: journal.created_on
@@ -111,14 +113,20 @@ class AdvancedMessengerController < ApplicationController
         {
           notificationId: message.id,
           taskId: message.parent_id.nil? ? message.id : message.parent_id,
-          taskType: "Forum",
+          taskSubject: message.subject,
+          taskType: t(:label_board),
           message: message.content,
           url: message.parent_id.nil? ? "/boards/#{message.board_id}/topics/#{message.id}" : "/boards/#{message.board_id}/topics/#{message.parent_id}?page=#{((Message.where(parent_id: message.parent_id).order(:created_on).index(message) + 1).to_f / MessagesController::REPLIES_PER_PAGE).ceil}#message-#{message.id}",
           created_on: message.created_on
         }
       end
     
-      all_notifications = (issue_notifications + forum_notifications).sort_by { |n| n[:created_on] }
+      all_notifications = (issue_notifications + forum_notifications).sort_by { |n| n[:created_on] }.each do |n|
+        # squish - remove spaces from start/end and then changes the remaining consecutive whitespace groups into one space each
+        # " foo   bar    \n   \t   boo".squish # => "foo bar boo"
+        n[:title] = truncate_message(n[:taskType] + " #" + n[:taskId].to_s + ": " + n[:taskSubject], {length: 65}).squish
+        n[:message] = truncate_message(n[:message]).squish
+      end
     end
 
     respond_to do |format|

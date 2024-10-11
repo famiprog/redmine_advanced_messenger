@@ -45,7 +45,7 @@ module IssuesAndMessagesControllersSharedPatch
                                 #{t(:message_collapsed_read)}
                               </span>
                               <span class='collapse-message-preview'>
-                                #{truncated_notes}...
+                                #{truncated_notes}
                               </span>"
             end
           else 
@@ -53,7 +53,7 @@ module IssuesAndMessagesControllersSharedPatch
                               #{t(:message_collapsed)}
                             </span>
                             <span class='collapse-message-preview'> 
-                              #{truncated_notes}...
+                              #{truncated_notes}
                             </span>"
           end
 
