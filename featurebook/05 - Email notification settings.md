@@ -8,6 +8,7 @@ Go to [Featurebook > Index](../FEATUREBOOK.md)
 
 * THEN the email contains only a short teaser text (100 characters) instead of the full note
 
+![notificationMailExample](img/notificationMailExample.png)
 ![notification mail content settings](img/notificationMailContentSetting.png)
 
 `@Scenario:`
