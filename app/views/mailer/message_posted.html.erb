@@ -2,15 +2,16 @@
 <em><%= @message.author %></em>
 
 <% if Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' %>
-  <%= escape_javascript(h(truncate_message(@message.content))) %>
+  <p><%= l(:ram_new_message_added, :id => link_to(@message.subject, @message_url)).html_safe %></p>
 <% else %>
   <%= textilizable(@message, :content, :only_path => false) %>
-<% end %>
 
-<% if @message.attachments.any? -%>
-<fieldset class="attachments"><legend><%= l(:label_attachment_plural) %></legend>
-<% @message.attachments.each do |attachment| -%>
-  <%= link_to_attachment attachment, :download => true, :only_path => false %> (<%= number_to_human_size(attachment.filesize) %>)<br />
-<% end -%>
-</fieldset>
-<% end -%>
+  <% if @message.attachments.any? -%>
+  <fieldset class="attachments"><legend><%= l(:label_attachment_plural) %></legend>
+  <% @message.attachments.each do |attachment| -%>
+    <%= link_to_attachment attachment, :download => true, :only_path => false %> (<%= number_to_human_size(attachment.filesize) %>)<br />
+  <% end -%>
+  </fieldset>
+  <% end -%>
+
+<% end %>
