@@ -110,7 +110,7 @@ module AdvancedMessengerHelper
             read_by_user["date"] =  l(:label_time_ago, :time => time_tag_without_link_to_activity(read_by_user["date"].to_time).html_safe);
             read_statuses[user_id] = read_by_user
         end
-        return [users, read_statuses]
+        return { users: users, read_statuses: read_statuses }
     end
     
     def time_tag_without_link_to_activity(time) 
@@ -134,8 +134,6 @@ module AdvancedMessengerHelper
     # Default length is 150, so the real length for the message will be 147 because the default for omission contains 3 characters as well and disable escape for HTML.
     # Check https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-truncate for more documentation.
     def truncate_message(message, options = {length: 150, omission: "...", escape: false})
-        Rails.logger.warn message
-        Rails.logger.warn message.blank? ? "" : truncate(message, options)
         return message.blank? ? "" : truncate(message, options)
     end
 end

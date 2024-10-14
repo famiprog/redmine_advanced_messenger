@@ -159,11 +159,13 @@
             }
         }
 
-        function renderReadIndicatorsForAllUsers(readableEntityId, currentNode, currentUserId, creationDate, users, readStatuses) {
+        function renderReadIndicatorsForAllUsers(readableEntityId, currentNode, currentUserId, creationDate, usersAndReadStatuses) {
             let userInitials;
             let color;
             let tooltipUserList = "";
             let usersColoredInitials = "<span style='padding-right: 5px'>";
+            let users = usersAndReadStatuses.users;
+            let readStatuses = usersAndReadStatuses.read_statuses;
             let isSomeoneInterestedIn= Object.keys(users).length > 0;
             let i = 0;
             for (const [userId, user] of Object.entries(users)) {
@@ -280,10 +282,10 @@
             }
         }
 
-        function renderPluginForMessageOrJournal(id, read_by_users, preview, creationDate, messageDOMNode, headerSelector, contentSelector, updateReadByUsersUrl, users, readStatuses) {
+        function renderPluginForMessageOrJournal(id, read_by_users, preview, creationDate, messageDOMNode, headerSelector, contentSelector, updateReadByUsersUrl, usersAndReadStatuses) {
             setupPluginPlaceholders(id, messageDOMNode, headerSelector, contentSelector);
             renderExpandAndReadIndicatorForCurrentUser(id, updateReadByUsersUrl, messageDOMNode, read_by_users, "<%= User.current.id %>", preview, true);     
-            renderReadIndicatorsForAllUsers(id, messageDOMNode, "<%= User.current.id %>", creationDate, users, readStatuses);"update_message_read_by_users"
+            renderReadIndicatorsForAllUsers(id, messageDOMNode, "<%= User.current.id %>", creationDate, usersAndReadStatuses);
         }
     <% end %>
 <% end %>
