@@ -54,7 +54,3 @@ A solution would have been to reload the entire page when changing the read stat
   If this is annoying, then we might add a hack in our interceptor to handle 2/ as well. Ref. [message_patch.rb](https://github.com/famiprog/redmine_advanced_messenger/blob/a9ac897c43cfbd8ff08d1026d60907dd1249d10d/lib/patches/message_patch.rb#L14), something like `users = notified_users | root.notified_watchers | board.notified_watchers | [User.current]
 `.
 </details>
-
-## Licenses for third party components/assets
-
-We use some icons from [Google Fonts](https://fonts.google.com/icons), licensed under [Apache License v2](https://www.apache.org/licenses/LICENSE-2.0.html)
