@@ -51,6 +51,6 @@ en:
   whole_note: Whole note
   select_roles_to_exclude: Select roles to exclude from email notifications
   select_roles_to_exclude_note: >
-   People that have installed and use the PWA will probably use this feature. They are notified by the app, in the taskbar. So receiving emails is redundant and pollutes the mailbox. Note: this applies only for messages intercepted by %{title}. Not all the email messages.
-
+   This only applies to issue changes that contain ONLY notes. I.e. like a messenger message. If a change has notes + field changes or only field changes => the initial Redmine behavior is untouched.
+   People that have installed and use the PWA will probably want use this feature. They are notified by the app (in the taskbar) anyway. So receiving emails is redundant and pollutes the mailbox.
   
