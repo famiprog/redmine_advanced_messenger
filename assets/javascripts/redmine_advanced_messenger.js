@@ -35,7 +35,7 @@ function checkPWA() {
     return window.matchMedia('(display-mode: standalone)').matches
 }
 
-function refreshPWA(badgeValue, notifications) {
+function refreshPWA(badgeValue, notifications, userApiKey, actions) {
     if (!checkPWA()) {
         return;
     }
@@ -65,7 +65,12 @@ function refreshPWA(badgeValue, notifications) {
         } else {
             notifications.forEach(function (notification) {
                 setTimeout(function () {
-                    showNotification(notification.title, notification.message, { url: notification.url });
+                    var data = {
+                        notificationInfo: notification,
+                        xCsrfToken: document.querySelector('meta[name="csrf-token"]').content,
+                        apiKey: userApiKey,
+                    }
+                    showNotification(notification.title, notification.message, data, actions);
                 }, delay);
                 delay += 1000; // Increase the delay by 1 second for each subsequent notification
                 // Without this delay, notifications would be sent one after another too quickly, causing only the last one to be received
@@ -102,8 +107,9 @@ function askUserForNotificationPermission() {
  * @param title - Notification title.
  * @param body - Notification content.
  * @param data - Notification data (any) which can be used by notificationclick event listener in service-worker. For example { url: "issueUrl"}.
+ * @param actions - Notification action list. E.g: [{ action: "like", title: "Like", type: "button"}, { action: "Comment", title: "Comment", type: "text", placeholder: "Type your comment here"}]
 */
-function showNotification(title, body, data) {
+function showNotification(title, body, data, actions = []) {
     Notification.requestPermission().then((result) => {
         if (result == "granted") {
             navigator.serviceWorker.getRegistration("../../plugin_assets/redmine_advanced_messenger/pwa/service-worker.js")
@@ -114,6 +120,7 @@ function showNotification(title, body, data) {
                         icon: "../../favicon.ico",
                         data: data,
                         requireInteraction: true,
+                        actions: actions,
                     });
                 });
         }

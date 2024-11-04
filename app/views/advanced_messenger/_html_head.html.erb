@@ -14,7 +14,9 @@
 <%if (AdvancedMessengerSettings.get_setting(:show_unread_notifications) == '1')%>
     <%= javascript_tag do%>
         function renderGlobalUnreadNotificationsIndicator(unreadNotificationsCount, notifications) {
-            refreshPWA(unreadNotificationsCount, notifications);
+            var actions = [{ action: 'openMessage', title: '<%=t(:pwa_open_message_action_title)%>', type: 'button' },
+                { action: 'markAndSubmitAnswer', type: 'text', title: '<%=t(:pwa_mark_and_submit_answer_action_title)%>', placeholder: '<%=t(:pwa_mark_and_submit_answer_action_input_placeholder)%>' }];
+            refreshPWA(unreadNotificationsCount, notifications, "<%= User.current.api_key %>", actions);
             if ($("#all-unread-notifications-indicator").length > 0) {
                 const color = unreadNotificationsCount > 0 ? "#ff4545" : "#2bff2b";
                 $("#all-unread-notifications-indicator").html("<a href='/my/page'><%=t(:top_app_menu_unread_notifications)%>: <span style='color:" + color + "; font-weight:bold'>" + unreadNotificationsCount + "</span></a>");
@@ -81,6 +83,31 @@
         const RED = "red";
         const GREEN = "#55CB85";
         const GREY = "#ccc";
+        var externalReadNoteMessageId = undefined;
+
+        function openMessageIfNeeded() {
+            var url = new URL(window.location.href);
+            var changeReadByUsersEndpoint = null;
+            if (url.href.includes("/issues")) {
+                changeReadByUsersEndpoint = "update_journal_read_by_users";
+            } else if (url.href.includes("/boards") && url.href.includes("/topics")) {
+                changeReadByUsersEndpoint = "update_message_read_by_users";
+            }
+            if (changeReadByUsersEndpoint == null || !url.searchParams.has("markNoteAsRead")) {
+                return;
+            }
+            
+            // get journal or message id
+            externalReadNoteMessageId = url.searchParams.get("markNoteAsRead");
+            // remove the param and replace the url without the markNoteAsRead param
+            url.searchParams.delete("markNoteAsRead");
+            window.history.replaceState({}, window.document.title, window.location.href.replace(window.location.href, url.href));
+
+            // update the message in DB
+            if (externalReadNoteMessageId) {
+                changeReadByUsers("1", externalReadNoteMessageId, changeReadByUsersEndpoint);
+            }
+        }
 
         function renderExpandCollapseButton(expanded, currentNode, entityId, endpoint) {
             const cssClass = expanded ? 'icon icon-toggle-minus' : 'icon icon-toggle-plus';
@@ -282,9 +309,22 @@
             }
         }
 
+        function getReadByUsers(messagId, readByUsers) {
+            // force update for read for the read_by_users for the current user to proper open the found message by openMessageIfNeeded
+            // openMessageIfNeeded will update the read status in DB but can take too much time and the message will not be marked as read when the page is opened
+            if (readByUsers["<%= User.current.id %>"] && externalReadNoteMessageId && messagId == externalReadNoteMessageId) {
+                var readByUsersUpdated = {...readByUsers}
+                readByUsersUpdated["<%= User.current.id %>"].read = "1";
+                externalReadNoteMessageId = undefined;
+                return readByUsersUpdated;
+            }
+            return readByUsers;
+        }
+
         function renderPluginForMessageOrJournal(id, read_by_users, preview, creationDate, messageDOMNode, headerSelector, contentSelector, updateReadByUsersUrl, usersAndReadStatuses) {
+            openMessageIfNeeded();
             setupPluginPlaceholders(id, messageDOMNode, headerSelector, contentSelector);
-            renderExpandAndReadIndicatorForCurrentUser(id, updateReadByUsersUrl, messageDOMNode, read_by_users, "<%= User.current.id %>", preview, true);     
+            renderExpandAndReadIndicatorForCurrentUser(id, updateReadByUsersUrl, messageDOMNode, getReadByUsers(id, read_by_users), "<%= User.current.id %>", preview, true);     
             renderReadIndicatorsForAllUsers(id, messageDOMNode, "<%= User.current.id %>", creationDate, usersAndReadStatuses);
         }
     <% end %>
