@@ -55,7 +55,6 @@ class AdvancedMessengerController < ApplicationController
       return
     end
 
-    read_by_users = JSON.parse(entity.read_by_users);
     set_current_user_new_read_collapsed_value(read_by_users, read_value);
     entity.read_by_users = read_by_users.to_json
     entity.save
