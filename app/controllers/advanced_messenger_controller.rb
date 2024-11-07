@@ -55,6 +55,7 @@ class AdvancedMessengerController < ApplicationController
       return
     end
 
+    read_by_users = JSON.parse(entity.read_by_users);
     set_current_user_new_read_collapsed_value(read_by_users, read_value);
     entity.read_by_users = read_by_users.to_json
     entity.save
@@ -179,10 +180,7 @@ class AdvancedMessengerController < ApplicationController
   def ignore_all_unread_entities(unread_entities, is_visible)
     unread_entities.each_with_index do |unread_entity, index|
       if is_visible.call(unread_entity) 
-        read_by_users = JSON.parse(unread_entity.read_by_users) 
-        read_by_users[User.current.id.to_s]["read"] = 3
-        unread_entity.read_by_users = read_by_users.to_json
-        unread_entity.save
+        change_read_status(unread_entity, IGNORED)
       end
     end
 
@@ -190,4 +188,27 @@ class AdvancedMessengerController < ApplicationController
       format.js {render inline: "location.reload();" }
     end
   end
+
+  def mark_not_visible_journals_as_ignored_and_redirect
+    unread_journals = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
+  
+    unread_journals.each do |journal|
+      if !is_journal_visible(journal)
+        change_read_status(journal, IGNORED)
+      end
+    end
+    respond_to do |format|
+      format.html { redirect_to "/issues/#{params[:issue_id]}#note-#{params[:note_id]}", notice: 'All not visible notes was marked as ignored' }
+    end
+  end
+
+  # private helper method
+  # entity can be both journal or forum message
+  def change_read_status(entity, status)
+    read_by_users = JSON.parse(entity.read_by_users) 
+    read_by_users[User.current.id.to_s]["read"] = status
+    entity.read_by_users = read_by_users.to_json
+    entity.save
+  end
 end
+
