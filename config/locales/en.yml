@@ -31,8 +31,8 @@ en:
   my_page_mark_all_as_ignored_confirmation: "You won't be notified about the ignored messages anymore. Are you sure you want to proceed?"
 
   pwa_open_message_action_title: "Open message"
-  pwa_mark_and_submit_answer_action_title: "Mark and submit answer"
-  pwa_mark_and_submit_answer_action_input_placeholder: "Type your answer here"
+  pwa_mark_and_submit_answer_action_title: "Mark as read (comment optional)"
+  pwa_mark_and_submit_answer_action_input_placeholder: "Type your comment here (optional)"
   
   top_app_menu_unread_notifications: "Unread notifications"
 
