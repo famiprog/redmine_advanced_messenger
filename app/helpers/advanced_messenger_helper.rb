@@ -3,6 +3,8 @@ module AdvancedMessengerHelper
     include ActionView::Helpers::JavaScriptHelper
     include ActionView::Helpers::TextHelper
 
+    # TODO RM36022
+    # Replace all the hardcoded read statuses with this constants 
     UNREAD = 0
     READ = 1
     READ_BUT_COLLAPSED = 2
