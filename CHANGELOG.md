@@ -1,3 +1,5 @@
+## Unreleased
+
 ## v1.3.1
 
 * [Don't send emails for notifications intercepted by Redmine Advanced Messenger, based on roles](https://github.com/famiprog/redmine_advanced_messenger/pull/28)
