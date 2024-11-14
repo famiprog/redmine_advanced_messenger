@@ -2,7 +2,7 @@
 <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'advanced_messenger', :plugin => 'redmine_advanced_messenger' %>
     <%# ============= PWA Manifest   ============= %>
-    <%= auto_discovery_link_tag :json, '../../plugin_assets/redmine_advanced_messenger/pwa/manifest.json', { rel: "manifest" } %>
+    <%= auto_discovery_link_tag :json, '/plugin_assets/redmine_advanced_messenger/pwa/manifest.json', { rel: "manifest" } %>
 <% end %>  
 <%# ============= Plugin JS script  ============= %>
 <%= javascript_include_tag 'redmine_advanced_messenger', plugin: 'redmine_advanced_messenger' %>

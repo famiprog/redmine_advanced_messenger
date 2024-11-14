@@ -113,12 +113,12 @@ class AdvancedMessengerController < ApplicationController
         taskId = message.parent_id.nil? ? message.id : message.parent_id
         {
           notificationId: message.id,
-          taskId: message.parent_id.nil? ? message.id : message.parent_id,
+          taskId: taskId,
           parentTaskId: message.board_id,
           taskSubject: message.subject,
           taskType: t(:label_board),
           message: message.content,
-          url: "/boards/#{message.board_id}/topics/#{taskId}?page=#{((Message.where(parent_id: taskId).order(:created_on).index(message) + 1).to_f / MessagesController::REPLIES_PER_PAGE).ceil}#message-#{message.id}",
+          url: "/boards/#{message.board_id}/topics/#{taskId}" + (message.parent_id.nil? ? "" : "?page=#{((Message.where(parent_id: message.parent_id).order(:created_on).index(message) + 1).to_f / MessagesController::REPLIES_PER_PAGE).ceil}") + "#message-#{message.id}",
           created_on: message.created_on
         }
       end
