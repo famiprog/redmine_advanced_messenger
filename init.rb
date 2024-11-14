@@ -32,7 +32,7 @@ Redmine::Plugin.register :redmine_advanced_messenger do
     end
   end
 
-  Journal.send(:include, Patches::JournalPatch)
-  Message.send(:include, Patches::MessagePatch)
-  Mailer.send(:include, Patches::MailerPatch)
+  Journal.send(:include, Patches::AdvancedMessengerJournalPatch)
+  Message.send(:include, Patches::AdvancedMessengerMessagePatch)
+  Mailer.send(:include, Patches::AdvancedMessengerMailerPatch)
 end
