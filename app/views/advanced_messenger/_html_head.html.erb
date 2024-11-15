@@ -34,30 +34,7 @@
                     $("#all-unread-notifications-indicator").removeClass('ajax-loading'); 
                 },
                 success: function(result) {
-                    if (result.notifications.length > 0) {
-                        // Get the stored notifications from sessionStorage (those already notified)
-                        let notificationsAlreadyShownInPWA = JSON.parse(sessionStorage.getItem('PWA_NOTIFICATIONS') || '[]');
-
-                        // Filter out notifications that have already been read
-                        const unreadNotificationIds = result.notifications.map(n => n.notificationId);
-                        const unreadNotificationsAlreadyShownInPWA = notificationsAlreadyShownInPWA.filter(storedNotification =>
-                            unreadNotificationIds.includes(storedNotification.notificationId)
-                        );
-
-                        // Update sessionStorage to only store unread notifications
-                        sessionStorage.setItem('PWA_NOTIFICATIONS', JSON.stringify(unreadNotificationsAlreadyShownInPWA));
-
-                        // Filter out notifications that have already been notified
-                        let newNotifications = result.notifications.filter(function (notification) {
-                            return !unreadNotificationsAlreadyShownInPWA.some(function (storedNotification) {
-                                return storedNotification.notificationId === notification.notificationId;
-                            });
-                        });
-
-                        renderGlobalUnreadNotificationsIndicator(result.count, newNotifications);
-                    } else {
-                        renderGlobalUnreadNotificationsIndicator(result.count, []);
-                    }
+                    renderGlobalUnreadNotificationsIndicator(result.count, result.notifications);
                 },
                 error: function(xhr, status, error) {
                     console.error('Error on getting unread_notifications_count. Status: ' + status + '. Error: ' + error);
