@@ -9,7 +9,7 @@ function registerPWAServiceWorker() {
     if (navigator.serviceWorker) {
         window.addEventListener("load", async function () {
             try {
-                navigator.serviceWorker.register("../../plugin_assets/redmine_advanced_messenger/pwa/service-worker.js")
+                navigator.serviceWorker.register("/plugin_assets/redmine_advanced_messenger/pwa/service-worker.js")
                     .then((registration) => {
                         console.log("Service worker registration succeeded:", registration);
                     })
@@ -32,12 +32,16 @@ function registerPWAServiceWorker() {
      * Receive a message from the service worker when the button 'markAndSubmitAnswer' is clicked with the notification data. 
      * In this way is easier to make the corresponding API requests from here because Rails.ajax() supplies authorization and CSRF token automatically.
      */
-    new BroadcastChannel('markAndSubmitAnswer').addEventListener('message', event => {
+    listenOnBroadcastChannel('markAndSubmitAnswer', (event) => {
         const eventNotification = event.data;
         const isForum = eventNotification.notificationData.url.includes("boards");
         markNoteOrMessageAsRead(eventNotification.notificationData.notificationId, isForum);
         submitAnswerToIssueOrForum(eventNotification.reply, eventNotification.notificationData.taskId, isForum, eventNotification.notificationData.parentTaskId, eventNotification.notificationData.taskSubject)
     });
+}
+
+function listenOnBroadcastChannel(channel, onMessageCallback) {
+    new BroadcastChannel(channel).onmessage = (event) => onMessageCallback(event);
 }
 
 /**
