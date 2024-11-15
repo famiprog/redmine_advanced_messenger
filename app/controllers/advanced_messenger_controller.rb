@@ -126,9 +126,8 @@ class AdvancedMessengerController < ApplicationController
       all_notifications = (issue_notifications + forum_notifications).sort_by { |n| n[:created_on] }.each do |n|
         # squish - remove spaces from start/end and then changes the remaining consecutive whitespace groups into one space each
         # " foo   bar    \n   \t   boo".squish # => "foo bar boo"
-        initial_length = n[:message].length;
-        n[:message] = truncate_message(n[:message]).squish
-        n[:title] = truncate_message("[" + (initial_length != n[:message].length ? l(:message_truncated) : l(:message_full)) + "] " + n[:taskType] + " #" + n[:taskId].to_s + ": " + n[:taskSubject], { length: 65, omission: "...", escape: false }).squish
+        n[:message] = truncate_message(n[:message].squish, {length: 150, omission: "...", escape: false, addTruncatePrefix: true})
+        n[:title] = truncate_message((n[:taskType] + " #" + n[:taskId].to_s + ": " + n[:taskSubject]).squish, { length: 65, omission: "...", escape: false, addTruncatePrefix: true })
       end
     end
 

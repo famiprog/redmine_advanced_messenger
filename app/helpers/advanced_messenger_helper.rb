@@ -125,15 +125,21 @@ module AdvancedMessengerHelper
         return message.visible?();  
     end
 
-    def truncate_message_and_escape_javascript(message, options = {length: 150, omission: "...", escape: false})
+    def truncate_message_and_escape_javascript(message, options = {length: 150, omission: "...", escape: false, addTruncatePrefix: false})
         return escape_javascript(truncate_message(message, options))
     end    
 
     # Truncate the message if it's not blank.
     # Type options = { length, omission, separator, escape }, default: {length: 150, omission: "...", escape: false}
+    # If options contains addTruncatePrefix = true then l(:message_truncated) will be added as prefix for the truncated message
     # Default length is 150, so the real length for the message will be 147 because the default for omission contains 3 characters as well and disable escape for HTML.
     # Check https://api.rubyonrails.org/classes/ActionView/Helpers/TextHelper.html#method-i-truncate for more documentation.
-    def truncate_message(message, options = {length: 150, omission: "...", escape: false})
-        return message.blank? ? "" : truncate(message, options)
+    def truncate_message(message, options = {length: 150, omission: "...", escape: false, addTruncatePrefix: false})
+        return "" if message.blank?
+        return truncate(message, options) if !options[:addTruncatePrefix]
+
+        initialMessageLength = message.length
+        messageAfterTruncate = truncate(message, options)
+        return (initialMessageLength != messageAfterTruncate.length ? "[#{l(:message_truncated)}] " : "") + messageAfterTruncate
     end
 end
