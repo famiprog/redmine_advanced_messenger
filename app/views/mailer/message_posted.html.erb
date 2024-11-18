@@ -1,7 +1,7 @@
 <h1><%= @message.board.project.name %> - <%= @message.board.name %>: <%= link_to(@message.subject, @message_url) %></h1>
 <em><%= @message.author %></em>
 
-<% if Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' %>
+<% if check_if_teaser_and_user_not_excepted_from_teaser(@user.id) %>
   <p><%= l(:ram_new_message_added, :id => link_to(@message.subject, @message_url)).html_safe %></p>
 <% else %>
   <%= textilizable(@message, :content, :only_path => false) %>

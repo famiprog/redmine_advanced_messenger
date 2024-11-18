@@ -10,7 +10,7 @@
 <% end %>
 </ul>
 
-<% if Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' %>
+<% if check_if_teaser_and_user_not_excepted_from_teaser(@user.id) %>
   <%= l(:ram_new_note_added, :id => link_to("##{@journal.journalized_id}#note-#{@journal.journalized.journals.order(:created_on).index(@journal) + 1}", @issue_url)).html_safe %>
 <% else %>
   <%= textilizable(@journal, :notes, :only_path => false) %>

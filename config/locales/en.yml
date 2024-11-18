@@ -55,6 +55,8 @@ en:
   notification_mail_content_description: W/ "Teaser" (which is the default), the notification email doesn't contain the note text, but only a small teaser text inviting to open the note in Redmine. This forces the receiver to read in Redmine, and thus mark as read. Otherwise the receiver might read from the email, w/o the motivation to go in Redmine and mark as read.
   teaser: Teaser
   whole_note: Whole note
+  user_excepted_from_the_teaser_process: Users excepted from the teaser process
+  user_excepted_from_the_teaser_process_description: If the "Teaser" has been chosen, these users will be excepted from this process. I.e. they will receive the full content of the notifications.
   select_roles_to_exclude: Select roles to exclude from email notifications
   select_roles_to_exclude_note: >
    This only applies to issue changes that contain ONLY notes. I.e. like a messenger message. If a change has notes + field changes or only field changes => the initial Redmine behavior is untouched.
