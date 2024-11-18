@@ -2,7 +2,7 @@
 <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'advanced_messenger', :plugin => 'redmine_advanced_messenger' %>
     <%# ============= PWA Manifest   ============= %>
-    <%= auto_discovery_link_tag :json, '../../plugin_assets/redmine_advanced_messenger/pwa/manifest.json', { rel: "manifest" } %>
+    <%= auto_discovery_link_tag :json, '/plugin_assets/redmine_advanced_messenger/pwa/manifest.json', { rel: "manifest" } %>
 <% end %>  
 <%# ============= Plugin JS script  ============= %>
 <%= javascript_include_tag 'redmine_advanced_messenger', plugin: 'redmine_advanced_messenger' %>
@@ -34,30 +34,7 @@
                     $("#all-unread-notifications-indicator").removeClass('ajax-loading'); 
                 },
                 success: function(result) {
-                    if (result.notifications.length > 0) {
-                        // Get the stored notifications from sessionStorage (those already notified)
-                        let notificationsAlreadyShownInPWA = JSON.parse(sessionStorage.getItem('PWA_NOTIFICATIONS') || '[]');
-
-                        // Filter out notifications that have already been read
-                        const unreadNotificationIds = result.notifications.map(n => n.notificationId);
-                        const unreadNotificationsAlreadyShownInPWA = notificationsAlreadyShownInPWA.filter(storedNotification =>
-                            unreadNotificationIds.includes(storedNotification.notificationId)
-                        );
-
-                        // Update sessionStorage to only store unread notifications
-                        sessionStorage.setItem('PWA_NOTIFICATIONS', JSON.stringify(unreadNotificationsAlreadyShownInPWA));
-
-                        // Filter out notifications that have already been notified
-                        let newNotifications = result.notifications.filter(function (notification) {
-                            return !unreadNotificationsAlreadyShownInPWA.some(function (storedNotification) {
-                                return storedNotification.notificationId === notification.notificationId;
-                            });
-                        });
-
-                        renderGlobalUnreadNotificationsIndicator(result.count, newNotifications);
-                    } else {
-                        renderGlobalUnreadNotificationsIndicator(result.count, []);
-                    }
+                    renderGlobalUnreadNotificationsIndicator(result.count, result.notifications);
                 },
                 error: function(xhr, status, error) {
                     console.error('Error on getting unread_notifications_count. Status: ' + status + '. Error: ' + error);

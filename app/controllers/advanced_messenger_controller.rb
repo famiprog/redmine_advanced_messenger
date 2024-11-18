@@ -113,12 +113,12 @@ class AdvancedMessengerController < ApplicationController
         taskId = message.parent_id.nil? ? message.id : message.parent_id
         {
           notificationId: message.id,
-          taskId: message.parent_id.nil? ? message.id : message.parent_id,
+          taskId: taskId,
           parentTaskId: message.board_id,
           taskSubject: message.subject,
           taskType: t(:label_board),
           message: message.content,
-          url: "/boards/#{message.board_id}/topics/#{taskId}?page=#{((Message.where(parent_id: taskId).order(:created_on).index(message) + 1).to_f / MessagesController::REPLIES_PER_PAGE).ceil}#message-#{message.id}",
+          url: "/boards/#{message.board_id}/topics/#{taskId}" + (message.parent_id.nil? ? "" : "?page=#{((Message.where(parent_id: message.parent_id).order(:created_on).index(message) + 1).to_f / MessagesController::REPLIES_PER_PAGE).ceil}") + "#message-#{message.id}",
           created_on: message.created_on
         }
       end
@@ -126,9 +126,8 @@ class AdvancedMessengerController < ApplicationController
       all_notifications = (issue_notifications + forum_notifications).sort_by { |n| n[:created_on] }.each do |n|
         # squish - remove spaces from start/end and then changes the remaining consecutive whitespace groups into one space each
         # " foo   bar    \n   \t   boo".squish # => "foo bar boo"
-        initial_length = n[:message].length;
-        n[:message] = truncate_message(n[:message]).squish
-        n[:title] = truncate_message("[" + (initial_length != n[:message].length ? l(:message_truncated) : l(:message_full)) + "] " + n[:taskType] + " #" + n[:taskId].to_s + ": " + n[:taskSubject], { length: 65, omission: "...", escape: false }).squish
+        n[:message] = truncate_message(n[:message].squish, {length: 150, omission: "...", escape: false, addTruncatePrefix: true})
+        n[:title] = truncate_message((n[:taskType] + " #" + n[:taskId].to_s + ": " + n[:taskSubject]).squish, { length: 65, omission: "...", escape: false, addTruncatePrefix: true })
       end
     end
 

@@ -1,7 +1,7 @@
 require_dependency 'issue'
 
 module Patches
-  module JournalPatch
+  module AdvancedMessengerJournalPatch
     def self.included(base)
       base.send(:include, InstanceMethods)
       base.send(:before_create, :create_read_by_users)

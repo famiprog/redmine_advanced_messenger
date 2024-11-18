@@ -15,7 +15,6 @@ en:
   message_read: "Read"
   message_read_but_collapsed: "Read but collapsed"
   message_unread: "Unread"
-  message_full: "Full"
   message_truncated: "Truncated"
   
   notifications_dialog_go_to_first_one: "Go to first one"

@@ -1,5 +1,6 @@
 const PWA_START_URL = "/my/page";
 const PWA_BADGE_VALUE = "PWA_BADGE_VALUE";
+const PWA_DISPLAYED_NOTIFICATIONS = "PWA_DISPLAYED_NOTIFICATIONS";
 
 // register service worker
 function registerPWAServiceWorker() {
@@ -9,7 +10,7 @@ function registerPWAServiceWorker() {
     if (navigator.serviceWorker) {
         window.addEventListener("load", async function () {
             try {
-                navigator.serviceWorker.register("../../plugin_assets/redmine_advanced_messenger/pwa/service-worker.js")
+                navigator.serviceWorker.register("/plugin_assets/redmine_advanced_messenger/pwa/service-worker.js")
                     .then((registration) => {
                         console.log("Service worker registration succeeded:", registration);
                     })
@@ -32,12 +33,16 @@ function registerPWAServiceWorker() {
      * Receive a message from the service worker when the button 'markAndSubmitAnswer' is clicked with the notification data. 
      * In this way is easier to make the corresponding API requests from here because Rails.ajax() supplies authorization and CSRF token automatically.
      */
-    new BroadcastChannel('markAndSubmitAnswer').addEventListener('message', event => {
+    listenOnBroadcastChannel('markAndSubmitAnswer', (event) => {
         const eventNotification = event.data;
         const isForum = eventNotification.notificationData.url.includes("boards");
         markNoteOrMessageAsRead(eventNotification.notificationData.notificationId, isForum);
         submitAnswerToIssueOrForum(eventNotification.reply, eventNotification.notificationData.taskId, isForum, eventNotification.notificationData.parentTaskId, eventNotification.notificationData.taskSubject)
     });
+}
+
+function listenOnBroadcastChannel(channel, onMessageCallback) {
+    new BroadcastChannel(channel).onmessage = (event) => onMessageCallback(event);
 }
 
 /**
@@ -103,35 +108,31 @@ function refreshPWA(badgeValue, notifications, notificationActions) {
         sessionStorage.setItem(PWA_BADGE_VALUE, badgeValue);
     }
 
-    if (notifications.length > 0) {
+    // On the first run, skip sending notifications and add all in session storage to be considered as sent
+    if (!sessionStorage.getItem(PWA_DISPLAYED_NOTIFICATIONS)) {
+        sessionStorage.setItem(PWA_DISPLAYED_NOTIFICATIONS, JSON.stringify(notifications));
+    } else {
         let delay = 0;
-        if (!sessionStorage.getItem('PWA_FIRST_RUN')) {
-            // On the first run, skip sending notifications and mark the session as initialized
-            sessionStorage.setItem('PWA_FIRST_RUN', 'false');
-        } else {
-            notifications.forEach(function (notification) {
-                setTimeout(function () {
-                    showNotification(notification.title, notification.message, notification, notificationActions);
-                }, delay);
-                delay += 1000; // Increase the delay by 1 second for each subsequent notification
+        const displayedNotifications = JSON.parse(sessionStorage.getItem(PWA_DISPLAYED_NOTIFICATIONS) || '[]');
+        // Set current notifications received in session storage so they won't be resent at the next refresh
+        sessionStorage.setItem(PWA_DISPLAYED_NOTIFICATIONS, JSON.stringify(notifications));
+        notifications.forEach(function (notification) {
+            // choose notifications which are not included in session storage
+            if (!displayedNotifications.find(displayedNotification => displayedNotification.notificationId == notification.notificationId)) {
+                // Increase the delay by 1 second for each subsequent notification
                 // Without this delay, notifications would be sent one after another too quickly, causing only the last one to be received
                 // e.g., if the delay is 500ms, only the odd notifications would be shown
-            });
-        }
+                setTimeout(() => showNotification(notification.title, notification.message, notification, notificationActions), delay);
+                delay += 1000;
+            }
+        });
 
-        // Add notifications to sessionStorage so they won't be resent
-        const storedNotifications = JSON.parse(sessionStorage.getItem('PWA_NOTIFICATIONS') || '[]');
-        const updatedNotifications = storedNotifications.concat(notifications);
-        sessionStorage.setItem('PWA_NOTIFICATIONS', JSON.stringify(updatedNotifications));
-        // Delay the page refresh to happen after all notifications have been shown
-        // Without this delay, the page refresh would interrupt the notifications from being sent
-        setTimeout(function () {
-            window.location.href = PWA_START_URL;
-        }, delay);
-    } else if (badgeChanged) {
-        // If no notifications and the badge value changed, refresh the page
-        window.location.href = PWA_START_URL;
-        return;
+        // if badgeChanged or if at least one notification was sent the page needs refresh
+        if (badgeChanged || delay > 0) {
+            // Delay the page refresh to happen after all notifications have been shown
+            // Without this delay, the page refresh would interrupt the notifications from being sent
+            setTimeout(() => window.location.href = PWA_START_URL, delay);
+        }
     }
 }
 
