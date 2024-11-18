@@ -9,3 +9,4 @@ post 'advanced_messenger/:issue_id/ignore_all_unread_issues_notes', :to => 'adva
 post 'advanced_messenger/ignore_all_unread_forum_messages', :to => 'advanced_messenger#ignore_all_unread_forum_messages'
 post 'advanced_messenger/:topic_id/ignore_all_unread_forum_messages', :to => 'advanced_messenger#ignore_all_unread_forum_messages_for_a_topic'
 get 'advanced_messenger/:issue_id/:note_id/mark_not_visible_journals_as_ignored_and_redirect', to: 'advanced_messenger#mark_not_visible_journals_as_ignored_and_redirect'
+get 'advanced_messenger/:board_id/:topic_id/:page_number/:unread_message_id/mark_not_visible_messages_as_ignored_and_redirect', to: 'advanced_messenger#mark_not_visible_messages_as_ignored_and_redirect'

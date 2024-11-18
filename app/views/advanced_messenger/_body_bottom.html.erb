@@ -18,12 +18,14 @@
                                 grouped_unread_notifications: getUnreadNotificationsGroupByTopic(),
                                 get_link: lambda {|topic| 
                                     unread_message = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').where("parent_id = :topic_id OR (parent_id IS NULL AND id = :topic_id)", topic_id: topic.id).order(:created_on).first
-                                    if unread_message.parent_id.nil?
-                                        return "/boards/" + topic.board.id.to_s + "/topics/" + topic.id.to_s
+									if unread_message.parent_id.nil?
+                                        page_number = -1
+                                        unread_message_id = -1
                                     else
                                         page_number = ((Message.where(parent_id: topic.id).order(:created_on).index(unread_message) + 1).to_f / MessagesController::REPLIES_PER_PAGE).ceil
-                                        return "/boards/" + topic.board.id.to_s + "/topics/" + topic.id.to_s + "?page=" + page_number.to_s + "#message-" + unread_message.id.to_s
+                                        unread_message_id = unread_message.id
                                     end
+                                    return "/advanced_messenger/#{topic.board.id}/#{topic.id}/#{page_number}/#{unread_message_id}/mark_not_visible_messages_as_ignored_and_redirect"
                                     },
                                 my_page_all_notifications_read_text: :my_page_all_forum_notifications_read,
                                 my_page_unread_notifications_text: :my_page_forum_unread_notifications,

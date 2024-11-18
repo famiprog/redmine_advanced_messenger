@@ -189,15 +189,32 @@ class AdvancedMessengerController < ApplicationController
   end
 
   def mark_not_visible_journals_as_ignored_and_redirect
-    unread_journals = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
-  
-    unread_journals.each do |journal|
-      if !is_journal_visible(journal)
-        change_read_status(journal, IGNORED)
+    unread_journals_for_issue = Journal.where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", params[:issue_id], '%"' + User.current.id.to_s + '":{"read":0%');
+    mark_not_visible_entities_as_ignored_and_redirect(
+      unread_journals_for_issue, 
+      method(:is_journal_visible), 
+      "/issues/#{params[:issue_id]}#note-#{params[:note_id]}"
+    )
+  end
+
+  def mark_not_visible_messages_as_ignored_and_redirect
+    unread_messages_for_topic = Message.where("(id = ? OR parent_id = ?) AND read_by_users ILIKE ?", params[:topic_id], params[:topic_id], '%"' + User.current.id.to_s + '":{"read":0%');
+    mark_not_visible_entities_as_ignored_and_redirect(
+      unread_messages_for_topic, 
+      method(:is_message_visible), 
+      "/boards/#{params[:board_id]}/topics/#{params[:topic_id]}?page=#{params[:page_number]}#message-#{params[:unread_message_id]}"
+    )
+  end
+
+  # private helper method
+  def mark_not_visible_entities_as_ignored_and_redirect(entities, is_visible, redirect_url)
+    entities.each do |entity|
+      if !is_visible.call(entity)
+        change_read_status(entity, IGNORED)
       end
     end
     respond_to do |format|
-      format.html { redirect_to "/issues/#{params[:issue_id]}#note-#{params[:note_id]}", notice: 'All not visible notes was marked as ignored' }
+      format.html { redirect_to redirect_url, notice: 'All not visible notifications were marked as ignored' }
     end
   end
 
