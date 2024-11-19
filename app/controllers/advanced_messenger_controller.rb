@@ -215,9 +215,7 @@ class AdvancedMessengerController < ApplicationController
         change_read_status(entity, IGNORED)
       end
     end
-    respond_to do |format|
-      format.html { redirect_to redirect_url, notice: 'All not visible notifications were marked as ignored' }
-    end
+    redirect_to redirect_url
   end
 
   # private helper method
