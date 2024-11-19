@@ -4,7 +4,7 @@ Redmine::Plugin.register :redmine_advanced_messenger do
   name 'Redmine Advanced Messenger plugin'
   author 'famiprog'
   description 'For detailed documentation see the link below.'
-  version '1.3.1'
+  version '1.3.2'
   url 'https://github.com/famiprog/redmine-advanced-messenger'
   author_url 'https://github.com/famiprog'
 
@@ -32,7 +32,7 @@ Redmine::Plugin.register :redmine_advanced_messenger do
     end
   end
 
-  Journal.send(:include, Patches::JournalPatch)
-  Message.send(:include, Patches::MessagePatch)
-  Mailer.send(:include, Patches::MailerPatch)
+  Journal.send(:include, Patches::AdvancedMessengerJournalPatch)
+  Message.send(:include, Patches::AdvancedMessengerMessagePatch)
+  Mailer.send(:include, Patches::AdvancedMessengerMailerPatch)
 end

@@ -22,10 +22,32 @@ self.addEventListener('fetch', (event) => {
             }));
 })
 
-self.addEventListener('notificationclick', function(event) {
+self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    const urlToOpen = new URL(event.notification.data.url, self.location.origin).href;
-    const promiseChain = clients.matchAll({
+    if (event.action == 'openMessage') {
+        var url = new URL(event.notification.data.url, self.location.origin);
+        url.searchParams.append("markNoteAsRead", event.notification.data.notificationId);
+        event.waitUntil(openUrlInBrowserWindow(url.href));
+    } else if (event.action == "markAndSubmitAnswer") {
+        // post a message to the channel which will be received in the main page, in this way we don't need to deal about the authorization for the requests
+        event.waitUntil(postMessageToBroadcastChannel('markAndSubmitAnswer', { reply: event.reply, notificationData: event.notification.data }));
+    } else if (!event.action) {
+        event.waitUntil(openUrlInBrowserWindow(event.notification.data.url));
+    } else {
+        console.log(`Unknown action clicked: '${event.action}'`);
+    }
+});
+
+function postMessageToBroadcastChannel(channel, message) {
+    if (!channel) {
+        return;
+    }
+    new BroadcastChannel(channel).postMessage(message);
+}
+
+function openUrlInBrowserWindow(url) {
+    const urlToOpen = new URL(url, self.location.origin).href;
+    return clients.matchAll({
         type: 'window',
         includeUncontrolled: true
     }).then(() => {
@@ -35,5 +57,4 @@ self.addEventListener('notificationclick', function(event) {
             console.log('clients.openWindow is not supported by this browser');
         }
     });
-    event.waitUntil(promiseChain);
-});
+}

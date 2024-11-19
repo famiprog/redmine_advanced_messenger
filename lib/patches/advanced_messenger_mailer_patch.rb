@@ -1,7 +1,7 @@
 require_dependency 'mailer'
 
 module Patches
-  module MailerPatch
+  module AdvancedMessengerMailerPatch
     # foce this helper, since apparently the patcher does not inherit the 
     # helpers from parent, or the mailer (which is not a controller) behaves
     # differently. The end result is that helpers() function is not available 
