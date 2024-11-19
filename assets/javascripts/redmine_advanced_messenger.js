@@ -1,6 +1,7 @@
 const PWA_START_URL = "/my/page";
 const PWA_BADGE_VALUE = "PWA_BADGE_VALUE";
 const PWA_DISPLAYED_NOTIFICATIONS = "PWA_DISPLAYED_NOTIFICATIONS";
+const PWA_RELATIVE_PATH = "/plugin_assets/redmine_advanced_messenger/pwa/service-worker.js";
 
 // register service worker
 function registerPWAServiceWorker() {
@@ -10,9 +11,15 @@ function registerPWAServiceWorker() {
     if (navigator.serviceWorker) {
         window.addEventListener("load", async function () {
             try {
-                navigator.serviceWorker.register("/plugin_assets/redmine_advanced_messenger/pwa/service-worker.js")
+                navigator.serviceWorker.register(PWA_RELATIVE_PATH)
                     .then((registration) => {
                         console.log("Service worker registration succeeded:", registration);
+                        // fired any time the ServiceWorkerRegistration.installing property acquires a new service worker, including first install
+                        registration.onupdatefound = (event) => {
+                            console.log("Service worker was updated");
+                        }
+                        // maintains SW updated with the latest source code
+                        registration.update();
                     })
                 askUserForNotificationPermission();
             } catch (error) {
@@ -139,7 +146,7 @@ function refreshPWA(badgeValue, notifications, notificationActions) {
 function askUserForNotificationPermission() {
     if (Notification && !["denied", "granted"].includes(Notification.permission)) {
         Notification.requestPermission().then((permission) => {
-            console.log("User permission for notifications was: ", permission);
+            console.log("Request permission for notifications! User permission for notifications was:", permission);
         })
     }
 }
@@ -152,19 +159,19 @@ function askUserForNotificationPermission() {
  * @param actions - Notification action list. E.g: [{ action: "like", title: "Like", type: "button"}, { action: "Comment", title: "Comment", type: "text", placeholder: "Type your comment here"}]
 */
 function showNotification(title, body, data, actions = []) {
-    Notification.requestPermission().then((result) => {
-        if (result == "granted") {
-            navigator.serviceWorker.getRegistration("../../plugin_assets/redmine_advanced_messenger/pwa/service-worker.js")
-                .then((registration) => {
-                    registration.showNotification(title, {
-                        body: body,
-                        tag: "RedmineAdvancedMessengerNotification_" + new Date().getTime().toString(),
-                        icon: "../../favicon.ico",
-                        data: data,
-                        requireInteraction: true,
-                        actions: actions,
-                    });
-                });
-        }
-    });
+    if (Notification.permission != "granted") {
+        console.log("Notification cannot be shown! User permission for notifications is not granted! Instead was:", Notification.permission);
+        return;
+    }
+    navigator.serviceWorker.getRegistration(PWA_RELATIVE_PATH)
+        .then((registration) => {
+            registration.showNotification(title, {
+                body: body,
+                tag: "RedmineAdvancedMessengerNotification_" + new Date().getTime().toString(),
+                icon: "../../favicon.ico",
+                data: data,
+                requireInteraction: true,
+                actions: actions,
+            });
+        });
 }
