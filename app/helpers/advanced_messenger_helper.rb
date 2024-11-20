@@ -3,6 +3,13 @@ module AdvancedMessengerHelper
     include ActionView::Helpers::JavaScriptHelper
     include ActionView::Helpers::TextHelper
 
+    # TODO RM36022
+    # Replace all the hardcoded read statuses with this constants 
+    UNREAD = 0
+    READ = 1
+    READ_BUT_COLLAPSED = 2
+    IGNORED = 3
+
     def getUnreadJournalsStatus(journals)
         return getUnreadEntitiesStatus(journals, "indice", lambda {|entity| return entity.notes? });
     end
@@ -57,7 +64,6 @@ module AdvancedMessengerHelper
         unread_notifications.each do |entity|
             parentEntity = getParent.call(entity)
             # Determine if the entity is visible to the user
-            next unless !entity.is_a?(Journal) || is_journal_visible(entity)
             if grouped_unread_notifications[parentEntity.id] != nil
                 unread_notification_status = grouped_unread_notifications[parentEntity.id]
             else
@@ -71,15 +77,9 @@ module AdvancedMessengerHelper
     end
 
     def getUnreadNotificationsForCurrentUserCount()
-        unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
-        unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count
-
-        # Filter out private notifications the user can't view
-        viewable_unread_issues_notifications = unread_issues_notifications.select do |notification|
-            is_journal_visible(notification)
-        end
-
-        return unread_forum_messages + viewable_unread_issues_notifications.count;
+        unread_issues_notifications_count = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count
+        unread_forum_messages_count = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count
+        return unread_forum_messages_count + unread_issues_notifications_count;
     end
 
     def getUsersReadStatus(read_by_users)

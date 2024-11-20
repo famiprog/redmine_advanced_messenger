@@ -1,7 +1,10 @@
 ## Unreleased
 
+* [Performance improvement: remove the filtering of private notifications and instead mark them as ignored when they are clicked](https://github.com/famiprog/redmine_advanced_messenger/pull/41)
+
 ## v1.3.2
- * [Add "Open message" and  "Mark as read (comment optional)" actions to notification](https://github.com/famiprog/redmine_advanced_messenger/pull/42)
+
+* [Add "Open message" and  "Mark as read (comment optional)" actions to notification](https://github.com/famiprog/redmine_advanced_messenger/pull/42)
 
 ## v1.3.1
 

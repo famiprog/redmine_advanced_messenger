@@ -181,10 +181,7 @@ class AdvancedMessengerController < ApplicationController
   def ignore_all_unread_entities(unread_entities, is_visible)
     unread_entities.each_with_index do |unread_entity, index|
       if is_visible.call(unread_entity) 
-        read_by_users = JSON.parse(unread_entity.read_by_users) 
-        read_by_users[User.current.id.to_s]["read"] = 3
-        unread_entity.read_by_users = read_by_users.to_json
-        unread_entity.save
+        change_read_status(unread_entity, IGNORED)
       end
     end
 
@@ -192,4 +189,42 @@ class AdvancedMessengerController < ApplicationController
       format.js {render inline: "location.reload();" }
     end
   end
+
+  def mark_not_visible_journals_as_ignored_and_redirect
+    unread_journals_for_issue = Journal.where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", params[:issue_id], '%"' + User.current.id.to_s + '":{"read":0%');
+    mark_not_visible_entities_as_ignored_and_redirect(
+      unread_journals_for_issue, 
+      method(:is_journal_visible), 
+      "/issues/#{params[:issue_id]}#note-#{params[:note_id]}"
+    )
+  end
+
+  def mark_not_visible_messages_as_ignored_and_redirect
+    unread_messages_for_topic = Message.where("(id = ? OR parent_id = ?) AND read_by_users ILIKE ?", params[:topic_id], params[:topic_id], '%"' + User.current.id.to_s + '":{"read":0%');
+    mark_not_visible_entities_as_ignored_and_redirect(
+      unread_messages_for_topic, 
+      method(:is_message_visible), 
+      "/boards/#{params[:board_id]}/topics/#{params[:topic_id]}?page=#{params[:page_number]}#message-#{params[:unread_message_id]}"
+    )
+  end
+
+  # private helper method
+  def mark_not_visible_entities_as_ignored_and_redirect(entities, is_visible, redirect_url)
+    entities.each do |entity|
+      if !is_visible.call(entity)
+        change_read_status(entity, IGNORED)
+      end
+    end
+    redirect_to redirect_url
+  end
+
+  # private helper method
+  # entity can be both journal or forum message
+  def change_read_status(entity, status)
+    read_by_users = JSON.parse(entity.read_by_users) 
+    read_by_users[User.current.id.to_s]["read"] = status
+    entity.read_by_users = read_by_users.to_json
+    entity.save
+  end
 end
+
