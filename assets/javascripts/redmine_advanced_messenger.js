@@ -1,6 +1,7 @@
 const PWA_START_URL = "/my/page";
 const PWA_BADGE_VALUE = "PWA_BADGE_VALUE";
 const PWA_DISPLAYED_NOTIFICATIONS = "PWA_DISPLAYED_NOTIFICATIONS";
+const PWA_RELATIVE_PATH = "/plugin_assets/redmine_advanced_messenger/pwa/service-worker.js";
 
 // register service worker
 function registerPWAServiceWorker() {
@@ -10,9 +11,15 @@ function registerPWAServiceWorker() {
     if (navigator.serviceWorker) {
         window.addEventListener("load", async function () {
             try {
-                navigator.serviceWorker.register("/plugin_assets/redmine_advanced_messenger/pwa/service-worker.js")
+                navigator.serviceWorker.register(PWA_RELATIVE_PATH)
                     .then((registration) => {
                         console.log("Service worker registration succeeded:", registration);
+                        // fired any time the ServiceWorkerRegistration.installing property acquires a new service worker, including first install
+                        registration.onupdatefound = (event) => {
+                            console.log("Service worker was updated!");
+                        }
+                        // maintains SW updated with the latest source code
+                        registration.update();
                     })
                 askUserForNotificationPermission();
             } catch (error) {
@@ -33,7 +40,7 @@ function registerPWAServiceWorker() {
      * Receive a message from the service worker when the button 'markAndSubmitAnswer' is clicked with the notification data. 
      * In this way is easier to make the corresponding API requests from here because Rails.ajax() supplies authorization and CSRF token automatically.
      */
-    listenOnBroadcastChannel('markAndSubmitAnswer', (event) => {
+    listenOnBroadcastChannel('markAsReadAndSubmitAnswer', (event) => {
         const eventNotification = event.data;
         const isForum = eventNotification.notificationData.url.includes("boards");
         markNoteOrMessageAsRead(eventNotification.notificationData.notificationId, isForum);
@@ -61,14 +68,23 @@ function submitAnswerToIssueOrForum(answer, taskId, isForum, parentTaskId, taskS
         return;
     }
     Rails.ajax({
-        // very important to use '.json' endpoint (for issue) because the update can be done with the XML type also, so the request will be redirected several times resulting in more API calls => more duplicated notes
-        url: window.location.origin + (isForum ? `/boards/${parentTaskId}/topics/${taskId}/replies` : `/issues/${taskId}.json`),
-        type: isForum ? "POST" : "PUT",
+        url: window.location.origin + (isForum ? `/boards/${parentTaskId}/topics/${taskId}/replies` : `/issues/${taskId}`),
+        type: "POST",
         beforeSend: function (xhr, options) {
-            // very important to set 'Content-Type', otherwise the server cannot interpret correctly the body received and it will respond with 500 Internal server error
-            xhr.setRequestHeader("Content-Type", "application/json");
-            // set the data (body) in here because if I set as a option then the 'Content-Type' will be automatically set to 'application/x-www-form-urlencoded; charset=UTF-8' and I cannot override it
-            options.data = JSON.stringify(isForum ? { reply: { content: answer, subject: taskSubject } } : { issue: { notes: answer } });
+            /** 
+             * Set the data (body) from here because if I set as a option then the 'Content-Type' will be automatically set to 'application/x-www-form-urlencoded; charset=UTF-8' and I cannot override it
+             * 'Content-Type' will be automatically set by XHR to 'multipart/form-data; boundary=----WebKitFormBoundaryIBQAeTAzVuAHFrtF'
+            */
+            const formData = new FormData();
+            if (isForum) {
+                formData.append("reply[content]", answer);
+                formData.append("reply[subject]", taskSubject);
+            } else {
+                formData.append("issue[notes]", answer);
+                // NOT WORKING WITHOUT THIS because: POST doesn't exists for '/issues/:id' but in this way the form override method type and enforce the request to be a PATCH
+                formData.append("_method", "patch");
+            }
+            options.data = formData
             return true;
         }
     });
@@ -139,7 +155,7 @@ function refreshPWA(badgeValue, notifications, notificationActions) {
 function askUserForNotificationPermission() {
     if (Notification && !["denied", "granted"].includes(Notification.permission)) {
         Notification.requestPermission().then((permission) => {
-            console.log("User permission for notifications was: ", permission);
+            console.log("Request permission for notifications! User permission for notifications was:", permission);
         })
     }
 }
@@ -152,19 +168,20 @@ function askUserForNotificationPermission() {
  * @param actions - Notification action list. E.g: [{ action: "like", title: "Like", type: "button"}, { action: "Comment", title: "Comment", type: "text", placeholder: "Type your comment here"}]
 */
 function showNotification(title, body, data, actions = []) {
-    Notification.requestPermission().then((result) => {
-        if (result == "granted") {
-            navigator.serviceWorker.getRegistration("../../plugin_assets/redmine_advanced_messenger/pwa/service-worker.js")
-                .then((registration) => {
-                    registration.showNotification(title, {
-                        body: body,
-                        tag: "RedmineAdvancedMessengerNotification_" + new Date().getTime().toString(),
-                        icon: "../../favicon.ico",
-                        data: data,
-                        requireInteraction: true,
-                        actions: actions,
-                    });
-                });
-        }
-    });
+    if (Notification.permission != "granted") {
+        console.log("Notification cannot be shown! User permission for notifications is not granted! Instead was:", Notification.permission);
+        return;
+    }
+    navigator.serviceWorker.getRegistration(PWA_RELATIVE_PATH)
+        .then((registration) => {
+            registration.showNotification(title, {
+                body: body,
+                tag: "RedmineAdvancedMessengerNotification_" + new Date().getTime().toString(),
+                icon: "../../favicon.ico",
+                data: data,
+                // disable notification being displayed until is clicked
+                // requireInteraction: true,
+                actions: actions,
+            });
+        });
 }
