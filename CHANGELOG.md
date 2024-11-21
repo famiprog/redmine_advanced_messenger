@@ -1,3 +1,7 @@
+## Unreleased
+
+* [Notifcation teaser / exceptions](https://github.com/famiprog/redmine_advanced_messenger/pull/43)
+
 ## 1.3.3
 
 * [Performance improvement: remove the filtering of private notifications and instead mark them as ignored when they are clicked](https://github.com/famiprog/redmine_advanced_messenger/pull/41)
