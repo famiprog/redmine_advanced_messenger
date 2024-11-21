@@ -15,6 +15,7 @@ Redmine::Plugin.register :redmine_advanced_messenger do
                         :disable_fix_for_scroll_to_anchor => '0',
                         :unread_notifications_update_interval => 60,
                         :notifications_mail_option => 'teaser',
+                        :user_excepted_from_the_teaser_process_option => [],
                         :roles_not_sent_email => [] }, 
             :partial => 'settings/advanced_messenger_settings'
 

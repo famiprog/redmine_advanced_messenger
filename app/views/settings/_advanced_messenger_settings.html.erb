@@ -20,6 +20,18 @@
     <em class="info"><%= l(:notification_mail_content_description) %></em>
 </p>
 <p>
+    <%# Removing from the selection the users who are locked or deleted %>
+    <% Setting.plugin_redmine_advanced_messenger[:user_excepted_from_the_teaser_process_option] = User.where(id: Setting.plugin_redmine_advanced_messenger[:user_excepted_from_the_teaser_process_option], status: 1).pluck(:id) %>
+    
+    <label for="settings_user_excepted_from_the_teaser_process"><%= l(:user_excepted_from_the_teaser_process) %></label>
+    <%= select_tag 'settings[user_excepted_from_the_teaser_process_option]', 
+        options_for_select(
+            User.active.sorted.map { |u| ["#{u.firstname} #{u.lastname}", u.id.to_i] }, 
+            Setting.plugin_redmine_advanced_messenger[:user_excepted_from_the_teaser_process_option]
+        ), include_blank: false, multiple: true, size: 10 %>
+    <em class="info"><%= l(:user_excepted_from_the_teaser_process_description) %></em>
+</p>
+<p>
     <label for="settings_select_roles_to_exclude"><%= l(:select_roles_to_exclude) %></label>
     <% roles_not_sent_email = Setting.plugin_redmine_advanced_messenger[:roles_not_sent_email] || [] %>
     <%# adapted from _crispico_plugin_settings_menu.html.erb %>
