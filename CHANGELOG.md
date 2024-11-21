@@ -1,4 +1,4 @@
-## Unreleased
+## 1.3.4
 
 * [Notifcation teaser / exceptions](https://github.com/famiprog/redmine_advanced_messenger/pull/43)
 
