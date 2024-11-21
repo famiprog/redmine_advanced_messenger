@@ -16,7 +16,7 @@ function registerPWAServiceWorker() {
                         console.log("Service worker registration succeeded:", registration);
                         // fired any time the ServiceWorkerRegistration.installing property acquires a new service worker, including first install
                         registration.onupdatefound = (event) => {
-                            console.log("Service worker was updated");
+                            console.log("Service worker was updated!");
                         }
                         // maintains SW updated with the latest source code
                         registration.update();
@@ -68,14 +68,23 @@ function submitAnswerToIssueOrForum(answer, taskId, isForum, parentTaskId, taskS
         return;
     }
     Rails.ajax({
-        // very important to use '.json' endpoint (for issue) because the update can be done with the XML type also, so the request will be redirected several times resulting in more API calls => more duplicated notes
-        url: window.location.origin + (isForum ? `/boards/${parentTaskId}/topics/${taskId}/replies` : `/issues/${taskId}.json`),
-        type: isForum ? "POST" : "PUT",
+        url: window.location.origin + (isForum ? `/boards/${parentTaskId}/topics/${taskId}/replies` : `/issues/${taskId}`),
+        type: "POST",
         beforeSend: function (xhr, options) {
-            // very important to set 'Content-Type', otherwise the server cannot interpret correctly the body received and it will respond with 500 Internal server error
-            xhr.setRequestHeader("Content-Type", "application/json");
-            // set the data (body) in here because if I set as a option then the 'Content-Type' will be automatically set to 'application/x-www-form-urlencoded; charset=UTF-8' and I cannot override it
-            options.data = JSON.stringify(isForum ? { reply: { content: answer, subject: taskSubject } } : { issue: { notes: answer } });
+            /** 
+             * Set the data (body) from here because if I set as a option then the 'Content-Type' will be automatically set to 'application/x-www-form-urlencoded; charset=UTF-8' and I cannot override it
+             * 'Content-Type' will be automatically set by XHR to 'multipart/form-data; boundary=----WebKitFormBoundaryIBQAeTAzVuAHFrtF'
+            */
+            const formData = new FormData();
+            if (isForum) {
+                formData.append("reply[content]", answer);
+                formData.append("reply[subject]", taskSubject);
+            } else {
+                formData.append("issue[notes]", answer);
+                // NOT WORKING WITHOUT THIS because: POST doesn't exists for '/issues/:id' but in this way the form override method type and enforce the request to be a PATCH
+                formData.append("_method", "patch");
+            }
+            options.data = formData
             return true;
         }
     });
@@ -170,7 +179,8 @@ function showNotification(title, body, data, actions = []) {
                 tag: "RedmineAdvancedMessengerNotification_" + new Date().getTime().toString(),
                 icon: "../../favicon.ico",
                 data: data,
-                requireInteraction: true,
+                // disable notification being displayed until is clicked
+                // requireInteraction: true,
                 actions: actions,
             });
         });
