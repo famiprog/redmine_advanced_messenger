@@ -24,13 +24,13 @@ self.addEventListener('fetch', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    if (event.action == 'openMessage') {
+    if (event.action == 'markAsReadAndOpenMessage') {
         var url = new URL(event.notification.data.url, self.location.origin);
         url.searchParams.append("markNoteAsRead", event.notification.data.notificationId);
         event.waitUntil(openUrlInBrowserWindow(url.href));
-    } else if (event.action == "markAndSubmitAnswer") {
+    } else if (event.action == "markAsReadAndSubmitAnswer") {
         // post a message to the channel which will be received in the main page, in this way we don't need to deal about the authorization for the requests
-        event.waitUntil(postMessageToBroadcastChannel('markAndSubmitAnswer', { reply: event.reply, notificationData: event.notification.data }));
+        event.waitUntil(postMessageToBroadcastChannel('markAsReadAndSubmitAnswer', { reply: event.reply, notificationData: event.notification.data }));
     } else if (!event.action) {
         event.waitUntil(openUrlInBrowserWindow(event.notification.data.url));
     } else {

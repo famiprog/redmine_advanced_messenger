@@ -40,7 +40,7 @@ function registerPWAServiceWorker() {
      * Receive a message from the service worker when the button 'markAndSubmitAnswer' is clicked with the notification data. 
      * In this way is easier to make the corresponding API requests from here because Rails.ajax() supplies authorization and CSRF token automatically.
      */
-    listenOnBroadcastChannel('markAndSubmitAnswer', (event) => {
+    listenOnBroadcastChannel('markAsReadAndSubmitAnswer', (event) => {
         const eventNotification = event.data;
         const isForum = eventNotification.notificationData.url.includes("boards");
         markNoteOrMessageAsRead(eventNotification.notificationData.notificationId, isForum);

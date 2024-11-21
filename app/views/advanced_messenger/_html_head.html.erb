@@ -13,8 +13,8 @@
 <%# ============= Global unread notifications indicator located on main title bar  ============= %>
 <%if (AdvancedMessengerSettings.get_setting(:show_unread_notifications) == '1')%>
     <%= javascript_tag do%>
-        const notificationActions = [{ action: 'openMessage', title: '<%=t(:pwa_open_message_action_title)%>', type: 'button' },
-                { action: 'markAndSubmitAnswer', type: 'text', title: '<%=t(:pwa_mark_and_submit_answer_action_title)%>', placeholder: '<%=t(:pwa_mark_and_submit_answer_action_input_placeholder)%>' }];
+        const notificationActions = [{ action: 'markAsReadAndOpenMessage', title: '<%=t(:pwa_mark_as_read_and_open_action_title)%>', type: 'button' },
+                { action: 'markAsReadAndSubmitAnswer', type: 'text', title: '<%=t(:pwa_mark_as_read_and_submit_answer_action_title)%>', placeholder: '<%=t(:pwa_mark_as_read_and_submit_answer_action_input_placeholder)%>' }];
         function renderGlobalUnreadNotificationsIndicator(unreadNotificationsCount, notifications) {
             refreshPWA(unreadNotificationsCount, notifications, notificationActions);
             if ($("#all-unread-notifications-indicator").length > 0) {
