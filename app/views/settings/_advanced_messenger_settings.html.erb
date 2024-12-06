@@ -26,7 +26,7 @@
     <label for="settings_user_excepted_from_the_teaser_process"><%= l(:user_excepted_from_the_teaser_process) %></label>
     <%= select_tag 'settings[user_excepted_from_the_teaser_process_option]', 
         options_for_select(
-            User.active.sorted.map { |u| ["#{u.firstname} #{u.lastname}", u.id.to_i] }, 
+            User.active.sorted.map { |u| ["#{u.firstname} #{u.lastname}", u.id] }, 
             Setting.plugin_redmine_advanced_messenger[:user_excepted_from_the_teaser_process_option]
         ), include_blank: false, multiple: true, size: 10 %>
     <em class="info"><%= l(:user_excepted_from_the_teaser_process_description) %></em>
