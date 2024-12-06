@@ -144,6 +144,6 @@ module AdvancedMessengerHelper
     end
 
     def check_if_teaser_and_user_not_excepted_from_teaser(user_id)
-        return Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' && !Array(Setting.plugin_redmine_advanced_messenger[:user_excepted_from_the_teaser_process_option]).include?(user_id)
+        return Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' && !Array(Setting.plugin_redmine_advanced_messenger[:user_excepted_from_the_teaser_process_option].map(&:to_i)).include?(user_id)
     end
 end
