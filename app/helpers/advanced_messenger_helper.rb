@@ -35,7 +35,11 @@ module AdvancedMessengerHelper
                         end
                     else
                         if unread_notifications_for_others[userId] == nil
-                            user = User.find(userId)
+                            user = User.find(userId) rescue nil
+                            if user == nil
+                                read_by_users.delete(userId)
+                                next
+                            end
                             unread_notifications_for_others[userId] = UnreadNotificationsStatus.new(0, (user.firstname.capitalize + " " +  user.lastname.capitalize))  
                         end
                         unread_notifications_for_others[userId].count += 1
@@ -85,7 +89,7 @@ module AdvancedMessengerHelper
     def getUsersReadStatus(read_by_users)
         read_by_users = JSON.parse(read_by_users)
         read_statuses = Hash.new
-        # Not always a gloabal cache is needded. 
+        # Not always a global cache is needed. 
         # Only in case getUsersReadStatus() is caller repeatedly: e.g. Called for every journal/message when displaying the issues/forum topic page with all its notes/forum messages
         # For the case getUsersReadStatus() is called only once, the global cache is not needed : e.g. After updating the read status of a single note/message (@see update_journal_read_by_users.js.erb) 
         users_cache = @users_cache != nil ? @users_cache : Hash.new
@@ -96,7 +100,11 @@ module AdvancedMessengerHelper
                 next
             end
             if (users_cache[user_id] == nil)
-            	user = User.find(user_id)
+            	user = User.find(user_id) rescue nil
+                if user == nil
+                    read_by_users.delete(user_id)
+                    next
+                end
             	user_short = Hash.new
             	user_short["firstname"] = user.firstname
             	user_short["lastname"] = user.lastname
