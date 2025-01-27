@@ -49,7 +49,7 @@ class AdvancedMessengerController < ApplicationController
       return
     end
     read_by_users = JSON.parse(entity.read_by_users);
-    if not ["0", "1", "2", "3"].include? read_value
+    if not [AdvancedMessengerHelper::UNREAD.to_s, AdvancedMessengerHelper::READ.to_s, AdvancedMessengerHelper::READ_BUT_COLLAPSED.to_s, AdvancedMessengerHelper::IGNORED.to_s].include? read_value
       Rails.logger.error("#{read_value} is not a valid read status for a user")
       render_404
       return
@@ -69,9 +69,9 @@ class AdvancedMessengerController < ApplicationController
 
   # private helper method
   def set_current_user_new_read_collapsed_value(read_by_users, new_value)
-    if read_by_users[User.current.id.to_s] == nil &&  new_value == "2"
+    if read_by_users[User.current.id.to_s] == nil &&  new_value == AdvancedMessengerHelper::READ_BUT_COLLAPSED.to_s
       read_by_users[User.current.id.to_s] = {collapsed: 1}
-    elsif read_by_users[User.current.id.to_s] != nil && read_by_users[User.current.id.to_s]["collapsed"] != nil && new_value == "1"
+    elsif read_by_users[User.current.id.to_s] != nil && read_by_users[User.current.id.to_s]["collapsed"] != nil && new_value == AdvancedMessengerHelper::READ.to_s
       read_by_users.delete(User.current.id.to_s)
     else  
       read_by_users[User.current.id.to_s] = {read: new_value.to_i, date: DateTime.now}

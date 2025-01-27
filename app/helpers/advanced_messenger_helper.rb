@@ -3,8 +3,6 @@ module AdvancedMessengerHelper
     include ActionView::Helpers::JavaScriptHelper
     include ActionView::Helpers::TextHelper
 
-    # TODO RM36022
-    # Replace all the hardcoded read statuses with this constants 
     UNREAD = 0
     READ = 1
     READ_BUT_COLLAPSED = 2
@@ -27,7 +25,7 @@ module AdvancedMessengerHelper
             next if entity.read_by_users == nil || !filterCondition.call(entity)
             read_by_users = JSON.parse(entity.read_by_users)
             read_by_users.each do |userId, value|
-                if read_by_users[userId]["read"] == 0
+                if read_by_users[userId]["read"] == UNREAD
                     if userId == User.current.id.to_s 
                         unread_notifications_for_current_user += 1
                         if first_unread_notification_index == -1 

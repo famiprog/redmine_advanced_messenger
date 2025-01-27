@@ -21,7 +21,7 @@ module Patches
                   (notified_mentiones == nil ? [] : notified_mentiones) | 
                   (issue_notified_mentiones == nil ? [] : issue_notified_mentiones);
           users.each do |user|
-            read_by_users = {read: user.id == User.current.id ? 1 : 0, date: DateTime.now}
+            read_by_users = {read: user.id == User.current.id ? AdvancedMessengerHelper::READ : AdvancedMessengerHelper::UNREAD, date: DateTime.now}
             read_by_users_hash[user.id.to_s] = read_by_users;
           end
           self.read_by_users = read_by_users_hash.to_json
