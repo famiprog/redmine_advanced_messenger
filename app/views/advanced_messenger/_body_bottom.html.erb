@@ -6,16 +6,26 @@
         );
     <%end%>
     <%issues_or_forum_data = [{
-                                grouped_unread_notifications: getUnreadNotificationsGroupByIssues(),
+                                grouped_unread_notifications: getNotificationsGroupByIssues(AdvancedMessengerHelper::UNREAD),
                                 get_link: lambda {|issue|
                                     return "/advanced_messenger/#{issue.id}/#{getUnreadJournalsStatus(issue.visible_journals_with_index)[0]}/mark_not_visible_journals_as_ignored_and_redirect"
                                 },
                                 my_page_all_notifications_read_text: :my_page_all_issues_notifications_read,
                                 my_page_unread_notifications_text: :my_page_issues_unread_notifications,
-                                mark_all_ignored_link: "ignore_all_unread_issues_notes"
-                            }, 
+                                mark_all_ignored_link: "ignore_all_unread_issues_notes",
+                                notification_type: "unread"
+                            },
                             {
-                                grouped_unread_notifications: getUnreadNotificationsGroupByTopic(),
+                                grouped_read_briefly_notifications: getNotificationsGroupByIssues(AdvancedMessengerHelper::READ_BRIEFLY),
+                                get_link: lambda {|issue|
+                                    return "/advanced_messenger/#{issue.id}/#{getFirstReadBrieflyNotification(issue.visible_journals_with_index, "indice")}/mark_not_visible_journals_as_ignored_and_redirect"
+                                },
+                                my_page_no_notifications_read_briefly_text: :my_page_no_issue_notifications_read_briefly,
+                                my_page_read_briefly_notifications_text: :my_page_read_briefly_issue_notifications,
+                                notification_type: "read_briefly"
+                            },
+                            {
+                                grouped_unread_notifications: getNotificationsGroupByTopic(AdvancedMessengerHelper::UNREAD),
                                 get_link: lambda {|topic| 
                                     unread_message = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').where("parent_id = :topic_id OR (parent_id IS NULL AND id = :topic_id)", topic_id: topic.id).order(:created_on).first
 									if unread_message.parent_id.nil?
@@ -29,27 +39,46 @@
                                     },
                                 my_page_all_notifications_read_text: :my_page_all_forum_notifications_read,
                                 my_page_unread_notifications_text: :my_page_forum_unread_notifications,
-                                mark_all_ignored_link: "ignore_all_unread_forum_messages"
+                                mark_all_ignored_link: "ignore_all_unread_forum_messages",
+                                notification_type: "unread"
+                            },
+                            {
+                                grouped_read_briefly_notifications: getNotificationsGroupByTopic(AdvancedMessengerHelper::READ_BRIEFLY),
+                                get_link: lambda {|topic| 
+                                    read_briefly_message = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":4%').where("parent_id = :topic_id OR (parent_id IS NULL AND id = :topic_id)", topic_id: topic.id).order(:created_on).first
+									if read_briefly_message.parent_id.nil?
+                                        page_number = -1
+                                        read_briefly_message_id = -1
+                                    else
+                                        page_number = ((Message.where(parent_id: topic.id).order(:created_on).index(read_briefly_message) + 1).to_f / MessagesController::REPLIES_PER_PAGE).ceil
+                                        read_briefly_message_id = read_briefly_message.id
+                                    end
+                                    return "/advanced_messenger/#{topic.board.id}/#{topic.id}/#{page_number}/#{read_briefly_message_id}/mark_not_visible_messages_as_ignored_and_redirect"
+                                    },
+                                my_page_no_notifications_read_briefly_text: :my_page_no_forum_notifications_read_briefly,
+                                my_page_read_briefly_notifications_text: :my_page_read_briefly_forum_notifications,
+                                notification_type: "read_briefly"
                             }]
     %>
 
-    <%issues_or_forum_data.each do |issues_or_forum| %> 
-        <% if issues_or_forum[:grouped_unread_notifications].count == 0%>
+  <%issues_or_forum_data.each do |issues_or_forum| %>
+        <% grouped_notifications = issues_or_forum[:notification_type] == "unread" ? issues_or_forum[:grouped_unread_notifications] : issues_or_forum[:grouped_read_briefly_notifications] %>
+        <% if grouped_notifications.count == 0%>
             <%= javascript_tag do %>
                 $("#notifications-placeholder").append(
                     "<div style='margin-bottom:20px'>"
-                        + "<h3 style='color:#2A5685'><%=t(issues_or_forum[:my_page_all_notifications_read_text])%></h3>"
+                        + "<h3 style='color:#2A5685'><%=t(issues_or_forum[:notification_type] == "unread" ? issues_or_forum[:my_page_all_notifications_read_text] : issues_or_forum[:my_page_no_notifications_read_briefly_text])%></h3>"
                     + "</div>"    
                 );
             <%end%>
         <%else%>
             <%= javascript_tag do %>
-                content = "<h3 style='color:#2A5685; display:inline;'><%=t(issues_or_forum[:my_page_unread_notifications_text])%></h3>"
+                content = "<h3 style='color:#2A5685; display:inline;'><%=t(issues_or_forum[:notification_type] == "unread" ? issues_or_forum[:my_page_unread_notifications_text] : issues_or_forum[:my_page_read_briefly_notifications_text])%></h3>"
                         + "<ul style='list-style-type: none; padding-inline-start: 15px; font-weight: bold;'>";
-                <%issues_or_forum[:grouped_unread_notifications].each_value do |unread_notification_status| %>  
+                <%grouped_notifications.each_value do |notification_status| %>  
                     content += "<li>" + 
-                                "<a href='<%=issues_or_forum[:get_link].call(unread_notification_status.parent)%>'>" + 
-                                    "(<%=unread_notification_status.count%>) #<%=unread_notification_status.parent.id%> <%=unread_notification_status.parent.subject%>" +
+                                "<a href='<%=issues_or_forum[:get_link].call(notification_status.parent)%>'>" + 
+                                    "(<%=notification_status.count%>) #<%=notification_status.parent.id%> <%=notification_status.parent.subject%>" +
                                 "</a>" + 
                             "</li>"
                 <%end%>

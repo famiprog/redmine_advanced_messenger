@@ -60,6 +60,7 @@
         const RED = "red";
         const GREEN = "#55CB85";
         const GREY = "#ccc";
+        const ORANGE = "orange";
         var externalReadNoteMessageId = undefined;
 
         function openMessageIfNeeded() {
@@ -118,10 +119,10 @@
 
             const isOfInterestForCurrentUser = readByUsers[currentUserId]?.read != undefined; 
             const readValue = readByUsers[currentUserId]?.read;
-            let color = !isOfInterestForCurrentUser ? "#628DB6" : (readValue == <%=AdvancedMessengerHelper::UNREAD%>  ? RED : (readValue == <%=AdvancedMessengerHelper::IGNORED%>  ? GREY : GREEN)) 
+            let color = !isOfInterestForCurrentUser ? "#628DB6" : (readValue == <%=AdvancedMessengerHelper::UNREAD%>  ? RED : (readValue == <%=AdvancedMessengerHelper::IGNORED%>  ? GREY : (readValue == <%=AdvancedMessengerHelper::READ_BRIEFLY%> ? ORANGE : GREEN))) 
             const collapsed = readByUsers[currentUserId]?.collapsed;
 
-            if (!isOfInterestForCurrentUser && !collapsed || readValue == <%=AdvancedMessengerHelper::READ%> ) {
+            if (!isOfInterestForCurrentUser && !collapsed || readValue == <%=AdvancedMessengerHelper::READ%> || readValue == <%=AdvancedMessengerHelper::READ_BRIEFLY%>) {
                 renderExpandedCollapsed(readableEntityId, endpoint, currentNode, true, isInitialRender);
             } else {
                 renderExpandedCollapsed(readableEntityId, endpoint, currentNode, false, isInitialRender);
@@ -131,7 +132,8 @@
             if (isOfInterestForCurrentUser) {
                 let span = currentNode.find('.read-unread-indicators-at-right').find('.read_combobox_placeholder');
                 span.html("<select style='color:" + color + ";border-color:" + color + "' onchange=\"changeReadByUsers(this.value," + readableEntityId + " , \'" + endpoint + "\' )\">" + 
-                                "<option style='color:red' " + (readValue == <%=AdvancedMessengerHelper::UNREAD%> ? "selected='selected'" : "") + " value=<%=AdvancedMessengerHelper::UNREAD.to_s%>><%=t(:message_unread)%></option>" + 
+                                "<option style='color:red' " + (readValue == <%=AdvancedMessengerHelper::UNREAD%> ? "selected='selected'" : "") + " value=<%=AdvancedMessengerHelper::UNREAD.to_s%>><%=t(:message_unread)%></option>" +
+                                "<option style='color:orange' " + (readValue == <%=AdvancedMessengerHelper::READ_BRIEFLY%> ? "selected='selected'" : "") + " value=<%=AdvancedMessengerHelper::READ_BRIEFLY.to_s%>><%=t(:message_read_briefly)%></option>" +
                                 "<option style='color:green' " + (readValue == <%=AdvancedMessengerHelper::READ%> ? "selected='selected'" : "") + " value=<%=AdvancedMessengerHelper::READ.to_s%>><%=t(:message_read)%></option>" +
                                 "<option style='color:green' " + (readValue == <%=AdvancedMessengerHelper::READ_BUT_COLLAPSED%> ? "selected='selected'" : "") + " value=<%=AdvancedMessengerHelper::READ_BUT_COLLAPSED.to_s%>><%=t(:message_read_but_collapsed)%></option>" + 
                                 "<option style='color:#ccc' " + (readValue == <%=AdvancedMessengerHelper::IGNORED%>  ? "selected='selected'" : "") + " value=<%=AdvancedMessengerHelper::IGNORED.to_s%>><%=t(:message_ignored)%></option>" +
@@ -175,7 +177,7 @@
             for (const [userId, user] of Object.entries(users)) {
                 const readStatus = readStatuses[userId] 
                 userInitials = user.firstname.charAt(0).toUpperCase() + user.lastname.charAt(0).toUpperCase(); 
-                colorStyle = "style='color:" + (readStatus["read"] == <%=AdvancedMessengerHelper::UNREAD%> ? RED : (readStatus["read"] == <%=AdvancedMessengerHelper::IGNORED%> ? GREY : GREEN)) + "'";
+                colorStyle = "style='color:" + (readStatus["read"] == <%=AdvancedMessengerHelper::UNREAD%> ? RED : (readStatus["read"] == <%=AdvancedMessengerHelper::IGNORED%> ? GREY : (readStatus["read"] == <%=AdvancedMessengerHelper::READ_BRIEFLY%> ? ORANGE : GREEN))) + "'";
                 tooltipUserList += "<li " + colorStyle.replace(GREEN, "green") + ">" + userInitials + " - " + user.link +
                                         " (" + (readStatus["read"] == <%=AdvancedMessengerHelper::UNREAD%> ? "<%=t(:message_notifications_tooltip_list_item_not_viewed)%>" : readStatus["date"]) + ")" + 
                                     "</li>";

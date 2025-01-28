@@ -7,6 +7,7 @@ module AdvancedMessengerHelper
     READ = 1
     READ_BUT_COLLAPSED = 2
     IGNORED = 3
+    READ_BRIEFLY = 4
 
     def getUnreadJournalsStatus(journals)
         return getUnreadEntitiesStatus(journals, "indice", lambda {|entity| return entity.notes? });
@@ -15,6 +16,15 @@ module AdvancedMessengerHelper
     def getUnreadMessagesStatus(messages)
         return getUnreadEntitiesStatus(messages, "id")
     end 
+
+    def getFirstReadBrieflyNotification(readableEntities, indexField)
+        readableEntities.each_with_index do |entity, index|
+            next unless entity.read_by_users
+            JSON.parse(entity.read_by_users).each do |userId, value|
+                return entity.send(indexField) if value["read"] == READ_BRIEFLY && userId == User.current.id.to_s
+            end
+        end
+    end
 
     def getUnreadEntitiesStatus(readableEntities, indexField, filterCondition = lambda {|entity| return true })
         unread_notifications_for_current_user = 0;
@@ -38,7 +48,7 @@ module AdvancedMessengerHelper
                                 read_by_users.delete(userId)
                                 next
                             end
-                            unread_notifications_for_others[userId] = UnreadNotificationsStatus.new(0, (user.firstname.capitalize + " " +  user.lastname.capitalize))  
+                            unread_notifications_for_others[userId] = NotificationsStatus.new(0, (user.firstname.capitalize + " " +  user.lastname.capitalize))  
                         end
                         unread_notifications_for_others[userId].count += 1
                     end
@@ -48,34 +58,34 @@ module AdvancedMessengerHelper
         return [first_unread_notification_index, unread_notifications_for_current_user, unread_notifications_for_others]
     end
 
-    def getUnreadNotificationsGroupByIssues() 
-        unread_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').order("created_on desc")
-        getIssue = lambda {|entity| return entity.issue }
-        return getUnreadNotificationsGroupByParentEntity(unread_notifications, getIssue)
+    def getNotificationsGroupByIssues(read_status)
+        notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", "%\"#{User.current.id}\":{\"read\":#{read_status}%").order("created_on desc")
+        getIssue = lambda { |entity| return entity.issue }
+        return getNotificationsGroupByParentEntity(notifications, getIssue)
+      end
+
+    def getNotificationsGroupByTopic(read_status) 
+        getTopic = lambda { |entity| return entity.root }
+        notifications = Message.where("read_by_users ILIKE ?", "%\"#{User.current.id}\":{\"read\":#{read_status}%").order("created_on desc")
+        return getNotificationsGroupByParentEntity(notifications, getTopic);
     end
 
-    def getUnreadNotificationsGroupByTopic() 
-        getTopic = lambda {|entity| return entity.root }
-        unread_notifications = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').order("created_on desc")
-        return getUnreadNotificationsGroupByParentEntity(unread_notifications, getTopic);
-    end
+    def getNotificationsGroupByParentEntity(notifications, getParent) 
+        grouped_notifications = Hash.new
 
-    def getUnreadNotificationsGroupByParentEntity(unread_notifications, getParent) 
-        grouped_unread_notifications = Hash.new
-
-        unread_notifications.each do |entity|
+        notifications.each do |entity|
             parentEntity = getParent.call(entity)
             # Determine if the entity is visible to the user
-            if grouped_unread_notifications[parentEntity.id] != nil
-                unread_notification_status = grouped_unread_notifications[parentEntity.id]
+            if grouped_notifications[parentEntity.id] != nil
+                notification_status = grouped_notifications[parentEntity.id]
             else
                 # we set user to nil because is always the current user
-                unread_notification_status = UnreadNotificationsStatus.new(0, nil, parentEntity)
-                grouped_unread_notifications[parentEntity.id] = unread_notification_status
+                notification_status = NotificationsStatus.new(0, nil, parentEntity)
+                grouped_notifications[parentEntity.id] = notification_status
             end
-            unread_notification_status.count += 1 
+            notification_status.count += 1 
         end
-        return grouped_unread_notifications
+        return grouped_notifications
     end
 
     def getUnreadNotificationsForCurrentUserCount()

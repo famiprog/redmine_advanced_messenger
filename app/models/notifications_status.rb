@@ -1,4 +1,4 @@
-class UnreadNotificationsStatus 
+class NotificationsStatus 
     attr_accessor :count
     attr_accessor :user
     attr_accessor :parent

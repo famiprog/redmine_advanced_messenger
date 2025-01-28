@@ -21,7 +21,7 @@ module IssuesAndMessagesControllersSharedPatch
           
           read_by_current_user = JSON.parse(entity.read_by_users)[User.current.id.to_s]
           expanded = false
-          if read_by_current_user == nil || read_by_current_user["read"] == AdvancedMessengerHelper::READ || read_by_current_user["read"] == nil && !read_by_current_user["collapsed"]
+          if read_by_current_user == nil || read_by_current_user["read"] == AdvancedMessengerHelper::READ || read_by_current_user["read"] == AdvancedMessengerHelper::READ_BRIEFLY || read_by_current_user["read"] == nil && !read_by_current_user["collapsed"]
             expanded = true
           end 
           #==========Add the content preview besides the actual content and hide/show the content/content preview==============

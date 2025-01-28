@@ -49,7 +49,7 @@ class AdvancedMessengerController < ApplicationController
       return
     end
     read_by_users = JSON.parse(entity.read_by_users);
-    if not [AdvancedMessengerHelper::UNREAD.to_s, AdvancedMessengerHelper::READ.to_s, AdvancedMessengerHelper::READ_BUT_COLLAPSED.to_s, AdvancedMessengerHelper::IGNORED.to_s].include? read_value
+    if not [AdvancedMessengerHelper::UNREAD.to_s, AdvancedMessengerHelper::READ_BRIEFLY.to_s, AdvancedMessengerHelper::READ.to_s, AdvancedMessengerHelper::READ_BUT_COLLAPSED.to_s, AdvancedMessengerHelper::IGNORED.to_s].include? read_value
       Rails.logger.error("#{read_value} is not a valid read status for a user")
       render_404
       return
