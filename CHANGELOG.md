@@ -1,3 +1,6 @@
+## 1.3.5
+* [New status: Read briefly; to process fully later](https://github.com/famiprog/redmine_advanced_messenger/pull/48)
+
 ## 1.3.4
 
 * [Notifcation teaser / exceptions](https://github.com/famiprog/redmine_advanced_messenger/pull/43)
