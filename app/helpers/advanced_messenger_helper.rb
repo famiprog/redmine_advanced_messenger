@@ -36,7 +36,7 @@ module AdvancedMessengerHelper
             page_number = ((Message.where(parent_id: topic.id).order(:created_on).index(message) + 1).to_f / MessagesController::REPLIES_PER_PAGE).ceil
             message_id = message.id
         end
-        return "/advanced_messenger/#{topic.board.id}/#{topic.id}/#{page_number}/#{message_id}/mark_not_visible_messages_as_ignored_and_redirect"
+        return [message_id, page_number]
     end
 
     def getUnreadEntitiesStatus(readableEntities, indexField, filterCondition = lambda {|entity| return true })

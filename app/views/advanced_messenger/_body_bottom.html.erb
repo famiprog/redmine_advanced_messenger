@@ -25,7 +25,8 @@
                             {
                                 grouped_notifications: getNotificationsGroupByTopic(AdvancedMessengerHelper::UNREAD),
                                 get_link: lambda {|topic| 
-                                    return getFirstMessageIdAndPageNumber(topic, AdvancedMessengerHelper::UNREAD)
+                                    message_id, page_number = getFirstMessageIdAndPageNumber(topic, AdvancedMessengerHelper::UNREAD)
+                                    return "/advanced_messenger/#{topic.board.id}/#{topic.id}/#{page_number}/#{message_id}/mark_not_visible_messages_as_ignored_and_redirect"
                                 },
                                 my_page_no_notifications_text: :my_page_all_forum_notifications_read,
                                 my_page_notifications_text: :my_page_forum_unread_notifications,
@@ -34,7 +35,8 @@
                             {
                                 grouped_notifications: getNotificationsGroupByTopic(AdvancedMessengerHelper::READ_BRIEFLY),
                                 get_link: lambda {|topic| 
-                                    return getFirstMessageIdAndPageNumber(topic, AdvancedMessengerHelper::READ_BRIEFLY)
+                                    message_id, page_number = getFirstMessageIdAndPageNumber(topic, AdvancedMessengerHelper::READ_BRIEFLY)
+                                    return "/advanced_messenger/#{topic.board.id}/#{topic.id}/#{page_number}/#{message_id}/mark_not_visible_messages_as_ignored_and_redirect"
                                 },
                                 my_page_no_notifications_text: :my_page_no_forum_notifications_read_briefly,
                                 my_page_notifications_text: :my_page_read_briefly_forum_notifications
