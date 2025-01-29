@@ -26,6 +26,19 @@ module AdvancedMessengerHelper
         end
     end
 
+    def getFirstMessageIdAndPageNumber(topic, read_status)
+        message = Message.where("read_by_users ILIKE ?", "%\"#{User.current.id}\":{\"read\":#{read_status}%").where("parent_id = :topic_id OR (parent_id IS NULL AND id = :topic_id)", topic_id: topic.id).order(:created_on).first
+        return nil if message.nil?
+        if message.parent_id.nil?
+            page_number = -1
+            message_id = -1
+        else
+            page_number = ((Message.where(parent_id: topic.id).order(:created_on).index(message) + 1).to_f / MessagesController::REPLIES_PER_PAGE).ceil
+            message_id = message.id
+        end
+        return "/advanced_messenger/#{topic.board.id}/#{topic.id}/#{page_number}/#{message_id}/mark_not_visible_messages_as_ignored_and_redirect"
+    end
+
     def getUnreadEntitiesStatus(readableEntities, indexField, filterCondition = lambda {|entity| return true })
         unread_notifications_for_current_user = 0;
         unread_notifications_for_others = Hash.new;
@@ -89,8 +102,8 @@ module AdvancedMessengerHelper
     end
 
     def getUnreadNotificationsForCurrentUserCount()
-        unread_issues_notifications_count = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count
-        unread_forum_messages_count = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%').count
+        unread_issues_notifications_count = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + "\":{\"read\":#{AdvancedMessengerHelper::UNREAD}%").count
+        unread_forum_messages_count = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + "\":{\"read\":#{AdvancedMessengerHelper::UNREAD}%").count
         return unread_forum_messages_count + unread_issues_notifications_count;
     end
 

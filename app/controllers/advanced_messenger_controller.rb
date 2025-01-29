@@ -31,11 +31,6 @@ class AdvancedMessengerController < ApplicationController
                                 )
   end
 
-  # The read field can have the following values
-  # 0 -> unread
-  # 1 -> read
-  # 2 -> read but collapsed
-  # private helper method
   def update_entity_read_by_users(entity, entity_name, id, read_value, is_visible, response_setup)
     if entity == nil
       Rails.logger.error("Could not find  #{entity_name} #{id}")
@@ -90,8 +85,8 @@ class AdvancedMessengerController < ApplicationController
     all_notifications = []
     if params[:for_pwa] == "true"
       # This can be generalized in two methods which call next SQL-s, in order to make the code easy to maintains
-      unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
-      unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%')
+      unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + "\":{\"read\":#{AdvancedMessengerHelper::UNREAD}%")
+      unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + "\":{\"read\":#{AdvancedMessengerHelper::UNREAD}%")
     
       viewable_unread_issues_notifications = unread_issues_notifications.select do |notification|
           is_journal_visible(notification)
@@ -143,7 +138,7 @@ class AdvancedMessengerController < ApplicationController
       render_403
       return
     end
-    unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%');
+    unread_issues_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + "\":{\"read\":#{AdvancedMessengerHelper::UNREAD}%");
     ignore_all_unread_entities(unread_issues_notifications, method(:is_journal_visible))
   end
 
@@ -153,7 +148,7 @@ class AdvancedMessengerController < ApplicationController
       render_403
       return
     end
-    unread_issue_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", params[:issue_id], '%"' + User.current.id.to_s + '":{"read":0%');
+    unread_issue_notifications = Journal.where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", params[:issue_id], '%"' + User.current.id.to_s + "\":{\"read\":#{AdvancedMessengerHelper::UNREAD}%");
     ignore_all_unread_entities(unread_issue_notifications, method(:is_journal_visible))
   end
 
@@ -163,7 +158,7 @@ class AdvancedMessengerController < ApplicationController
       render_403
       return
     end
-    unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + '":{"read":0%');
+    unread_forum_messages = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + "\":{\"read\":#{AdvancedMessengerHelper::UNREAD}%");
     ignore_all_unread_entities(unread_forum_messages, method(:is_message_visible))
   end
 
@@ -173,7 +168,7 @@ class AdvancedMessengerController < ApplicationController
       render_403
       return
     end
-    unread_messages_for_topic = Message.where("(id = ? OR parent_id = ?) AND read_by_users ILIKE ?", params[:topic_id], params[:topic_id], '%"' + User.current.id.to_s + '":{"read":0%');
+    unread_messages_for_topic = Message.where("(id = ? OR parent_id = ?) AND read_by_users ILIKE ?", params[:topic_id], params[:topic_id], '%"' + User.current.id.to_s + "\":{\"read\":#{AdvancedMessengerHelper::UNREAD}%");
     ignore_all_unread_entities(unread_messages_for_topic, method(:is_message_visible))
   end
 
@@ -191,7 +186,7 @@ class AdvancedMessengerController < ApplicationController
   end
 
   def mark_not_visible_journals_as_ignored_and_redirect
-    unread_journals_for_issue = Journal.where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", params[:issue_id], '%"' + User.current.id.to_s + '":{"read":0%');
+    unread_journals_for_issue = Journal.where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", params[:issue_id], '%"' + User.current.id.to_s + "\":{\"read\":#{AdvancedMessengerHelper::UNREAD}%");
     mark_not_visible_entities_as_ignored_and_redirect(
       unread_journals_for_issue, 
       method(:is_journal_visible), 
@@ -200,7 +195,7 @@ class AdvancedMessengerController < ApplicationController
   end
 
   def mark_not_visible_messages_as_ignored_and_redirect
-    unread_messages_for_topic = Message.where("(id = ? OR parent_id = ?) AND read_by_users ILIKE ?", params[:topic_id], params[:topic_id], '%"' + User.current.id.to_s + '":{"read":0%');
+    unread_messages_for_topic = Message.where("(id = ? OR parent_id = ?) AND read_by_users ILIKE ?", params[:topic_id], params[:topic_id], '%"' + User.current.id.to_s + "\":{\"read\":#{AdvancedMessengerHelper::UNREAD}%");
     mark_not_visible_entities_as_ignored_and_redirect(
       unread_messages_for_topic, 
       method(:is_message_visible), 
