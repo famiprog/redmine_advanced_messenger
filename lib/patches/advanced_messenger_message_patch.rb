@@ -13,7 +13,7 @@ module Patches
           # Those are the users that are receiving mails when an issue is updates @see mailer.rb#deliver_issue_edit
           users = notified_users | root.notified_watchers | board.notified_watchers
           users.each do |user|
-            read_by_users = {read: user.id == User.current.id ? 1 : 0, date: DateTime.now}
+            read_by_users = {read: user.id == User.current.id ? AdvancedMessengerHelper::READ : AdvancedMessengerHelper::UNREAD, date: DateTime.now}
             read_by_users_hash[user.id.to_s] = read_by_users;
           end
           self.read_by_users = read_by_users_hash.to_json

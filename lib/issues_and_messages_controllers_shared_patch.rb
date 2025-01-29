@@ -21,7 +21,7 @@ module IssuesAndMessagesControllersSharedPatch
           
           read_by_current_user = JSON.parse(entity.read_by_users)[User.current.id.to_s]
           expanded = false
-          if read_by_current_user == nil || read_by_current_user["read"] == 1 || read_by_current_user["read"] == nil && !read_by_current_user["collapsed"]
+          if read_by_current_user == nil || read_by_current_user["read"] == AdvancedMessengerHelper::READ || read_by_current_user["read"] == AdvancedMessengerHelper::READ_BRIEFLY || read_by_current_user["read"] == nil && !read_by_current_user["collapsed"]
             expanded = true
           end 
           #==========Add the content preview besides the actual content and hide/show the content/content preview==============
@@ -32,11 +32,11 @@ module IssuesAndMessagesControllersSharedPatch
           # As the above documentation suggests, the `\` should be escaped, if we want to prevent the interpretation of those constructions
           truncated_notes = truncated_notes.gsub("\\", "\\\\\\\\")
           if (read_by_current_user != nil && read_by_current_user["read"] != nil) 
-            if (read_by_current_user["read"] == 0) 
+            if (read_by_current_user["read"] == AdvancedMessengerHelper::UNREAD) 
               note_preview = "<span class='collapse-message-unread'>
                                 #{t(:message_collapsed_unread)}
                               </span>"
-            elsif (read_by_current_user["read"] == 3)
+            elsif (read_by_current_user["read"] == AdvancedMessengerHelper::IGNORED)
               note_preview ="<span class='collapse-message-ignored'>
                                 #{t(:message_collapsed_ignored)}
                               </span>"

@@ -13,6 +13,7 @@ en:
   message_notifications_tooltip_list_item_not_viewed: "unread"
   message_ignored: "Ignored"
   message_read: "Read"
+  message_read_briefly: "Read briefly; to process fully later"
   message_read_but_collapsed: "Read but collapsed"
   message_unread: "Unread"
   message_truncated: "Truncated"
@@ -29,6 +30,10 @@ en:
   my_page_mark_all_as_ignored: "Mark all unread as ignored"
   my_page_all_forum_notifications_read: "All forum messages are read"
   my_page_mark_all_as_ignored_confirmation: "You won't be notified about the ignored messages anymore. Are you sure you want to proceed?"
+  my_page_read_briefly_issue_notifications: "Issues notifications to process later:"
+  my_page_no_issue_notifications_read_briefly: "No issues notifications to process later"
+  my_page_read_briefly_forum_notifications: "Forum notifications to process later:"
+  my_page_no_forum_notifications_read_briefly: "No forum notifications to process later"
 
   pwa_mark_as_read_and_open_action_title: 'Mark as read \n (and open)'
   pwa_mark_as_read_and_submit_answer_action_title: 'Mark as read \n (and quick comment)'
