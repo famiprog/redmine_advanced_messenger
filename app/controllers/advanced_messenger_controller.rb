@@ -81,7 +81,7 @@ class AdvancedMessengerController < ApplicationController
     end
     
     # read the details and compose notifications only if we are called from PWA (needs them to compose the notifications)
-    # for the rest, use getUnreadNotificationsForCurrentUserCount()
+    # for the rest, use getNotificationsForCurrentUserCountByStatus()
     all_notifications = []
     if params[:for_pwa] == "true"
       # This can be generalized in two methods which call next SQL-s, in order to make the code easy to maintains
@@ -127,7 +127,20 @@ class AdvancedMessengerController < ApplicationController
     end
 
     respond_to do |format|
-      format.json { render json: {count: getUnreadNotificationsForCurrentUserCount(), notifications: all_notifications}, status: 200 }
+      format.json { render json: {count: getNotificationsForCurrentUserCountByStatus(AdvancedMessengerHelper::UNREAD), notifications: all_notifications}, status: 200 }
+      format.html
+    end
+  end
+
+  def read_briefly_notifications_count
+    if !User.current.logged?
+      Rails.logger.error("No logged in user")
+      render_403
+      return
+    end
+
+    respond_to do |format|
+      format.json { render json: { count: getNotificationsForCurrentUserCountByStatus(AdvancedMessengerHelper::READ_BRIEFLY) }, status: 200 }
       format.html
     end
   end

@@ -15,8 +15,9 @@
     <%= javascript_tag do%>
         const notificationActions = [{ action: 'markAsReadAndOpenMessage', title: '<%=t(:pwa_mark_as_read_and_open_action_title)%>', type: 'button' },
                 { action: 'markAsReadAndSubmitAnswer', type: 'text', title: '<%=t(:pwa_mark_as_read_and_submit_answer_action_title)%>', placeholder: '<%=t(:pwa_mark_as_read_and_submit_answer_action_input_placeholder)%>' }];
-        function renderGlobalUnreadNotificationsIndicator(unreadNotificationsCount, notifications) {
-            refreshPWA(unreadNotificationsCount, notifications, notificationActions);
+        async function renderGlobalUnreadNotificationsIndicator(unreadNotificationsCount, notifications) {
+            const readBrieflyNotificationsCount = await getReadBrieflyNotificationsCount();
+            refreshPWA(unreadNotificationsCount, notifications, notificationActions, readBrieflyNotificationsCount);
             if ($("#all-unread-notifications-indicator").length > 0) {
                 const color = unreadNotificationsCount > 0 ? "#ff4545" : "#2bff2b";
                 $("#all-unread-notifications-indicator").html("<a href='/my/page'><%=t(:top_app_menu_unread_notifications)%>: <span style='color:" + color + "; font-weight:bold'>" + unreadNotificationsCount + "</span></a>");
@@ -42,6 +43,24 @@
                 }
             });
         }
+
+        function getReadBrieflyNotificationsCount() {
+           return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: '/advanced_messenger/read_briefly_notifications_count?for_pwa=' + checkPWA(),
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(result) {
+                        resolve(result.count);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error on getting read_briefly_notifications_count. Status: ' + status + '. Error: ' + error);
+                        resolve(0);
+                    }
+                });
+            });
+        }
+
         jQuery( document ).ready(function() {
             $("div#loggedas").append("<span id='all-unread-notifications-indicator'><span>");
             requestAndRenderGlobalUnreadNotificationsIndicator();

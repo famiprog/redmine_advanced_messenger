@@ -101,9 +101,9 @@ module AdvancedMessengerHelper
         return grouped_notifications
     end
 
-    def getUnreadNotificationsForCurrentUserCount()
-        unread_issues_notifications_count = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + "\":{\"read\":#{AdvancedMessengerHelper::UNREAD}%").count
-        unread_forum_messages_count = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + "\":{\"read\":#{AdvancedMessengerHelper::UNREAD}%").count
+    def getNotificationsForCurrentUserCountByStatus(status)
+        unread_issues_notifications_count = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + "\":{\"read\":#{status}%").count
+        unread_forum_messages_count = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + "\":{\"read\":#{status}%").count
         return unread_forum_messages_count + unread_issues_notifications_count;
     end
 

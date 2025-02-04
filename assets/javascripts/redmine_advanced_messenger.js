@@ -1,6 +1,7 @@
 const PWA_START_URL = "/my/page";
 const PWA_BADGE_VALUE = "PWA_BADGE_VALUE";
 const PWA_DISPLAYED_NOTIFICATIONS = "PWA_DISPLAYED_NOTIFICATIONS";
+const PWA_READ_BRIEFLY_NOTIFICATIONS_COUNT = "PWA_READ_BRIEFLY_NOTIFICATIONS_COUNT";
 const PWA_RELATIVE_PATH = "/plugin_assets/redmine_advanced_messenger/pwa/service-worker.js";
 
 // register service worker
@@ -102,7 +103,7 @@ function checkPWA() {
     return window.matchMedia('(display-mode: standalone)').matches
 }
 
-function refreshPWA(badgeValue, notifications, notificationActions) {
+function refreshPWA(badgeValue, unreadNotifications, notificationActions, readBrieflyNotificationCount) {
     if (!checkPWA()) {
         return;
     }
@@ -124,28 +125,34 @@ function refreshPWA(badgeValue, notifications, notificationActions) {
         sessionStorage.setItem(PWA_BADGE_VALUE, badgeValue);
     }
 
-    // On the first run, skip sending notifications and add all in session storage to be considered as sent
+    // On the first run, skip sending unread notifications and add all in session storage to be considered as sent
     if (!sessionStorage.getItem(PWA_DISPLAYED_NOTIFICATIONS)) {
-        sessionStorage.setItem(PWA_DISPLAYED_NOTIFICATIONS, JSON.stringify(notifications));
+        sessionStorage.setItem(PWA_DISPLAYED_NOTIFICATIONS, JSON.stringify(unreadNotifications));
     } else {
         let delay = 0;
         const displayedNotifications = JSON.parse(sessionStorage.getItem(PWA_DISPLAYED_NOTIFICATIONS) || '[]');
-        // Set current notifications received in session storage so they won't be resent at the next refresh
-        sessionStorage.setItem(PWA_DISPLAYED_NOTIFICATIONS, JSON.stringify(notifications));
-        notifications.forEach(function (notification) {
-            // choose notifications which are not included in session storage
+        // Set current unread notifications received in session storage so they won't be resent at the next refresh
+        sessionStorage.setItem(PWA_DISPLAYED_NOTIFICATIONS, JSON.stringify(unreadNotifications));
+        unreadNotifications.forEach(function (notification) {
+            // choose unread notifications which are not included in session storage
             if (!displayedNotifications.find(displayedNotification => displayedNotification.notificationId == notification.notificationId)) {
                 // Increase the delay by 1 second for each subsequent notification
-                // Without this delay, notifications would be sent one after another too quickly, causing only the last one to be received
-                // e.g., if the delay is 500ms, only the odd notifications would be shown
+                // Without this delay, unread notifications would be sent one after another too quickly, causing only the last one to be received
+                // e.g., if the delay is 500ms, only the odd unread notifications would be shown
                 setTimeout(() => showNotification(notification.title, notification.message, notification, notificationActions), delay);
                 delay += 1000;
             }
         });
 
+        const readBrieflyNotificationsCountStored = sessionStorage.getItem(PWA_READ_BRIEFLY_NOTIFICATIONS_COUNT);
+        let readBrieflyNotificationsCountChanged = false;
+        if (readBrieflyNotificationsCountStored != readBrieflyNotificationCount) {
+            sessionStorage.setItem(PWA_READ_BRIEFLY_NOTIFICATIONS_COUNT, readBrieflyNotificationCount);
+            readBrieflyNotificationsCountChanged = true;
+        }
         // if badgeChanged or if at least one notification was sent the page needs refresh
-        if (badgeChanged || delay > 0) {
-            // Delay the page refresh to happen after all notifications have been shown
+        if (badgeChanged || delay > 0 || readBrieflyNotificationsCountChanged) {
+            // Delay the page refresh to happen after all unread notifications have been shown
             // Without this delay, the page refresh would interrupt the notifications from being sent
             setTimeout(() => window.location.href = PWA_START_URL, delay);
         }
