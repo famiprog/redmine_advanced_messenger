@@ -16,7 +16,7 @@
         const notificationActions = [{ action: 'markAsReadAndOpenMessage', title: '<%=t(:pwa_mark_as_read_and_open_action_title)%>', type: 'button' },
                 { action: 'markAsReadAndSubmitAnswer', type: 'text', title: '<%=t(:pwa_mark_as_read_and_submit_answer_action_title)%>', placeholder: '<%=t(:pwa_mark_as_read_and_submit_answer_action_input_placeholder)%>' }];
         async function renderGlobalUnreadNotificationsIndicator(unreadNotificationsCount, notifications) {
-            const readBrieflyNotificationsCount = await getReadBrieflyNotificationsCount();
+            const readBrieflyNotificationsCount = checkPWA() ? await getReadBrieflyNotificationsCount() : undefined;
             refreshPWA(unreadNotificationsCount, notifications, notificationActions, readBrieflyNotificationsCount);
             if ($("#all-unread-notifications-indicator").length > 0) {
                 const color = unreadNotificationsCount > 0 ? "#ff4545" : "#2bff2b";
