@@ -1,4 +1,4 @@
-## Not released yet
+## 1.3.6
 * [Refreshing PWA when new status: Read briefly; to process fully later is changed](https://github.com/famiprog/redmine_advanced_messenger/pull/49)
 
 ## 1.3.5
