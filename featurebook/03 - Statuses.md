@@ -5,7 +5,7 @@ Go to [Featurebook > Index](../FEATUREBOOK.md)
 `@Scenario:`
 ## WHEN click on the "Status" dropdown, THEN the dropdown shows the possible values (colored)
 
-![stauses](img/stauses.png)   
+![stauses](img/statuses.png)   
 
 At any time, any status can be chosen. E.g. going back from "Read" to "Unread" is possible. 
 
@@ -14,7 +14,7 @@ Actually this might be a technique for reminding:
 * I switch back to "Unread"; 
 * later I will see it and elaborate a longer and precise answer.
 
-The first 2 statuses ("Read", "Unread") were illustrated in the first `.md` file. Further we'll focus on the next statuses.
+The "Read" and "Unread" statuses were illustrated in the first `.md` file. Further we'll focus on the next statuses.
 
 `@Scenario`
 ## WHEN the status "Read but collapsed" is selected, THEN ...
@@ -49,3 +49,15 @@ This is a tool to decrement the "unread messages", w/o "lying" about having read
 The **read/unread** status should be **reliable**. Both for the reader (so that he/she knows what notifications he/she still needs to read), and for the writer (so that he/she knows who read the messages).
 
 As a reader, if I **won't read a message**, then I should mark it as `Ignored`. This helps to keep the reliability of the read/unread status. It doesn't matter why I want to explicitly ignore a message. E.g. someone else added me as watcher, so the topic doesn't interest me; or I come after a long absence and I want to "start fresh"; or etc.
+
+`@Scenario`
+## WHEN the status "Read briefly; to process fully later" is selected, THEN ...
+
+* ... the color (border and dropdown) is orange,
+* AND the note is expanded.
+
+![statusIgnored](img/statusReadBriefly.png)
+
+### Some words about the use case behind "Read briefly; to process fully later"
+
+This tool helps you mark notes or messages you've briefly read so you can revisit and fully process them later. All the notes/messages marked with this status will appear on **My page**, grouped by two categories ("issues" or "forums")

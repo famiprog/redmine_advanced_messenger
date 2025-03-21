@@ -18,9 +18,9 @@ Customizations are possible:
 ![plugin options for number of messages](img/messagesInHeaderUpdateInterval.png)
 
 `@Scenario:`
-## WHEN "My page" renders, THEN it lists the unread notes and forum posts
+## WHEN "My page" renders, THEN it lists the unread/ read briefly notes and forum posts
 
-* ... in format: number of unread notes for an issue + issue title,
+* ... in format: number of unread/ read briefly notes for an issue + issue title,
 * AND the list entries are links pointing to the first unread note/message from the corresponding issue/forum post,
 * AND they are sorted so: most recent note on top.
 

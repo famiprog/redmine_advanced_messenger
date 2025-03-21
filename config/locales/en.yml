@@ -9,7 +9,7 @@ en:
   message_collapsed_ignored: "The message is ignored."
   message_collapsed_read: "The message is read, but collapsed. Preview: "
   message_collapsed_unread: "The message is unread. Please expand it to see its content & mark read."
-  message_notifications_tooltip_list_title: "%{date} notifications sent (<span style='color:green'>read</span>/<span style='color:red'>unread</span>/<span style='color:#ccc'>ignored</span>) to:"
+  message_notifications_tooltip_list_title: "%{date} notifications sent (<span style='color:green'>read</span>/<span style='color:orange'>read briefly</span>/<span style='color:red'>unread</span>/<span style='color:#ccc'>ignored</span>) to:"
   message_notifications_tooltip_list_item_not_viewed: "unread"
   message_ignored: "Ignored"
   message_read: "Read"
