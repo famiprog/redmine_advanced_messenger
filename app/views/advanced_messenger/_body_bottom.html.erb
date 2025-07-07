@@ -43,7 +43,7 @@
                             }]
     %>
 
-  <%issues_or_forum_data.each do |issues_or_forum| %>
+                  <%issues_or_forum_data.each do |issues_or_forum| %>
         <% if issues_or_forum[:grouped_notifications].count == 0%>
             <%= javascript_tag do %>
                 $("#notifications-placeholder").append(
@@ -57,11 +57,22 @@
                 content = "<h3 style='color:#2A5685; display:inline;'><%=t(issues_or_forum[:my_page_notifications_text])%></h3>"
                         + "<ul style='list-style-type: none; padding-inline-start: 15px; font-weight: bold;'>";
                 <%issues_or_forum[:grouped_notifications].each_value do |notification_status| %>  
-                    content += "<li>" + 
-                                "<a href='<%=issues_or_forum[:get_link].call(notification_status.parent)%>'>" + 
-                                    "(<%=notification_status.count%>) #<%=notification_status.parent.id%> <%=notification_status.parent.subject%>" +
-                                "</a>" + 
-                            "</li>"
+                    <% if notification_status.parent.is_a?(Issue) %>
+                        content += "<li>" + 
+                                    "<a href='<%=issues_or_forum[:get_link].call(notification_status.parent)%>'>" + 
+                                        "(<%=notification_status.count%>) #<%=notification_status.parent.id%> <%=notification_status.parent.subject%>" +
+                                    "</a>" + 
+                                    " - <a href='/projects/<%=notification_status.parent.project.identifier%>' style='color: #628DB6; font-weight: normal;'>" +
+                                        "<%=notification_status.parent.project.name%>" +
+                                    "</a>" +
+                                "</li>"
+                    <% else %>
+                        content += "<li>" + 
+                                    "<a href='<%=issues_or_forum[:get_link].call(notification_status.parent)%>'>" + 
+                                        "(<%=notification_status.count%>) #<%=notification_status.parent.id%> <%=notification_status.parent.subject%>" +
+                                    "</a>" + 
+                                "</li>"
+                    <% end %>
                 <%end%>
                 content += "</ul>";
                 $("#notifications-placeholder").append(
