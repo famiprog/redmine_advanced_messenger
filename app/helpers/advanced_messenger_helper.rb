@@ -101,6 +101,54 @@ module AdvancedMessengerHelper
         return grouped_notifications
     end
 
+    def getNotificationsGroupByIssuesAndProjects(read_status)
+        notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", "%\"#{User.current.id}\":{\"read\":#{read_status}%").order("created_on desc")
+        getIssue = lambda { |entity| return entity.issue }
+        return getNotificationsGroupByParentEntityAndProject(notifications, getIssue)
+    end
+
+    def getNotificationsGroupByTopicAndProjects(read_status) 
+        getTopic = lambda { |entity| return entity.root }
+        notifications = Message.where("read_by_users ILIKE ?", "%\"#{User.current.id}\":{\"read\":#{read_status}%").order("created_on desc")
+        return getNotificationsGroupByParentEntityAndProject(notifications, getTopic);
+    end
+
+    def getNotificationsGroupByParentEntityAndProject(notifications, getParent) 
+        grouped_notifications_by_project = Hash.new
+
+        notifications.each do |entity|
+            parentEntity = getParent.call(entity)
+            
+            # Get project for grouping
+            project = nil
+            if parentEntity.is_a?(Issue)
+                project = parentEntity.project
+            elsif parentEntity.is_a?(Message)
+                project = parentEntity.board.project
+            end
+            
+            project_id = project ? project.id : 'no_project'
+            
+            # Initialize project group if it doesn't exist
+            if grouped_notifications_by_project[project_id] == nil
+                grouped_notifications_by_project[project_id] = {
+                    project: project,
+                    notifications: Hash.new
+                }
+            end
+            
+            # Group by parent entity within project
+            if grouped_notifications_by_project[project_id][:notifications][parentEntity.id] != nil
+                notification_status = grouped_notifications_by_project[project_id][:notifications][parentEntity.id]
+            else
+                notification_status = NotificationsStatus.new(0, nil, parentEntity)
+                grouped_notifications_by_project[project_id][:notifications][parentEntity.id] = notification_status
+            end
+            notification_status.count += 1 
+        end
+        return grouped_notifications_by_project
+    end
+
     def getNotificationsForCurrentUserCountByStatus(status)
         unread_issues_notifications_count = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", '%"' + User.current.id.to_s + "\":{\"read\":#{status}%").count
         unread_forum_messages_count = Message.where("read_by_users ILIKE ?", '%"' + User.current.id.to_s + "\":{\"read\":#{status}%").count

@@ -34,6 +34,7 @@ en:
   my_page_no_issue_notifications_read_briefly: "No issues notifications to process later"
   my_page_read_briefly_forum_notifications: "Forum notifications to process later:"
   my_page_no_forum_notifications_read_briefly: "No forum notifications to process later"
+  my_page_group_by_projects: "Group by projects"
 
   pwa_mark_as_read_and_open_action_title: 'Mark as read \n (and open)'
   pwa_mark_as_read_and_submit_answer_action_title: 'Mark as read \n (and quick comment)'
