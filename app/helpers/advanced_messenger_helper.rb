@@ -146,7 +146,20 @@ module AdvancedMessengerHelper
             end
             notification_status.count += 1 
         end
-        return grouped_notifications_by_project
+        
+        # Sort projects alphabetically by name
+        sorted_grouped_notifications = {}
+        grouped_notifications_by_project.sort_by do |project_id, project_data|
+            if project_data[:project]
+                project_data[:project].name.downcase
+            else
+                'zzzz' # Put projects without names at the end
+            end
+        end.each do |project_id, project_data|
+            sorted_grouped_notifications[project_id] = project_data
+        end
+        
+        return sorted_grouped_notifications
     end
 
     def getNotificationsForCurrentUserCountByStatus(status)
