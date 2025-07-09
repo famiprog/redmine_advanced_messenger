@@ -1,11 +1,13 @@
-## Unreleased
+## 1.3.7
 
 * [In My Page, show project name for each issue. "Group by projects" mode](https://github.com/famiprog/redmine_advanced_messenger/pull/50)
 
 ## 1.3.6
+
 * [Refreshing PWA when new status: Read briefly; to process fully later is changed](https://github.com/famiprog/redmine_advanced_messenger/pull/49)
 
 ## 1.3.5
+
 * [New status: Read briefly; to process fully later](https://github.com/famiprog/redmine_advanced_messenger/pull/48)
 
 ## 1.3.4
