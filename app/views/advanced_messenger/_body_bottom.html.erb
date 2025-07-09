@@ -1,12 +1,37 @@
 <%# ============= My Page notifications ============= %>
 <% if current_page?(:controller => 'my', :action => 'page') %>
+    <% 
+    # Get the group_by_projects parameter from URL
+    group_by_projects = params[:group_by_projects] == 'true'
+    %>
+    
     <%= javascript_tag do %>
         $("#my-page").before(
-            "<div id='notifications-placeholder'></div>"
+            "<div id='notifications-placeholder'>" +
+                "<div style='margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;'>" +
+                    "<label style='display: flex; align-items: center; cursor: pointer;'>" +
+                        "<input type='checkbox' id='group-by-projects-toggle' <%= group_by_projects ? 'checked' : '' %> style='margin-right: 8px;'>" +
+                        "<span style='font-weight: bold; color: #2A5685;'><%=t(:my_page_group_by_projects)%></span>" +
+                    "</label>" +
+                "</div>" +
+            "</div>"
         );
+        
+        // Handle checkbox change
+        $("#group-by-projects-toggle").change(function() {
+            var url = new URL(window.location);
+            if (this.checked) {
+                url.searchParams.set('group_by_projects', 'true');
+            } else {
+                url.searchParams.delete('group_by_projects');
+            }
+            window.location.href = url.toString();
+        });
     <%end%>
+    
     <%issues_or_forum_data = [{
-                                grouped_notifications: getNotificationsGroupByIssues(AdvancedMessengerHelper::UNREAD),
+                                grouped_notifications: group_by_projects ? getNotificationsGroupByIssuesAndProjects(AdvancedMessengerHelper::UNREAD) : getNotificationsGroupByIssues(AdvancedMessengerHelper::UNREAD),
+                                grouped_by_projects: group_by_projects,
                                 get_link: lambda {|issue|
                                     return "/advanced_messenger/#{issue.id}/#{getUnreadJournalsStatus(issue.visible_journals_with_index)[0]}/mark_not_visible_journals_as_ignored_and_redirect"
                                 },
@@ -15,7 +40,8 @@
                                 mark_all_ignored_link: "ignore_all_unread_issues_notes"
                             },
                             {
-                                grouped_notifications: getNotificationsGroupByIssues(AdvancedMessengerHelper::READ_BRIEFLY),
+                                grouped_notifications: group_by_projects ? getNotificationsGroupByIssuesAndProjects(AdvancedMessengerHelper::READ_BRIEFLY) : getNotificationsGroupByIssues(AdvancedMessengerHelper::READ_BRIEFLY),
+                                grouped_by_projects: group_by_projects,
                                 get_link: lambda {|issue|
                                     return "/advanced_messenger/#{issue.id}/#{getFirstReadBrieflyNotification(issue.visible_journals_with_index, "indice")}/mark_not_visible_journals_as_ignored_and_redirect"
                                 },
@@ -23,7 +49,8 @@
                                 my_page_notifications_text: :my_page_read_briefly_issue_notifications
                             },
                             {
-                                grouped_notifications: getNotificationsGroupByTopic(AdvancedMessengerHelper::UNREAD),
+                                grouped_notifications: group_by_projects ? getNotificationsGroupByTopicAndProjects(AdvancedMessengerHelper::UNREAD) : getNotificationsGroupByTopic(AdvancedMessengerHelper::UNREAD),
+                                grouped_by_projects: group_by_projects,
                                 get_link: lambda {|topic| 
                                     message_id, page_number = getFirstMessageIdAndPageNumber(topic, AdvancedMessengerHelper::UNREAD)
                                     return "/advanced_messenger/#{topic.board.id}/#{topic.id}/#{page_number}/#{message_id}/mark_not_visible_messages_as_ignored_and_redirect"
@@ -33,7 +60,8 @@
                                 mark_all_ignored_link: "ignore_all_unread_forum_messages"
                             },
                             {
-                                grouped_notifications: getNotificationsGroupByTopic(AdvancedMessengerHelper::READ_BRIEFLY),
+                                grouped_notifications: group_by_projects ? getNotificationsGroupByTopicAndProjects(AdvancedMessengerHelper::READ_BRIEFLY) : getNotificationsGroupByTopic(AdvancedMessengerHelper::READ_BRIEFLY),
+                                grouped_by_projects: group_by_projects,
                                 get_link: lambda {|topic| 
                                     message_id, page_number = getFirstMessageIdAndPageNumber(topic, AdvancedMessengerHelper::READ_BRIEFLY)
                                     return "/advanced_messenger/#{topic.board.id}/#{topic.id}/#{page_number}/#{message_id}/mark_not_visible_messages_as_ignored_and_redirect"
@@ -43,7 +71,7 @@
                             }]
     %>
 
-  <%issues_or_forum_data.each do |issues_or_forum| %>
+                  <%issues_or_forum_data.each do |issues_or_forum| %>
         <% if issues_or_forum[:grouped_notifications].count == 0%>
             <%= javascript_tag do %>
                 $("#notifications-placeholder").append(
@@ -54,16 +82,62 @@
             <%end%>
         <%else%>
             <%= javascript_tag do %>
-                content = "<h3 style='color:#2A5685; display:inline;'><%=t(issues_or_forum[:my_page_notifications_text])%></h3>"
-                        + "<ul style='list-style-type: none; padding-inline-start: 15px; font-weight: bold;'>";
-                <%issues_or_forum[:grouped_notifications].each_value do |notification_status| %>  
-                    content += "<li>" + 
-                                "<a href='<%=issues_or_forum[:get_link].call(notification_status.parent)%>'>" + 
-                                    "(<%=notification_status.count%>) #<%=notification_status.parent.id%> <%=notification_status.parent.subject%>" +
-                                "</a>" + 
-                            "</li>"
-                <%end%>
-                content += "</ul>";
+                content = "<h3 style='color:#2A5685; display:inline;'><%=t(issues_or_forum[:my_page_notifications_text])%></h3>";
+                
+                <% if issues_or_forum[:grouped_by_projects] %>
+                    // Grouped by projects display
+                    <% issues_or_forum[:grouped_notifications].each do |project_id, project_data| %>
+                        <% if project_data[:project] %>
+                            content += "<div class='my-page-project-group'>";
+                            content += "<h4 class='my-page-project-header'>";
+                            content += "<a href='/projects/<%= project_data[:project].identifier %>'>";
+                            content += "<%= project_data[:project].name %>";
+                            content += "</a>";
+                            content += "</h4>";
+                            content += "<ul class='my-page-project-notifications'>";
+                            <% project_data[:notifications].each_value do |notification_status| %>
+                                <% if notification_status.parent.is_a?(Issue) %>
+                                    content += "<li>" + 
+                                                "<a href='<%=issues_or_forum[:get_link].call(notification_status.parent)%>'>" + 
+                                                    "(<%=notification_status.count%>) #<%=notification_status.parent.id%> <%=notification_status.parent.subject%>" +
+                                                "</a>" + 
+                                            "</li>"
+                                <% else %>
+                                    content += "<li>" + 
+                                                "<a href='<%=issues_or_forum[:get_link].call(notification_status.parent)%>'>" + 
+                                                    "(<%=notification_status.count%>) #<%=notification_status.parent.id%> <%=notification_status.parent.subject%>" +
+                                                "</a>" + 
+                                            "</li>"
+                                <% end %>
+                            <% end %>
+                            content += "</ul>";
+                            content += "</div>";
+                        <% end %>
+                    <% end %>
+                <% else %>
+                    // Regular display (not grouped by projects)
+                    content += "<ul style='list-style-type: none; padding-inline-start: 15px; font-weight: bold;'>";
+                    <%issues_or_forum[:grouped_notifications].each_value do |notification_status| %>  
+                        <% if notification_status.parent.is_a?(Issue) %>
+                            content += "<li>" + 
+                                        "<a href='<%=issues_or_forum[:get_link].call(notification_status.parent)%>'>" + 
+                                            "(<%=notification_status.count%>) #<%=notification_status.parent.id%> <%=notification_status.parent.subject%>" +
+                                        "</a>" + 
+                                        " - <a href='/projects/<%=notification_status.parent.project.identifier%>' style='color: #628DB6; font-weight: normal;'>" +
+                                            "<%=notification_status.parent.project.name%>" +
+                                        "</a>" +
+                                    "</li>"
+                        <% else %>
+                            content += "<li>" + 
+                                        "<a href='<%=issues_or_forum[:get_link].call(notification_status.parent)%>'>" + 
+                                            "(<%=notification_status.count%>) #<%=notification_status.parent.id%> <%=notification_status.parent.subject%>" +
+                                        "</a>" + 
+                                    "</li>"
+                        <% end %>
+                    <%end%>
+                    content += "</ul>";
+                <% end %>
+                
                 $("#notifications-placeholder").append(
                     "<div class='my-page-notifications'>"
                         + content

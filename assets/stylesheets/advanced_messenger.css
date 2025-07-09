@@ -61,6 +61,34 @@ body.avatars-on div.journal {
   margin-bottom: 5px; 
 }
 
+.my-page-project-group {
+  margin-top: 15px;
+  margin-bottom: 10px;
+}
+
+.my-page-project-header {
+  color: #628DB6;
+  margin: 0;
+  padding: 5px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.my-page-project-header a {
+  color: #628DB6;
+  text-decoration: none;
+}
+
+.my-page-project-header a:hover {
+  text-decoration: underline;
+}
+
+.my-page-project-notifications {
+  list-style-type: none;
+  padding-inline-start: 15px;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
 .notifications-dialog .ui-dialog-titlebar-close {
   background-color: transparent;
   border: none;
