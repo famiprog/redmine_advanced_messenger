@@ -205,5 +205,5 @@ body.avatars-on div.journal {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
