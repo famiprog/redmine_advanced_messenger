@@ -77,7 +77,7 @@
             <%= javascript_tag do %>
                 $("#notifications-placeholder").append(
                     "<div style='margin-bottom:20px'>"
-                        + "<h3 class='my-page-notification-heading'><%=t(issues_or_forum[:my_page_no_notifications_text])%></h3>"
+                        + "<h3 class='my-page-notification-heading'>(0) <%=t(issues_or_forum[:my_page_no_notifications_text])%></h3>"
                     + "</div>"    
                 );
             <%end%>
@@ -85,7 +85,8 @@
             <%= javascript_tag do %>
                 var groupByProjects = localStorage.getItem('ram_group_by_projects') === '1';
                 
-                content = "<h3 class='my-page-notification-heading'><%=t(issues_or_forum[:my_page_notifications_text])%></h3>";
+                <% total_count = issues_or_forum[:grouped_notifications].values.sum(&:count) %>
+                content = "<h3 class='my-page-notification-heading'>(<%= total_count %>) <%=t(issues_or_forum[:my_page_notifications_text])%></h3>";
                 
                 // Non-grouped display
                 content += "<div class='my-page-notifications non-grouped-display' " + (groupByProjects ? "style='display: none;'" : "") + ">";
@@ -115,10 +116,11 @@
                 content += "<div class='my-page-notifications grouped-display' " + (groupByProjects ? "" : "style='display: none;'") + ">";
                 <% issues_or_forum[:grouped_notifications_grouped].each do |project_id, project_data| %>
                     <% if project_data[:project] %>
+                        <% project_total = project_data[:notifications].values.sum(&:count) %>
                         content += "<div class='my-page-project-group'>";
                         content += "<h4 class='my-page-project-header'>";
                         content += "<a href='/projects/<%= project_data[:project].identifier %>'>";
-                        content += "<%= project_data[:project].name %>";
+                        content += "(<%= project_total %>) <%= project_data[:project].name %>";
                         content += "</a>";
                         content += "</h4>";
                         content += "<ul class='my-page-project-notifications'>";
