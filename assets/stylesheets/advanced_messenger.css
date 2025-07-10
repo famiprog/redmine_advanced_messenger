@@ -56,6 +56,13 @@ body.avatars-on div.journal {
   margin-bottom: 15px; 
 }
 
+.my-page-header {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
 .my-page-notifications > ul { 
   margin-top: 5px;
   margin-bottom: 5px; 

@@ -8,7 +8,7 @@
     <%= javascript_tag do %>
         $("#my-page").before(
             "<div id='notifications-placeholder'>" +
-                "<div style='margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;'>" +
+                "<div class='my-page-header'>" +
                     "<label style='display: flex; align-items: center; cursor: pointer;'>" +
                         "<input type='checkbox' id='group-by-projects-toggle' <%= group_by_projects ? 'checked' : '' %> style='margin-right: 8px;'>" +
                         "<span style='font-weight: bold; color: #2A5685;'><%=t(:my_page_group_by_projects)%></span>" +
