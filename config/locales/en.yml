@@ -35,6 +35,10 @@ en:
   my_page_read_briefly_forum_notifications: "Forum notifications to process later:"
   my_page_no_forum_notifications_read_briefly: "No forum notifications to process later"
   my_page_group_by_projects: "Group by projects"
+  users_overview: "Users Overview"
+  users_active_in_last_days: "Users active in last days"
+  unread_notifications: "Unread"
+  read_briefly_notifications: "Read briefly"
 
   pwa_mark_as_read_and_open_action_title: 'Mark as read \n (and open)'
   pwa_mark_as_read_and_submit_answer_action_title: 'Mark as read \n (and quick comment)'

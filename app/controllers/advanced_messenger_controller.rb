@@ -234,5 +234,20 @@ class AdvancedMessengerController < ApplicationController
     entity.read_by_users = read_by_users.to_json
     entity.save
   end
+
+  def users_overview
+    if !User.current.logged?
+      Rails.logger.error("No logged in user")
+      render_403
+      return
+    end
+
+    # Default values
+    @active_days = params[:active_days] || 30
+    
+    respond_to do |format|
+      format.html
+    end
+  end
 end
 
