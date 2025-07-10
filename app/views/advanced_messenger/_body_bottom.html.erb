@@ -75,7 +75,7 @@
             <%= javascript_tag do %>
                 $("#notifications-placeholder").append(
                     "<div style='margin-bottom:20px'>"
-                        + "<h3 style='color:#2A5685'><%=t(issues_or_forum[:my_page_no_notifications_text])%></h3>"
+                        + "<h3 class='my-page-notification-heading'><%=t(issues_or_forum[:my_page_no_notifications_text])%></h3>"
                     + "</div>"    
                 );
             <%end%>
@@ -83,7 +83,7 @@
             <%= javascript_tag do %>
                 var groupByProjects = localStorage.getItem('ram_group_by_projects') === '1';
                 
-                content = "<h3 style='color:#2A5685; display:inline;'><%=t(issues_or_forum[:my_page_notifications_text])%></h3>";
+                content = "<h3 class='my-page-notification-heading'><%=t(issues_or_forum[:my_page_notifications_text])%></h3>";
                 
                 // Non-grouped display
                 content += "<div class='my-page-notifications non-grouped-display' " + (groupByProjects ? "style='display: none;'" : "") + ">";
