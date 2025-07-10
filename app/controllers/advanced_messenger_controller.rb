@@ -245,6 +245,16 @@ class AdvancedMessengerController < ApplicationController
     # Default values
     @active_days = params[:active_days] || 30
     
+    # Get users active in the last X days based on journal activity
+    cutoff_date = @active_days.to_i.days.ago
+    
+    @active_users = User.joins("INNER JOIN journals ON users.id = journals.user_id")
+                        .where("journals.created_on >= ? AND journals.notes IS NOT NULL AND journals.notes != ''", cutoff_date)
+                        .where(status: 1) # Active users only
+                        .group('users.id, users.firstname, users.lastname, users.login, users.status')
+                        .select('users.id, users.firstname, users.lastname, users.login, users.status, MAX(journals.created_on) as last_activity')
+                        .order('last_activity DESC')
+    
     respond_to do |format|
       format.html
     end

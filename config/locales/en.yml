@@ -39,6 +39,7 @@ en:
   users_active_in_last_days: "Users active in last days"
   unread_notifications: "Unread"
   read_briefly_notifications: "Read briefly"
+  label_last_activity: "Last activity"
 
   pwa_mark_as_read_and_open_action_title: 'Mark as read \n (and open)'
   pwa_mark_as_read_and_submit_answer_action_title: 'Mark as read \n (and quick comment)'
