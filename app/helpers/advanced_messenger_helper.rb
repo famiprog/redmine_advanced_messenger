@@ -71,16 +71,24 @@ module AdvancedMessengerHelper
         return [first_unread_notification_index, unread_notifications_for_current_user, unread_notifications_for_others]
     end
 
-    def getNotificationsGroupByIssues(read_status)
+    def getNotificationsGroupByIssues(read_status, group_by_project = false)
         notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", "%\"#{User.current.id}\":{\"read\":#{read_status}%").order("created_on desc")
         getIssue = lambda { |entity| return entity.issue }
-        return getNotificationsGroupByParentEntity(notifications, getIssue)
-      end
+        if group_by_project
+            return getNotificationsGroupByParentEntityAndProject(notifications, getIssue)
+        else
+            return getNotificationsGroupByParentEntity(notifications, getIssue)
+        end
+    end
 
-    def getNotificationsGroupByTopic(read_status) 
+    def getNotificationsGroupByTopic(read_status, group_by_project = false)
         getTopic = lambda { |entity| return entity.root }
         notifications = Message.where("read_by_users ILIKE ?", "%\"#{User.current.id}\":{\"read\":#{read_status}%").order("created_on desc")
-        return getNotificationsGroupByParentEntity(notifications, getTopic);
+        if group_by_project
+            return getNotificationsGroupByParentEntityAndProject(notifications, getTopic)
+        else
+            return getNotificationsGroupByParentEntity(notifications, getTopic)
+        end
     end
 
     def getNotificationsGroupByParentEntity(notifications, getParent) 
@@ -99,18 +107,6 @@ module AdvancedMessengerHelper
             notification_status.count += 1 
         end
         return grouped_notifications
-    end
-
-    def getNotificationsGroupByIssuesAndProjects(read_status)
-        notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", "%\"#{User.current.id}\":{\"read\":#{read_status}%").order("created_on desc")
-        getIssue = lambda { |entity| return entity.issue }
-        return getNotificationsGroupByParentEntityAndProject(notifications, getIssue)
-    end
-
-    def getNotificationsGroupByTopicAndProjects(read_status) 
-        getTopic = lambda { |entity| return entity.root }
-        notifications = Message.where("read_by_users ILIKE ?", "%\"#{User.current.id}\":{\"read\":#{read_status}%").order("created_on desc")
-        return getNotificationsGroupByParentEntityAndProject(notifications, getTopic);
     end
 
     def getNotificationsGroupByParentEntityAndProject(notifications, getParent) 

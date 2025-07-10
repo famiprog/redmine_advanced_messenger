@@ -30,7 +30,7 @@
     <%end%>
     
     <%issues_or_forum_data = [{
-                                grouped_notifications: group_by_projects ? getNotificationsGroupByIssuesAndProjects(AdvancedMessengerHelper::UNREAD) : getNotificationsGroupByIssues(AdvancedMessengerHelper::UNREAD),
+                                grouped_notifications: getNotificationsGroupByIssues(AdvancedMessengerHelper::UNREAD, group_by_projects),
                                 grouped_by_projects: group_by_projects,
                                 get_link: lambda {|issue|
                                     return "/advanced_messenger/#{issue.id}/#{getUnreadJournalsStatus(issue.visible_journals_with_index)[0]}/mark_not_visible_journals_as_ignored_and_redirect"
@@ -40,7 +40,7 @@
                                 mark_all_ignored_link: "ignore_all_unread_issues_notes"
                             },
                             {
-                                grouped_notifications: group_by_projects ? getNotificationsGroupByIssuesAndProjects(AdvancedMessengerHelper::READ_BRIEFLY) : getNotificationsGroupByIssues(AdvancedMessengerHelper::READ_BRIEFLY),
+                                grouped_notifications: getNotificationsGroupByIssues(AdvancedMessengerHelper::READ_BRIEFLY, group_by_projects),
                                 grouped_by_projects: group_by_projects,
                                 get_link: lambda {|issue|
                                     return "/advanced_messenger/#{issue.id}/#{getFirstReadBrieflyNotification(issue.visible_journals_with_index, "indice")}/mark_not_visible_journals_as_ignored_and_redirect"
@@ -49,7 +49,7 @@
                                 my_page_notifications_text: :my_page_read_briefly_issue_notifications
                             },
                             {
-                                grouped_notifications: group_by_projects ? getNotificationsGroupByTopicAndProjects(AdvancedMessengerHelper::UNREAD) : getNotificationsGroupByTopic(AdvancedMessengerHelper::UNREAD),
+                                grouped_notifications: getNotificationsGroupByTopic(AdvancedMessengerHelper::UNREAD, group_by_projects),
                                 grouped_by_projects: group_by_projects,
                                 get_link: lambda {|topic| 
                                     message_id, page_number = getFirstMessageIdAndPageNumber(topic, AdvancedMessengerHelper::UNREAD)
@@ -60,7 +60,7 @@
                                 mark_all_ignored_link: "ignore_all_unread_forum_messages"
                             },
                             {
-                                grouped_notifications: group_by_projects ? getNotificationsGroupByTopicAndProjects(AdvancedMessengerHelper::READ_BRIEFLY) : getNotificationsGroupByTopic(AdvancedMessengerHelper::READ_BRIEFLY),
+                                grouped_notifications: getNotificationsGroupByTopic(AdvancedMessengerHelper::READ_BRIEFLY, group_by_projects),
                                 grouped_by_projects: group_by_projects,
                                 get_link: lambda {|topic| 
                                     message_id, page_number = getFirstMessageIdAndPageNumber(topic, AdvancedMessengerHelper::READ_BRIEFLY)
