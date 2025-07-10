@@ -109,53 +109,34 @@ module AdvancedMessengerHelper
         return grouped_notifications
     end
 
-    def getNotificationsGroupByParentEntityAndProject(notifications, getParent) 
-        grouped_notifications_by_project = Hash.new
+    def getNotificationsGroupByParentEntityAndProject(notifications, getParent)
+      # Helper to get the project from an entity
+      get_project = lambda do |parentEntity|
+        if parentEntity.is_a?(Issue)
+          parentEntity.project
+        elsif parentEntity.is_a?(Message)
+          parentEntity.board.project
+        end
+      end
 
-        notifications.each do |entity|
-            parentEntity = getParent.call(entity)
-            
-            # Get project for grouping
-            project = nil
-            if parentEntity.is_a?(Issue)
-                project = parentEntity.project
-            elsif parentEntity.is_a?(Message)
-                project = parentEntity.board.project
-            end
-            
-            project_id = project ? project.id : 'no_project'
-            
-            # Initialize project group if it doesn't exist
-            if grouped_notifications_by_project[project_id] == nil
-                grouped_notifications_by_project[project_id] = {
-                    project: project,
-                    notifications: Hash.new
-                }
-            end
-            
-            # Group by parent entity within project
-            if grouped_notifications_by_project[project_id][:notifications][parentEntity.id] != nil
-                notification_status = grouped_notifications_by_project[project_id][:notifications][parentEntity.id]
-            else
-                notification_status = NotificationsStatus.new(0, nil, parentEntity)
-                grouped_notifications_by_project[project_id][:notifications][parentEntity.id] = notification_status
-            end
-            notification_status.count += 1 
-        end
-        
-        # Sort projects alphabetically by name
-        sorted_grouped_notifications = {}
-        grouped_notifications_by_project.sort_by do |project_id, project_data|
-            if project_data[:project]
-                project_data[:project].name.downcase
-            else
-                'zzzz' # Put projects without names at the end
-            end
-        end.each do |project_id, project_data|
-            sorted_grouped_notifications[project_id] = project_data
-        end
-        
-        return sorted_grouped_notifications
+      grouped = Hash.new { |h, k| h[k] = { project: nil, notifications: {} } }
+
+      notifications.each do |entity|
+        parentEntity = getParent.call(entity)
+        project = get_project.call(parentEntity)
+        project_id = project ? project.id : 'no_project'
+
+        grouped[project_id][:project] ||= project
+
+        notifications_hash = grouped[project_id][:notifications]
+        notifications_hash[parentEntity.id] ||= NotificationsStatus.new(0, nil, parentEntity)
+        notifications_hash[parentEntity.id].count += 1
+      end
+
+      # Sort projects alphabetically by name
+      grouped.sort_by do |_, data|
+        data[:project] ? data[:project].name.downcase : 'zzzz'
+      end.to_h
     end
 
     def getNotificationsForCurrentUserCountByStatus(status)
