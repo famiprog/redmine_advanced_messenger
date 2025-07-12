@@ -181,8 +181,8 @@ module AdvancedMessengerHelper
     end
     
     def time_tag_without_link_to_activity(time) 
-        return content_tag('abbr', distance_of_time_in_words(Time.now, time), :title => format_time(time))
-    end   
+        return content_tag('abbr', l(:label_time_ago, :time => distance_of_time_in_words(Time.now, time)), :title => format_time(time))
+    end
 
     def is_journal_visible (journal)
         return journal.journalized.visible? && User.current.allowed_to?(:view_issues, journal.journalized.project) && (!journal.private_notes? || User.current.allowed_to?(:view_private_notes, journal.journalized.project) || journal.user.id == User.current.id)
@@ -297,6 +297,12 @@ module AdvancedMessengerHelper
                     content += "<ul style='list-style-type: none; padding-inline-start: 15px; font-weight: bold;'>"
                     issues_or_forum[:grouped_notifications].each_value do |notification_status|
                         if notification_status.parent.is_a?(Issue)
+                            # Get the last notification date for this issue
+                            last_notification = Journal.where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", 
+                                notification_status.parent.id, "%\"#{user.id}\":{\"read\":#{issues_or_forum == issues_or_forum_data[0] ? AdvancedMessengerHelper::UNREAD : AdvancedMessengerHelper::READ_BRIEFLY}%")
+                                .order(:created_on).last
+                            last_date = last_notification ? time_tag_without_link_to_activity(last_notification.created_on).html_safe : ""
+                            
                             content += "<li>"
                             content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
                             content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
@@ -304,12 +310,20 @@ module AdvancedMessengerHelper
                             content += " - <a href='/projects/#{notification_status.parent.project.identifier}' style='color: #628DB6; font-weight: normal;'>"
                             content += "#{notification_status.parent.project.name}"
                             content += "</a>"
+                            content += " <span style='color: #999; font-size: 0.9em;'>#{last_date}</span>"
                             content += "</li>"
                         else
+                            # Get the last notification date for this topic
+                            last_notification = Message.where("(id = ? OR parent_id = ?) AND read_by_users ILIKE ?", 
+                                notification_status.parent.id, notification_status.parent.id, "%\"#{user.id}\":{\"read\":#{issues_or_forum == issues_or_forum_data[0] ? AdvancedMessengerHelper::UNREAD : AdvancedMessengerHelper::READ_BRIEFLY}%")
+                                .order(:created_on).last
+                            last_date = last_notification ? time_tag_without_link_to_activity(last_notification.created_on).html_safe : ""
+                            
                             content += "<li>"
                             content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
                             content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
                             content += "</a>"
+                            content += " <span style='color: #999; font-size: 0.9em;'>#{last_date}</span>"
                             content += "</li>"
                         end
                     end
@@ -357,6 +371,12 @@ module AdvancedMessengerHelper
                     content += "<ul style='list-style-type: none; padding-inline-start: 15px; font-weight: bold;'>"
                     issues_or_forum[:grouped_notifications].each_value do |notification_status|
                         if notification_status.parent.is_a?(Issue)
+                            # Get the last notification date for this issue
+                            last_notification = Journal.where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", 
+                                notification_status.parent.id, "%\"#{user.id}\":{\"read\":#{issues_or_forum == issues_or_forum_data[0] ? AdvancedMessengerHelper::UNREAD : AdvancedMessengerHelper::READ_BRIEFLY}%")
+                                .order(:created_on).last
+                            last_date = last_notification ? time_tag_without_link_to_activity(last_notification.created_on).html_safe : ""
+                            
                             content += "<li>"
                             content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
                             content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
@@ -364,12 +384,20 @@ module AdvancedMessengerHelper
                             content += " - <a href='/projects/#{notification_status.parent.project.identifier}' style='color: #628DB6; font-weight: normal;'>"
                             content += "#{notification_status.parent.project.name}"
                             content += "</a>"
+                            content += " <span style='color: #999; font-size: 0.9em;'>#{last_date}</span>"
                             content += "</li>"
                         else
+                            # Get the last notification date for this topic
+                            last_notification = Message.where("(id = ? OR parent_id = ?) AND read_by_users ILIKE ?", 
+                                notification_status.parent.id, notification_status.parent.id, "%\"#{user.id}\":{\"read\":#{issues_or_forum == issues_or_forum_data[0] ? AdvancedMessengerHelper::UNREAD : AdvancedMessengerHelper::READ_BRIEFLY}%")
+                                .order(:created_on).last
+                            last_date = last_notification ? time_tag_without_link_to_activity(last_notification.created_on).html_safe : ""
+                            
                             content += "<li>"
                             content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
                             content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
                             content += "</a>"
+                            content += " <span style='color: #999; font-size: 0.9em;'>#{last_date}</span>"
                             content += "</li>"
                         end
                     end
