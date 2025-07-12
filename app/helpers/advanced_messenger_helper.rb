@@ -213,4 +213,196 @@ module AdvancedMessengerHelper
     def check_if_teaser_and_user_not_excepted_from_teaser(user_id)
         return Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' && !Array(Setting.plugin_redmine_advanced_messenger[:user_excepted_from_the_teaser_process_option].map(&:to_i)).include?(user_id)
     end
+
+    def generate_notifications_content(user = User.current, for_javascript = false)
+        # Temporarily switch to the target user for notification calculations
+        original_user = User.current
+        User.current = user
+        
+        issues_or_forum_data = [{
+            grouped_notifications: getNotificationsGroupByIssues(AdvancedMessengerHelper::UNREAD, false),
+            grouped_notifications_grouped: getNotificationsGroupByIssues(AdvancedMessengerHelper::UNREAD, true),
+            get_link: lambda {|issue|
+                return "/advanced_messenger/#{issue.id}/#{getUnreadJournalsStatus(issue.visible_journals_with_index)[0]}/mark_not_visible_journals_as_ignored_and_redirect"
+            },
+            my_page_no_notifications_text: :my_page_all_issues_notifications_read,
+            my_page_notifications_text: :my_page_issues_unread_notifications,
+            mark_all_ignored_link: "ignore_all_unread_issues_notes"
+        },
+        {
+            grouped_notifications: getNotificationsGroupByIssues(AdvancedMessengerHelper::READ_BRIEFLY, false),
+            grouped_notifications_grouped: getNotificationsGroupByIssues(AdvancedMessengerHelper::READ_BRIEFLY, true),
+            get_link: lambda {|issue|
+                return "/advanced_messenger/#{issue.id}/#{getFirstReadBrieflyNotification(issue.visible_journals_with_index, "indice")}/mark_not_visible_journals_as_ignored_and_redirect"
+            },
+            my_page_no_notifications_text: :my_page_no_issue_notifications_read_briefly,
+            my_page_notifications_text: :my_page_read_briefly_issue_notifications
+        },
+        {
+            grouped_notifications: getNotificationsGroupByTopic(AdvancedMessengerHelper::UNREAD, false),
+            grouped_notifications_grouped: getNotificationsGroupByTopic(AdvancedMessengerHelper::UNREAD, true),
+            get_link: lambda {|topic| 
+                message_id, page_number = getFirstMessageIdAndPageNumber(topic, AdvancedMessengerHelper::UNREAD)
+                return "/advanced_messenger/#{topic.board.id}/#{topic.id}/#{page_number}/#{message_id}/mark_not_visible_messages_as_ignored_and_redirect"
+            },
+            my_page_no_notifications_text: :my_page_all_forum_notifications_read,
+            my_page_notifications_text: :my_page_forum_unread_notifications,
+            mark_all_ignored_link: "ignore_all_unread_forum_messages"
+        },
+        {
+            grouped_notifications: getNotificationsGroupByTopic(AdvancedMessengerHelper::READ_BRIEFLY, false),
+            grouped_notifications_grouped: getNotificationsGroupByTopic(AdvancedMessengerHelper::READ_BRIEFLY, true),
+            get_link: lambda {|topic| 
+                message_id, page_number = getFirstMessageIdAndPageNumber(topic, AdvancedMessengerHelper::READ_BRIEFLY)
+                return "/advanced_messenger/#{topic.board.id}/#{topic.id}/#{page_number}/#{message_id}/mark_not_visible_messages_as_ignored_and_redirect"
+            },
+            my_page_no_notifications_text: :my_page_no_forum_notifications_read_briefly,
+            my_page_notifications_text: :my_page_read_briefly_forum_notifications
+        }]
+        
+        content = ""
+        
+        issues_or_forum_data.each do |issues_or_forum|
+            if issues_or_forum[:grouped_notifications].count == 0
+                if for_javascript
+                    content += "<div style='margin-bottom:20px'>"
+                    content += "<h3 class='my-page-notification-heading'>(0) #{t(issues_or_forum[:my_page_no_notifications_text])}</h3>"
+                    content += "</div>"
+                else
+                    content += "<div style='margin-bottom:20px'>"
+                    content += "<h3 class='my-page-notification-heading'>(0) #{t(issues_or_forum[:my_page_no_notifications_text])}</h3>"
+                    content += "</div>"
+                end
+            else
+                total_count = issues_or_forum[:grouped_notifications].values.sum(&:count)
+                
+                if for_javascript
+                    content += "<h3 class='my-page-notification-heading'>(#{total_count}) #{t(issues_or_forum[:my_page_notifications_text])}</h3>"
+                    
+                    # Non-grouped display
+                    content += "<div class='my-page-notifications non-grouped-display' style='display: none;'>"
+                    content += "<ul style='list-style-type: none; padding-inline-start: 15px; font-weight: bold;'>"
+                    issues_or_forum[:grouped_notifications].each_value do |notification_status|
+                        if notification_status.parent.is_a?(Issue)
+                            content += "<li>"
+                            content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                            content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                            content += "</a>"
+                            content += " - <a href='/projects/#{notification_status.parent.project.identifier}' style='color: #628DB6; font-weight: normal;'>"
+                            content += "#{notification_status.parent.project.name}"
+                            content += "</a>"
+                            content += "</li>"
+                        else
+                            content += "<li>"
+                            content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                            content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                            content += "</a>"
+                            content += "</li>"
+                        end
+                    end
+                    content += "</ul>"
+                    content += "</div>"
+                    
+                    # Grouped display
+                    content += "<div class='my-page-notifications grouped-display'>"
+                    issues_or_forum[:grouped_notifications_grouped].each do |project_id, project_data|
+                        if project_data[:project]
+                            project_total = project_data[:notifications].values.sum(&:count)
+                            content += "<div class='my-page-project-group'>"
+                            content += "<h4 class='my-page-project-header'>"
+                            content += "<a href='/projects/#{project_data[:project].identifier}'>"
+                            content += "(#{project_total}) #{project_data[:project].name}"
+                            content += "</a>"
+                            content += "</h4>"
+                            content += "<ul class='my-page-project-notifications'>"
+                            project_data[:notifications].each_value do |notification_status|
+                                if notification_status.parent.is_a?(Issue)
+                                    content += "<li>"
+                                    content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                                    content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                                    content += "</a>"
+                                    content += "</li>"
+                                else
+                                    content += "<li>"
+                                    content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                                    content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                                    content += "</a>"
+                                    content += "</li>"
+                                end
+                            end
+                            content += "</ul>"
+                            content += "</div>"
+                        end
+                    end
+                    content += "</div>"
+                else
+                    content += "<div class='my-page-notifications'>"
+                    content += "<h3 class='my-page-notification-heading'>(#{total_count}) #{t(issues_or_forum[:my_page_notifications_text])}</h3>"
+                    
+                    # Non-grouped display
+                    content += "<div class='my-page-notifications non-grouped-display'>"
+                    content += "<ul style='list-style-type: none; padding-inline-start: 15px; font-weight: bold;'>"
+                    issues_or_forum[:grouped_notifications].each_value do |notification_status|
+                        if notification_status.parent.is_a?(Issue)
+                            content += "<li>"
+                            content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                            content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                            content += "</a>"
+                            content += " - <a href='/projects/#{notification_status.parent.project.identifier}' style='color: #628DB6; font-weight: normal;'>"
+                            content += "#{notification_status.parent.project.name}"
+                            content += "</a>"
+                            content += "</li>"
+                        else
+                            content += "<li>"
+                            content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                            content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                            content += "</a>"
+                            content += "</li>"
+                        end
+                    end
+                    content += "</ul>"
+                    content += "</div>"
+                    
+                    # Grouped display
+                    content += "<div class='my-page-notifications grouped-display' style='display: none;'>"
+                    issues_or_forum[:grouped_notifications_grouped].each do |project_id, project_data|
+                        if project_data[:project]
+                            project_total = project_data[:notifications].values.sum(&:count)
+                            content += "<div class='my-page-project-group'>"
+                            content += "<h4 class='my-page-project-header'>"
+                            content += "<a href='/projects/#{project_data[:project].identifier}'>"
+                            content += "(#{project_total}) #{project_data[:project].name}"
+                            content += "</a>"
+                            content += "</h4>"
+                            content += "<ul class='my-page-project-notifications'>"
+                            project_data[:notifications].each_value do |notification_status|
+                                if notification_status.parent.is_a?(Issue)
+                                    content += "<li>"
+                                    content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                                    content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                                    content += "</a>"
+                                    content += "</li>"
+                                else
+                                    content += "<li>"
+                                    content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                                    content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                                    content += "</a>"
+                                    content += "</li>"
+                                end
+                            end
+                            content += "</ul>"
+                            content += "</div>"
+                        end
+                    end
+                    content += "</div>"
+                    content += "</div>"
+                end
+            end
+        end
+        
+        content.html_safe
+    ensure
+        # Restore the original user
+        User.current = original_user if defined?(original_user)
+    end
 end

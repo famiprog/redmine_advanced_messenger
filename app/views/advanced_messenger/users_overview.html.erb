@@ -3,7 +3,7 @@
 <% end %>
 
 <div class="contextual">
-  <%= link_to l(:label_back), :controller => 'my', :action => 'page', :class => 'icon icon-back' %>
+  <%= link_to l(:label_back), {:controller => 'my', :action => 'page'}, {:class => 'icon icon-back'} %>
 </div>
 
 <h2><%= l(:users_overview) %></h2>
@@ -33,7 +33,8 @@
     <thead>
       <tr>
         <th><%= l(:field_user) %></th>
-        <th><%= l(:unread_notifications) %></th>
+        <th><%= l(:label_last_activity) %></th>
+        <th><%= l(:view_notifications) %></th>
         <th><%= l(:read_briefly_notifications) %></th>
       </tr>
     </thead>
@@ -43,17 +44,19 @@
           <tr class="<%= cycle('odd', 'even') %>">
             <td>
               <%= link_to_user(user) %>
-              <div class="small">
-                <%= l(:label_last_activity) %>: <%= format_time(user.last_activity) %>
-              </div>
             </td>
-            <td>-</td>
+            <td><%= format_time(user.last_activity) %></td>
+            <td>
+              <%= link_to l(:view_notifications), 
+                          {controller: 'advanced_messenger', action: 'user_notifications', id: user.id}, 
+                          {class: 'icon icon-notification'} %>
+            </td>
             <td>-</td>
           </tr>
         <% end %>
       <% else %>
         <tr>
-          <td colspan="3" class="nodata"><%= l(:label_no_data) %></td>
+          <td colspan="4" class="nodata"><%= l(:label_no_data) %></td>
         </tr>
       <% end %>
     </tbody>

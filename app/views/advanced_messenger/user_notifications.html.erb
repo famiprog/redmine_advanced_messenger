@@ -1,0 +1,52 @@
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 'advanced_messenger', :plugin => 'redmine_advanced_messenger' %>
+<% end %>
+
+<div class="contextual">
+  <%= link_to l(:label_back), {:controller => 'advanced_messenger', :action => 'users_overview'}, {:class => 'icon icon-back'} %>
+</div>
+
+<h2><%= l(:user_notifications_title, :user => @user.name) %></h2>
+
+<div class="user-notifications-container">
+  <div class="my-page-header">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center;">
+        <label style="cursor: pointer; display: flex; align-items: center;">
+          <input type="checkbox" id="group-by-projects-toggle" style="margin-right: 8px;">
+          <span style="font-weight: bold; color: #2A5685;"><%=t(:my_page_group_by_projects)%></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <%= javascript_tag do %>
+    // Handle checkbox change
+    $(document).on('change', "#group-by-projects-toggle", function() {
+      localStorage.setItem('ram_group_by_projects', this.checked ? '1' : '0');
+      if (this.checked) {
+        $('.grouped-display').show();
+        $('.non-grouped-display').hide();
+      } else {
+        $('.grouped-display').hide();
+        $('.non-grouped-display').show();
+      }
+    });
+  <%end%>
+
+  <%= generate_notifications_content(@user, false).html_safe %>
+</div>
+
+<%= javascript_tag do %>
+  // Apply initial visibility based on localStorage
+  var groupByProjects = localStorage.getItem('ram_group_by_projects') === '1';
+  if (groupByProjects) {
+      $('.grouped-display').show();
+      $('.non-grouped-display').hide();
+      $('#group-by-projects-toggle').prop('checked', true);
+  } else {
+      $('.grouped-display').hide();
+      $('.non-grouped-display').show();
+      $('#group-by-projects-toggle').prop('checked', false);
+  }
+<%end%> 

@@ -259,5 +259,23 @@ class AdvancedMessengerController < ApplicationController
       format.html
     end
   end
+
+  def user_notifications
+    if !User.current.logged?
+      Rails.logger.error("No logged in user")
+      render_403
+      return
+    end
+
+    @user = User.find(params[:id])
+    if @user.nil?
+      render_404
+      return
+    end
+
+    respond_to do |format|
+      format.html
+    end
+  end
 end
 

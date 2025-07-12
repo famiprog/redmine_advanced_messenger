@@ -40,6 +40,9 @@ en:
   unread_notifications: "Unread"
   read_briefly_notifications: "Read briefly"
   label_last_activity: "Last activity"
+  user_notifications_title: "Notifications for %{user}"
+  view_notifications: "View notifications"
+  label_back: "Back"
 
   pwa_mark_as_read_and_open_action_title: 'Mark as read \n (and open)'
   pwa_mark_as_read_and_submit_answer_action_title: 'Mark as read \n (and quick comment)'
