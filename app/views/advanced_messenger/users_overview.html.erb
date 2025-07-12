@@ -35,7 +35,8 @@
         <th><%= l(:field_user) %></th>
         <th><%= l(:label_last_activity) %></th>
         <th><%= l(:view_notifications) %></th>
-        <th><%= l(:read_briefly_notifications) %></th>
+        <th># <%= l(:unread_notifications) %></th>
+        <th># <%= l(:read_briefly_notifications) %></th>
       </tr>
     </thead>
     <tbody>
@@ -51,12 +52,13 @@
                           {controller: 'advanced_messenger', action: 'user_notifications', id: user.id}, 
                           {class: 'icon icon-notification'} %>
             </td>
-            <td>-</td>
+            <td><%= get_notifications_count_for_user(user, AdvancedMessengerHelper::UNREAD) %></td>
+            <td><%= get_notifications_count_for_user(user, AdvancedMessengerHelper::READ_BRIEFLY) %></td>
           </tr>
         <% end %>
       <% else %>
         <tr>
-          <td colspan="4" class="nodata"><%= l(:label_no_data) %></td>
+          <td colspan="5" class="nodata"><%= l(:label_no_data) %></td>
         </tr>
       <% end %>
     </tbody>

@@ -214,6 +214,19 @@ module AdvancedMessengerHelper
         return Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' && !Array(Setting.plugin_redmine_advanced_messenger[:user_excepted_from_the_teaser_process_option].map(&:to_i)).include?(user_id)
     end
 
+    def get_notifications_count_for_user(user, status)
+        # Temporarily switch to the target user for notification calculations
+        original_user = User.current
+        User.current = user
+        
+        count = getNotificationsForCurrentUserCountByStatus(status)
+        
+        return count
+    ensure
+        # Restore the original user
+        User.current = original_user if defined?(original_user)
+    end
+
     def generate_notifications_content(user = User.current, for_javascript = false)
         # Temporarily switch to the target user for notification calculations
         original_user = User.current
