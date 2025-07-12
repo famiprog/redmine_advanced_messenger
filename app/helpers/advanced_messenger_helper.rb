@@ -297,11 +297,14 @@ module AdvancedMessengerHelper
                     content += "<ul style='list-style-type: none; padding-inline-start: 15px; font-weight: bold;'>"
                     issues_or_forum[:grouped_notifications].each_value do |notification_status|
                         if notification_status.parent.is_a?(Issue)
-                            # Get the last notification date for this issue
-                            last_notification = Journal.where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", 
+                            # Get the last notification date and user for this issue
+                            last_notification = Journal.joins(:user).where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", 
                                 notification_status.parent.id, "%\"#{user.id}\":{\"read\":#{issues_or_forum == issues_or_forum_data[0] ? AdvancedMessengerHelper::UNREAD : AdvancedMessengerHelper::READ_BRIEFLY}%")
                                 .order(:created_on).last
                             last_date = last_notification ? time_tag_without_link_to_activity(last_notification.created_on).html_safe : ""
+                            last_user = last_notification ? last_notification.user : nil
+                            user_info = last_user ? "by #{link_to_user(last_user, :class => 'notification-user-link')}" : ""
+                            display_info = user_info.blank? ? last_date : "#{user_info}, #{last_date}"
                             
                             content += "<li>"
                             content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
@@ -310,20 +313,23 @@ module AdvancedMessengerHelper
                             content += " - <a href='/projects/#{notification_status.parent.project.identifier}' style='color: #628DB6; font-weight: normal;'>"
                             content += "#{notification_status.parent.project.name}"
                             content += "</a>"
-                            content += " <span style='color: #999; font-size: 0.9em;'>#{last_date}</span>"
+                            content += " <span style='color: #999; font-size: 0.9em;'>#{display_info}</span>"
                             content += "</li>"
                         else
-                            # Get the last notification date for this topic
-                            last_notification = Message.where("(id = ? OR parent_id = ?) AND read_by_users ILIKE ?", 
+                            # Get the last notification date and user for this topic
+                            last_notification = Message.joins(:author).where("(messages.id = ? OR messages.parent_id = ?) AND read_by_users ILIKE ?", 
                                 notification_status.parent.id, notification_status.parent.id, "%\"#{user.id}\":{\"read\":#{issues_or_forum == issues_or_forum_data[0] ? AdvancedMessengerHelper::UNREAD : AdvancedMessengerHelper::READ_BRIEFLY}%")
                                 .order(:created_on).last
                             last_date = last_notification ? time_tag_without_link_to_activity(last_notification.created_on).html_safe : ""
+                            last_user = last_notification ? last_notification.author : nil
+                            user_info = last_user ? "by #{link_to_user(last_user, :class => 'notification-user-link')}" : ""
+                            display_info = user_info.blank? ? last_date : "#{user_info}, #{last_date}"
                             
                             content += "<li>"
                             content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
                             content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
                             content += "</a>"
-                            content += " <span style='color: #999; font-size: 0.9em;'>#{last_date}</span>"
+                            content += " <span style='color: #999; font-size: 0.9em;'>#{display_info}</span>"
                             content += "</li>"
                         end
                     end
@@ -371,11 +377,14 @@ module AdvancedMessengerHelper
                     content += "<ul style='list-style-type: none; padding-inline-start: 15px; font-weight: bold;'>"
                     issues_or_forum[:grouped_notifications].each_value do |notification_status|
                         if notification_status.parent.is_a?(Issue)
-                            # Get the last notification date for this issue
-                            last_notification = Journal.where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", 
+                            # Get the last notification date and user for this issue
+                            last_notification = Journal.joins(:user).where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", 
                                 notification_status.parent.id, "%\"#{user.id}\":{\"read\":#{issues_or_forum == issues_or_forum_data[0] ? AdvancedMessengerHelper::UNREAD : AdvancedMessengerHelper::READ_BRIEFLY}%")
                                 .order(:created_on).last
                             last_date = last_notification ? time_tag_without_link_to_activity(last_notification.created_on).html_safe : ""
+                            last_user = last_notification ? last_notification.user : nil
+                            user_info = last_user ? "by #{link_to_user(last_user, :class => 'notification-user-link')}" : ""
+                            display_info = user_info.blank? ? last_date : "#{user_info}, #{last_date}"
                             
                             content += "<li>"
                             content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
@@ -384,20 +393,23 @@ module AdvancedMessengerHelper
                             content += " - <a href='/projects/#{notification_status.parent.project.identifier}' style='color: #628DB6; font-weight: normal;'>"
                             content += "#{notification_status.parent.project.name}"
                             content += "</a>"
-                            content += " <span style='color: #999; font-size: 0.9em;'>#{last_date}</span>"
+                            content += " <span style='color: #999; font-size: 0.9em;'>#{display_info}</span>"
                             content += "</li>"
                         else
-                            # Get the last notification date for this topic
-                            last_notification = Message.where("(id = ? OR parent_id = ?) AND read_by_users ILIKE ?", 
+                            # Get the last notification date and user for this topic
+                            last_notification = Message.joins(:author).where("(messages.id = ? OR messages.parent_id = ?) AND read_by_users ILIKE ?", 
                                 notification_status.parent.id, notification_status.parent.id, "%\"#{user.id}\":{\"read\":#{issues_or_forum == issues_or_forum_data[0] ? AdvancedMessengerHelper::UNREAD : AdvancedMessengerHelper::READ_BRIEFLY}%")
                                 .order(:created_on).last
                             last_date = last_notification ? time_tag_without_link_to_activity(last_notification.created_on).html_safe : ""
+                            last_user = last_notification ? last_notification.author : nil
+                            user_info = last_user ? "by #{link_to_user(last_user, :class => 'notification-user-link')}" : ""
+                            display_info = user_info.blank? ? last_date : "#{user_info}, #{last_date}"
                             
                             content += "<li>"
                             content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
                             content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
                             content += "</a>"
-                            content += " <span style='color: #999; font-size: 0.9em;'>#{last_date}</span>"
+                            content += " <span style='color: #999; font-size: 0.9em;'>#{display_info}</span>"
                             content += "</li>"
                         end
                     end

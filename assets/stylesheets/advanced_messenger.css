@@ -219,3 +219,9 @@ body.avatars-on div.journal {
 .hidden {
   display: none !important;
 }
+
+.notification-user-link {
+  color: #999 !important;
+  font-size: 0.9em;
+  text-decoration: underline; /* optional, for link styling */
+}

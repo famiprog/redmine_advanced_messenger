@@ -253,7 +253,7 @@ class AdvancedMessengerController < ApplicationController
                         .where(status: 1) # Active users only
                         .group('users.id, users.firstname, users.lastname, users.login, users.status')
                         .select('users.id, users.firstname, users.lastname, users.login, users.status, MAX(journals.created_on) as last_activity')
-                        .order('last_activity DESC')
+                        .order('users.firstname ASC, users.lastname ASC')
     
     respond_to do |format|
       format.html
