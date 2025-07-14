@@ -119,7 +119,7 @@
                 return;
             }
 
-            var showOrHide = (node, isVisible) => isVisible ? node.removeClass("hidden") : node.addClass("hidden") 
+            var showOrHide = (node, isVisible) => isVisible ? node.removeClass("ram-hidden") : node.addClass("ram-hidden") 
             // ======= Show or hide content ======
             showOrHide(currentNode.find('.message-content'), expanded);
             showOrHide(currentNode.find('.details'), expanded);
