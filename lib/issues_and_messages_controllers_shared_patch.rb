@@ -71,7 +71,7 @@ module IssuesAndMessagesControllersSharedPatch
           #==========In case not expanded hide other elements(e.g : .details, .thumbnails, .attachments divs)==============
           if !expanded
             getRegExesToHideOtherElements.call(entity.id.to_s).each do |regExToHideElement|
-              response.body = response.body.gsub(/#{regExToHideElement}/, '\\1 hidden\\2')
+              response.body = response.body.gsub(/#{regExToHideElement}/, '\\1 ram-hidden\\2')
             end  
           end  
         end
