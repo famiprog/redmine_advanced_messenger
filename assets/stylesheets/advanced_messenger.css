@@ -152,6 +152,8 @@ body.avatars-on div.journal {
   background-color:#F6F6F6 !important;
   opacity: 0.95;
   color: black;
+  /* Redmine added end 2024 this style, which prevented us to click in the tooltip. */
+  pointer-events: auto !important;
 }
 
 .ui-tooltip.notifications-tooltip ul {
