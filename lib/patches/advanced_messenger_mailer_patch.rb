@@ -17,9 +17,45 @@ module Patches
         alias_method :super_message_posted, :message_posted
         alias_method :message_posted, :patched_message_posted
       end
+      base.singleton_class.class_eval do
+        # We intercept the mail sending (in case of issue_edit and message_posted) 
+        # in order to send notifications in Redmine Advanced Messenger
+        alias_method :super_deliver_issue_edit, :deliver_issue_edit
+        alias_method :super_deliver_message_posted, :deliver_message_posted
+        
+        def deliver_issue_edit(journal)
+          super_deliver_issue_edit(journal)
+           
+          if (journal.notes.present?) 
+            # These are the users computed in super @see mailer.rb#deliver_issue_edit
+            users = journal.notified_users | journal.notified_watchers | journal.notified_mentions | journal.journalized.notified_mentions
+            read_by_users_hash = {} 
+            users.each do |user|
+                read_by_users = {read: user.id == User.current.id ? AdvancedMessengerHelper::READ : AdvancedMessengerHelper::UNREAD, date: DateTime.now}
+                read_by_users_hash[user.id.to_s] = read_by_users;
+            end
+            journal.read_by_users = read_by_users_hash.to_json
+            journal.save
+          end
+        end 
+      
+        def deliver_message_posted(message)
+          super_deliver_message_posted(message)
+          # These are the users computed in super @see mailer.rb#deliver_message_posted
+          users  = message.notified_users | message.root.notified_watchers | message.board.notified_watchers
+          read_by_users_hash = {} 
+          users.each do |user|
+            read_by_users = {read: user.id == User.current.id ? AdvancedMessengerHelper::READ : AdvancedMessengerHelper::UNREAD, date: DateTime.now}
+            read_by_users_hash[user.id.to_s] = read_by_users;
+          end
+          message.read_by_users = read_by_users_hash.to_json
+          message.save
+        end
+        
+      end  
     end
 
-    module InstanceMethods      
+    module InstanceMethods
       def patched_issue_edit(user, journal)
         details = []
         # get the details_to_string only if we have notifications on all the modifications from a issue
