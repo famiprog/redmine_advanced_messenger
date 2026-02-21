@@ -1,150 +1,54 @@
 <%# ============= My Page notifications ============= %>
 <% if current_page?(:controller => 'my', :action => 'page') %>
-    <% 
-    # Get the group_by_projects parameter from URL
-    group_by_projects = params[:group_by_projects] == 'true'
-    %>
-    
     <%= javascript_tag do %>
+        // Set initial state before any content is generated
+        var groupByProjects = localStorage.getItem('ram_group_by_projects') === '1';
+        
         $("#my-page").before(
             "<div id='notifications-placeholder'>" +
-                "<div style='margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;'>" +
-                    "<label style='display: flex; align-items: center; cursor: pointer;'>" +
-                        "<input type='checkbox' id='group-by-projects-toggle' <%= group_by_projects ? 'checked' : '' %> style='margin-right: 8px;'>" +
-                        "<span style='font-weight: bold; color: #2A5685;'><%=t(:my_page_group_by_projects)%></span>" +
-                    "</label>" +
+                "<div class='my-page-header'>" +
+                    "<div style='display: flex; align-items: center; justify-content: space-between;'>" +
+                        "<div style='display: flex; align-items: center;'>" +
+                            "<label style='cursor: pointer; display: flex; align-items: center;'>" +
+                                "<input type='checkbox' id='group-by-projects-toggle' style='margin-right: 8px;' " + (groupByProjects ? "checked" : "") + ">" +
+                                "<span style='font-weight: bold; color: #2A5685;'><%=t(:my_page_group_by_projects)%></span>" +
+                            "</label>" +
+                        "</div>" +
+                        "<div>" +
+                            "<a href='/advanced_messenger/users_overview' class='icon icon-users' style='color: #2A5685; text-decoration: none;'><%=t(:users_overview)%></a>" +
+                        "</div>" +
+                    "</div>" +
                 "</div>" +
             "</div>"
         );
         
         // Handle checkbox change
-        $("#group-by-projects-toggle").change(function() {
-            var url = new URL(window.location);
+        $(document).on('change', "#group-by-projects-toggle", function() {
+            localStorage.setItem('ram_group_by_projects', this.checked ? '1' : '0');
             if (this.checked) {
-                url.searchParams.set('group_by_projects', 'true');
+                $('.grouped-display').show();
+                $('.non-grouped-display').hide();
             } else {
-                url.searchParams.delete('group_by_projects');
+                $('.grouped-display').hide();
+                $('.non-grouped-display').show();
             }
-            window.location.href = url.toString();
         });
     <%end%>
     
-    <%issues_or_forum_data = [{
-                                grouped_notifications: group_by_projects ? getNotificationsGroupByIssuesAndProjects(AdvancedMessengerHelper::UNREAD) : getNotificationsGroupByIssues(AdvancedMessengerHelper::UNREAD),
-                                grouped_by_projects: group_by_projects,
-                                get_link: lambda {|issue|
-                                    return "/advanced_messenger/#{issue.id}/#{getUnreadJournalsStatus(issue.visible_journals_with_index)[0]}/mark_not_visible_journals_as_ignored_and_redirect"
-                                },
-                                my_page_no_notifications_text: :my_page_all_issues_notifications_read,
-                                my_page_notifications_text: :my_page_issues_unread_notifications,
-                                mark_all_ignored_link: "ignore_all_unread_issues_notes"
-                            },
-                            {
-                                grouped_notifications: group_by_projects ? getNotificationsGroupByIssuesAndProjects(AdvancedMessengerHelper::READ_BRIEFLY) : getNotificationsGroupByIssues(AdvancedMessengerHelper::READ_BRIEFLY),
-                                grouped_by_projects: group_by_projects,
-                                get_link: lambda {|issue|
-                                    return "/advanced_messenger/#{issue.id}/#{getFirstReadBrieflyNotification(issue.visible_journals_with_index, "indice")}/mark_not_visible_journals_as_ignored_and_redirect"
-                                },
-                                my_page_no_notifications_text: :my_page_no_issue_notifications_read_briefly,
-                                my_page_notifications_text: :my_page_read_briefly_issue_notifications
-                            },
-                            {
-                                grouped_notifications: group_by_projects ? getNotificationsGroupByTopicAndProjects(AdvancedMessengerHelper::UNREAD) : getNotificationsGroupByTopic(AdvancedMessengerHelper::UNREAD),
-                                grouped_by_projects: group_by_projects,
-                                get_link: lambda {|topic| 
-                                    message_id, page_number = getFirstMessageIdAndPageNumber(topic, AdvancedMessengerHelper::UNREAD)
-                                    return "/advanced_messenger/#{topic.board.id}/#{topic.id}/#{page_number}/#{message_id}/mark_not_visible_messages_as_ignored_and_redirect"
-                                },
-                                my_page_no_notifications_text: :my_page_all_forum_notifications_read,
-                                my_page_notifications_text: :my_page_forum_unread_notifications,
-                                mark_all_ignored_link: "ignore_all_unread_forum_messages"
-                            },
-                            {
-                                grouped_notifications: group_by_projects ? getNotificationsGroupByTopicAndProjects(AdvancedMessengerHelper::READ_BRIEFLY) : getNotificationsGroupByTopic(AdvancedMessengerHelper::READ_BRIEFLY),
-                                grouped_by_projects: group_by_projects,
-                                get_link: lambda {|topic| 
-                                    message_id, page_number = getFirstMessageIdAndPageNumber(topic, AdvancedMessengerHelper::READ_BRIEFLY)
-                                    return "/advanced_messenger/#{topic.board.id}/#{topic.id}/#{page_number}/#{message_id}/mark_not_visible_messages_as_ignored_and_redirect"
-                                },
-                                my_page_no_notifications_text: :my_page_no_forum_notifications_read_briefly,
-                                my_page_notifications_text: :my_page_read_briefly_forum_notifications
-                            }]
-    %>
-
-                  <%issues_or_forum_data.each do |issues_or_forum| %>
-        <% if issues_or_forum[:grouped_notifications].count == 0%>
-            <%= javascript_tag do %>
-                $("#notifications-placeholder").append(
-                    "<div style='margin-bottom:20px'>"
-                        + "<h3 style='color:#2A5685'><%=t(issues_or_forum[:my_page_no_notifications_text])%></h3>"
-                    + "</div>"    
-                );
-            <%end%>
-        <%else%>
-            <%= javascript_tag do %>
-                content = "<h3 style='color:#2A5685; display:inline;'><%=t(issues_or_forum[:my_page_notifications_text])%></h3>";
-                
-                <% if issues_or_forum[:grouped_by_projects] %>
-                    // Grouped by projects display
-                    <% issues_or_forum[:grouped_notifications].each do |project_id, project_data| %>
-                        <% if project_data[:project] %>
-                            content += "<div class='my-page-project-group'>";
-                            content += "<h4 class='my-page-project-header'>";
-                            content += "<a href='/projects/<%= project_data[:project].identifier %>'>";
-                            content += "<%= project_data[:project].name %>";
-                            content += "</a>";
-                            content += "</h4>";
-                            content += "<ul class='my-page-project-notifications'>";
-                            <% project_data[:notifications].each_value do |notification_status| %>
-                                <% if notification_status.parent.is_a?(Issue) %>
-                                    content += "<li>" + 
-                                                "<a href='<%=issues_or_forum[:get_link].call(notification_status.parent)%>'>" + 
-                                                    "(<%=notification_status.count%>) #<%=notification_status.parent.id%> <%=notification_status.parent.subject%>" +
-                                                "</a>" + 
-                                            "</li>"
-                                <% else %>
-                                    content += "<li>" + 
-                                                "<a href='<%=issues_or_forum[:get_link].call(notification_status.parent)%>'>" + 
-                                                    "(<%=notification_status.count%>) #<%=notification_status.parent.id%> <%=notification_status.parent.subject%>" +
-                                                "</a>" + 
-                                            "</li>"
-                                <% end %>
-                            <% end %>
-                            content += "</ul>";
-                            content += "</div>";
-                        <% end %>
-                    <% end %>
-                <% else %>
-                    // Regular display (not grouped by projects)
-                    content += "<ul style='list-style-type: none; padding-inline-start: 15px; font-weight: bold;'>";
-                    <%issues_or_forum[:grouped_notifications].each_value do |notification_status| %>  
-                        <% if notification_status.parent.is_a?(Issue) %>
-                            content += "<li>" + 
-                                        "<a href='<%=issues_or_forum[:get_link].call(notification_status.parent)%>'>" + 
-                                            "(<%=notification_status.count%>) #<%=notification_status.parent.id%> <%=notification_status.parent.subject%>" +
-                                        "</a>" + 
-                                        " - <a href='/projects/<%=notification_status.parent.project.identifier%>' style='color: #628DB6; font-weight: normal;'>" +
-                                            "<%=notification_status.parent.project.name%>" +
-                                        "</a>" +
-                                    "</li>"
-                        <% else %>
-                            content += "<li>" + 
-                                        "<a href='<%=issues_or_forum[:get_link].call(notification_status.parent)%>'>" + 
-                                            "(<%=notification_status.count%>) #<%=notification_status.parent.id%> <%=notification_status.parent.subject%>" +
-                                        "</a>" + 
-                                    "</li>"
-                        <% end %>
-                    <%end%>
-                    content += "</ul>";
-                <% end %>
-                
-                $("#notifications-placeholder").append(
-                    "<div class='my-page-notifications'>"
-                        + content
-                    + "</div>"   
-                );
-            <%end%>
-        <%end%>
+    <%= javascript_tag do %>
+        var groupByProjects = localStorage.getItem('ram_group_by_projects') === '1';
+        var notificationsContent = '<%= escape_javascript(generate_notifications_content(User.current, true)) %>';
+        
+        $("#notifications-placeholder").append(notificationsContent);
+        
+        // Apply initial visibility based on localStorage
+        if (groupByProjects) {
+            $('.grouped-display').show();
+            $('.non-grouped-display').hide();
+        } else {
+            $('.grouped-display').hide();
+            $('.non-grouped-display').show();
+        }
     <%end%>
 <%end%>
 

@@ -71,16 +71,24 @@ module AdvancedMessengerHelper
         return [first_unread_notification_index, unread_notifications_for_current_user, unread_notifications_for_others]
     end
 
-    def getNotificationsGroupByIssues(read_status)
+    def getNotificationsGroupByIssues(read_status, group_by_project = false)
         notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", "%\"#{User.current.id}\":{\"read\":#{read_status}%").order("created_on desc")
         getIssue = lambda { |entity| return entity.issue }
-        return getNotificationsGroupByParentEntity(notifications, getIssue)
-      end
+        if group_by_project
+            return getNotificationsGroupByParentEntityAndProject(notifications, getIssue)
+        else
+            return getNotificationsGroupByParentEntity(notifications, getIssue)
+        end
+    end
 
-    def getNotificationsGroupByTopic(read_status) 
+    def getNotificationsGroupByTopic(read_status, group_by_project = false)
         getTopic = lambda { |entity| return entity.root }
         notifications = Message.where("read_by_users ILIKE ?", "%\"#{User.current.id}\":{\"read\":#{read_status}%").order("created_on desc")
-        return getNotificationsGroupByParentEntity(notifications, getTopic);
+        if group_by_project
+            return getNotificationsGroupByParentEntityAndProject(notifications, getTopic)
+        else
+            return getNotificationsGroupByParentEntity(notifications, getTopic)
+        end
     end
 
     def getNotificationsGroupByParentEntity(notifications, getParent) 
@@ -101,65 +109,34 @@ module AdvancedMessengerHelper
         return grouped_notifications
     end
 
-    def getNotificationsGroupByIssuesAndProjects(read_status)
-        notifications = Journal.where("notes != '' AND notes IS NOT NULL AND read_by_users ILIKE ?", "%\"#{User.current.id}\":{\"read\":#{read_status}%").order("created_on desc")
-        getIssue = lambda { |entity| return entity.issue }
-        return getNotificationsGroupByParentEntityAndProject(notifications, getIssue)
-    end
-
-    def getNotificationsGroupByTopicAndProjects(read_status) 
-        getTopic = lambda { |entity| return entity.root }
-        notifications = Message.where("read_by_users ILIKE ?", "%\"#{User.current.id}\":{\"read\":#{read_status}%").order("created_on desc")
-        return getNotificationsGroupByParentEntityAndProject(notifications, getTopic);
-    end
-
-    def getNotificationsGroupByParentEntityAndProject(notifications, getParent) 
-        grouped_notifications_by_project = Hash.new
-
-        notifications.each do |entity|
-            parentEntity = getParent.call(entity)
-            
-            # Get project for grouping
-            project = nil
-            if parentEntity.is_a?(Issue)
-                project = parentEntity.project
-            elsif parentEntity.is_a?(Message)
-                project = parentEntity.board.project
-            end
-            
-            project_id = project ? project.id : 'no_project'
-            
-            # Initialize project group if it doesn't exist
-            if grouped_notifications_by_project[project_id] == nil
-                grouped_notifications_by_project[project_id] = {
-                    project: project,
-                    notifications: Hash.new
-                }
-            end
-            
-            # Group by parent entity within project
-            if grouped_notifications_by_project[project_id][:notifications][parentEntity.id] != nil
-                notification_status = grouped_notifications_by_project[project_id][:notifications][parentEntity.id]
-            else
-                notification_status = NotificationsStatus.new(0, nil, parentEntity)
-                grouped_notifications_by_project[project_id][:notifications][parentEntity.id] = notification_status
-            end
-            notification_status.count += 1 
+    def getNotificationsGroupByParentEntityAndProject(notifications, getParent)
+      # Helper to get the project from an entity
+      get_project = lambda do |parentEntity|
+        if parentEntity.is_a?(Issue)
+          parentEntity.project
+        elsif parentEntity.is_a?(Message)
+          parentEntity.board.project
         end
-        
-        # Sort projects alphabetically by name
-        sorted_grouped_notifications = {}
-        grouped_notifications_by_project.sort_by do |project_id, project_data|
-            if project_data[:project]
-                project_data[:project].name.downcase
-            else
-                'zzzz' # Put projects without names at the end
-            end
-        end.each do |project_id, project_data|
-            sorted_grouped_notifications[project_id] = project_data
-        end
-        
-        return sorted_grouped_notifications
+      end
+
+      grouped = Hash.new { |h, k| h[k] = { project: nil, notifications: {} } }
+
+      notifications.each do |entity|
+        parentEntity = getParent.call(entity)
+        project = get_project.call(parentEntity)
+        project_id = project ? project.id : 'no_project'
+
+        grouped[project_id][:project] ||= project
+
+        notifications_hash = grouped[project_id][:notifications]
+        notifications_hash[parentEntity.id] ||= NotificationsStatus.new(0, nil, parentEntity)
+        notifications_hash[parentEntity.id].count += 1
+      end
+
+      # Sort projects alphabetically by name
+      grouped.sort_by do |_, data|
+        data[:project] ? data[:project].name.downcase : 'zzzz'
+      end.to_h
     end
 
     def getNotificationsForCurrentUserCountByStatus(status)
@@ -204,8 +181,8 @@ module AdvancedMessengerHelper
     end
     
     def time_tag_without_link_to_activity(time) 
-        return content_tag('abbr', distance_of_time_in_words(Time.now, time), :title => format_time(time))
-    end   
+        return content_tag('abbr', l(:label_time_ago, :time => distance_of_time_in_words(Time.now, time)), :title => format_time(time))
+    end
 
     def is_journal_visible (journal)
         return journal.journalized.visible? && User.current.allowed_to?(:view_issues, journal.journalized.project) && (!journal.private_notes? || User.current.allowed_to?(:view_private_notes, journal.journalized.project) || journal.user.id == User.current.id)
@@ -235,5 +212,250 @@ module AdvancedMessengerHelper
 
     def check_if_teaser_and_user_not_excepted_from_teaser(user_id)
         return Setting.plugin_redmine_advanced_messenger[:notifications_mail_option] == 'teaser' && !Array(Setting.plugin_redmine_advanced_messenger[:user_excepted_from_the_teaser_process_option].map(&:to_i)).include?(user_id)
+    end
+
+    def get_notifications_count_for_user(user, status)
+        # Temporarily switch to the target user for notification calculations
+        original_user = User.current
+        User.current = user
+        
+        count = getNotificationsForCurrentUserCountByStatus(status)
+        
+        return count
+    ensure
+        # Restore the original user
+        User.current = original_user if defined?(original_user)
+    end
+
+    def generate_notifications_content(user = User.current, for_javascript = false)
+        # Temporarily switch to the target user for notification calculations
+        original_user = User.current
+        User.current = user
+        
+        issues_or_forum_data = [{
+            grouped_notifications: getNotificationsGroupByIssues(AdvancedMessengerHelper::UNREAD, false),
+            grouped_notifications_grouped: getNotificationsGroupByIssues(AdvancedMessengerHelper::UNREAD, true),
+            get_link: lambda {|issue|
+                return "/advanced_messenger/#{issue.id}/#{getUnreadJournalsStatus(issue.visible_journals_with_index)[0]}/mark_not_visible_journals_as_ignored_and_redirect"
+            },
+            my_page_no_notifications_text: :my_page_all_issues_notifications_read,
+            my_page_notifications_text: :my_page_issues_unread_notifications,
+            mark_all_ignored_link: "ignore_all_unread_issues_notes"
+        },
+        {
+            grouped_notifications: getNotificationsGroupByIssues(AdvancedMessengerHelper::READ_BRIEFLY, false),
+            grouped_notifications_grouped: getNotificationsGroupByIssues(AdvancedMessengerHelper::READ_BRIEFLY, true),
+            get_link: lambda {|issue|
+                return "/advanced_messenger/#{issue.id}/#{getFirstReadBrieflyNotification(issue.visible_journals_with_index, "indice")}/mark_not_visible_journals_as_ignored_and_redirect"
+            },
+            my_page_no_notifications_text: :my_page_no_issue_notifications_read_briefly,
+            my_page_notifications_text: :my_page_read_briefly_issue_notifications
+        },
+        {
+            grouped_notifications: getNotificationsGroupByTopic(AdvancedMessengerHelper::UNREAD, false),
+            grouped_notifications_grouped: getNotificationsGroupByTopic(AdvancedMessengerHelper::UNREAD, true),
+            get_link: lambda {|topic| 
+                message_id, page_number = getFirstMessageIdAndPageNumber(topic, AdvancedMessengerHelper::UNREAD)
+                return "/advanced_messenger/#{topic.board.id}/#{topic.id}/#{page_number}/#{message_id}/mark_not_visible_messages_as_ignored_and_redirect"
+            },
+            my_page_no_notifications_text: :my_page_all_forum_notifications_read,
+            my_page_notifications_text: :my_page_forum_unread_notifications,
+            mark_all_ignored_link: "ignore_all_unread_forum_messages"
+        },
+        {
+            grouped_notifications: getNotificationsGroupByTopic(AdvancedMessengerHelper::READ_BRIEFLY, false),
+            grouped_notifications_grouped: getNotificationsGroupByTopic(AdvancedMessengerHelper::READ_BRIEFLY, true),
+            get_link: lambda {|topic| 
+                message_id, page_number = getFirstMessageIdAndPageNumber(topic, AdvancedMessengerHelper::READ_BRIEFLY)
+                return "/advanced_messenger/#{topic.board.id}/#{topic.id}/#{page_number}/#{message_id}/mark_not_visible_messages_as_ignored_and_redirect"
+            },
+            my_page_no_notifications_text: :my_page_no_forum_notifications_read_briefly,
+            my_page_notifications_text: :my_page_read_briefly_forum_notifications
+        }]
+        
+        content = ""
+        
+        issues_or_forum_data.each do |issues_or_forum|
+            if issues_or_forum[:grouped_notifications].count == 0
+                if for_javascript
+                    content += "<div style='margin-bottom:20px'>"
+                    content += "<h3 class='my-page-notification-heading'>(0) #{t(issues_or_forum[:my_page_no_notifications_text])}</h3>"
+                    content += "</div>"
+                else
+                    content += "<div style='margin-bottom:20px'>"
+                    content += "<h3 class='my-page-notification-heading'>(0) #{t(issues_or_forum[:my_page_no_notifications_text])}</h3>"
+                    content += "</div>"
+                end
+            else
+                total_count = issues_or_forum[:grouped_notifications].values.sum(&:count)
+                
+                if for_javascript
+                    content += "<h3 class='my-page-notification-heading'>(#{total_count}) #{t(issues_or_forum[:my_page_notifications_text])}</h3>"
+                    
+                    # Non-grouped display
+                    content += "<div class='my-page-notifications non-grouped-display' style='display: none;'>"
+                    content += "<ul style='list-style-type: none; padding-inline-start: 15px; font-weight: bold;'>"
+                    issues_or_forum[:grouped_notifications].each_value do |notification_status|
+                        if notification_status.parent.is_a?(Issue)
+                            # Get the last notification date and user for this issue
+                            last_notification = Journal.joins(:user).where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", 
+                                notification_status.parent.id, "%\"#{user.id}\":{\"read\":#{issues_or_forum == issues_or_forum_data[0] ? AdvancedMessengerHelper::UNREAD : AdvancedMessengerHelper::READ_BRIEFLY}%")
+                                .order(:created_on).last
+                            last_date = last_notification ? time_tag_without_link_to_activity(last_notification.created_on).html_safe : ""
+                            last_user = last_notification ? last_notification.user : nil
+                            user_info = last_user ? "by #{link_to_user(last_user, :class => 'notification-user-link')}" : ""
+                            display_info = user_info.blank? ? last_date : "#{user_info}, #{last_date}"
+                            
+                            content += "<li>"
+                            content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                            content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                            content += "</a>"
+                            content += " - <a href='/projects/#{notification_status.parent.project.identifier}' style='color: #628DB6; font-weight: normal;'>"
+                            content += "#{notification_status.parent.project.name}"
+                            content += "</a>"
+                            content += " <span style='color: #999; font-size: 0.9em;'>#{display_info}</span>"
+                            content += "</li>"
+                        else
+                            # Get the last notification date and user for this topic
+                            last_notification = Message.joins(:author).where("(messages.id = ? OR messages.parent_id = ?) AND read_by_users ILIKE ?", 
+                                notification_status.parent.id, notification_status.parent.id, "%\"#{user.id}\":{\"read\":#{issues_or_forum == issues_or_forum_data[0] ? AdvancedMessengerHelper::UNREAD : AdvancedMessengerHelper::READ_BRIEFLY}%")
+                                .order(:created_on).last
+                            last_date = last_notification ? time_tag_without_link_to_activity(last_notification.created_on).html_safe : ""
+                            last_user = last_notification ? last_notification.author : nil
+                            user_info = last_user ? "by #{link_to_user(last_user, :class => 'notification-user-link')}" : ""
+                            display_info = user_info.blank? ? last_date : "#{user_info}, #{last_date}"
+                            
+                            content += "<li>"
+                            content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                            content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                            content += "</a>"
+                            content += " <span style='color: #999; font-size: 0.9em;'>#{display_info}</span>"
+                            content += "</li>"
+                        end
+                    end
+                    content += "</ul>"
+                    content += "</div>"
+                    
+                    # Grouped display
+                    content += "<div class='my-page-notifications grouped-display'>"
+                    issues_or_forum[:grouped_notifications_grouped].each do |project_id, project_data|
+                        if project_data[:project]
+                            project_total = project_data[:notifications].values.sum(&:count)
+                            content += "<div class='my-page-project-group'>"
+                            content += "<h4 class='my-page-project-header'>"
+                            content += "<a href='/projects/#{project_data[:project].identifier}'>"
+                            content += "(#{project_total}) #{project_data[:project].name}"
+                            content += "</a>"
+                            content += "</h4>"
+                            content += "<ul class='my-page-project-notifications'>"
+                            project_data[:notifications].each_value do |notification_status|
+                                if notification_status.parent.is_a?(Issue)
+                                    content += "<li>"
+                                    content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                                    content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                                    content += "</a>"
+                                    content += "</li>"
+                                else
+                                    content += "<li>"
+                                    content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                                    content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                                    content += "</a>"
+                                    content += "</li>"
+                                end
+                            end
+                            content += "</ul>"
+                            content += "</div>"
+                        end
+                    end
+                    content += "</div>"
+                else
+                    content += "<div class='my-page-notifications'>"
+                    content += "<h3 class='my-page-notification-heading'>(#{total_count}) #{t(issues_or_forum[:my_page_notifications_text])}</h3>"
+                    
+                    # Non-grouped display
+                    content += "<div class='my-page-notifications non-grouped-display'>"
+                    content += "<ul style='list-style-type: none; padding-inline-start: 15px; font-weight: bold;'>"
+                    issues_or_forum[:grouped_notifications].each_value do |notification_status|
+                        if notification_status.parent.is_a?(Issue)
+                            # Get the last notification date and user for this issue
+                            last_notification = Journal.joins(:user).where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", 
+                                notification_status.parent.id, "%\"#{user.id}\":{\"read\":#{issues_or_forum == issues_or_forum_data[0] ? AdvancedMessengerHelper::UNREAD : AdvancedMessengerHelper::READ_BRIEFLY}%")
+                                .order(:created_on).last
+                            last_date = last_notification ? time_tag_without_link_to_activity(last_notification.created_on).html_safe : ""
+                            last_user = last_notification ? last_notification.user : nil
+                            user_info = last_user ? "by #{link_to_user(last_user, :class => 'notification-user-link')}" : ""
+                            display_info = user_info.blank? ? last_date : "#{user_info}, #{last_date}"
+                            
+                            content += "<li>"
+                            content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                            content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                            content += "</a>"
+                            content += " - <a href='/projects/#{notification_status.parent.project.identifier}' style='color: #628DB6; font-weight: normal;'>"
+                            content += "#{notification_status.parent.project.name}"
+                            content += "</a>"
+                            content += " <span style='color: #999; font-size: 0.9em;'>#{display_info}</span>"
+                            content += "</li>"
+                        else
+                            # Get the last notification date and user for this topic
+                            last_notification = Message.joins(:author).where("(messages.id = ? OR messages.parent_id = ?) AND read_by_users ILIKE ?", 
+                                notification_status.parent.id, notification_status.parent.id, "%\"#{user.id}\":{\"read\":#{issues_or_forum == issues_or_forum_data[0] ? AdvancedMessengerHelper::UNREAD : AdvancedMessengerHelper::READ_BRIEFLY}%")
+                                .order(:created_on).last
+                            last_date = last_notification ? time_tag_without_link_to_activity(last_notification.created_on).html_safe : ""
+                            last_user = last_notification ? last_notification.author : nil
+                            user_info = last_user ? "by #{link_to_user(last_user, :class => 'notification-user-link')}" : ""
+                            display_info = user_info.blank? ? last_date : "#{user_info}, #{last_date}"
+                            
+                            content += "<li>"
+                            content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                            content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                            content += "</a>"
+                            content += " <span style='color: #999; font-size: 0.9em;'>#{display_info}</span>"
+                            content += "</li>"
+                        end
+                    end
+                    content += "</ul>"
+                    content += "</div>"
+                    
+                    # Grouped display
+                    content += "<div class='my-page-notifications grouped-display' style='display: none;'>"
+                    issues_or_forum[:grouped_notifications_grouped].each do |project_id, project_data|
+                        if project_data[:project]
+                            project_total = project_data[:notifications].values.sum(&:count)
+                            content += "<div class='my-page-project-group'>"
+                            content += "<h4 class='my-page-project-header'>"
+                            content += "<a href='/projects/#{project_data[:project].identifier}'>"
+                            content += "(#{project_total}) #{project_data[:project].name}"
+                            content += "</a>"
+                            content += "</h4>"
+                            content += "<ul class='my-page-project-notifications'>"
+                            project_data[:notifications].each_value do |notification_status|
+                                if notification_status.parent.is_a?(Issue)
+                                    content += "<li>"
+                                    content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                                    content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                                    content += "</a>"
+                                    content += "</li>"
+                                else
+                                    content += "<li>"
+                                    content += "<a href='#{issues_or_forum[:get_link].call(notification_status.parent)}'>"
+                                    content += "(#{notification_status.count}) ##{notification_status.parent.id} #{notification_status.parent.subject}"
+                                    content += "</a>"
+                                    content += "</li>"
+                                end
+                            end
+                            content += "</ul>"
+                            content += "</div>"
+                        end
+                    end
+                    content += "</div>"
+                    content += "</div>"
+                end
+            end
+        end
+        
+        content.html_safe
+    ensure
+        # Restore the original user
+        User.current = original_user if defined?(original_user)
     end
 end

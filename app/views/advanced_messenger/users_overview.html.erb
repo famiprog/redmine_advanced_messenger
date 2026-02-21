@@ -1,0 +1,80 @@
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 'advanced_messenger', :plugin => 'redmine_advanced_messenger' %>
+<% end %>
+
+<div class="contextual">
+  <%= link_to l(:label_back), {:controller => 'my', :action => 'page'}, {:class => 'icon icon-back'} %>
+</div>
+
+<h2><%= l(:users_overview) %></h2>
+
+<div class="filters">
+  <%= form_tag({:controller => 'advanced_messenger', :action => 'users_overview'}, :method => :get, :id => 'query_form') do %>
+    <fieldset id="filters" class="collapsible collapsed">
+      <legend onclick="toggleFieldset(this);"><%= l(:label_filter_plural) %></legend>
+      <div>
+        <table>
+          <tr>
+            <td><%= label_tag 'active_days', l(:users_active_in_last_days) %></td>
+            <td><%= text_field_tag 'active_days', @active_days, :size => 3 %></td>
+          </tr>
+        </table>
+        <p class="buttons">
+          <%= link_to_function l(:button_apply), '$("#query_form").submit()', :class => 'icon icon-checked' %>
+          <%= link_to l(:button_clear), {:controller => 'advanced_messenger', :action => 'users_overview'}, :class => 'icon icon-reload' %>
+        </p>
+      </div>
+    </fieldset>
+  <% end %>
+</div>
+
+<div class="results">
+  <table class="list users">
+    <thead>
+      <tr>
+        <th><%= l(:field_user) %></th>
+        <th><%= l(:label_last_activity) %></th>
+        <th><%= l(:view_notifications) %></th>
+        <th># <%= l(:unread_notifications) %></th>
+        <th># <%= l(:read_briefly_notifications) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if @active_users.any? %>
+        <% @active_users.each do |user| %>
+          <tr class="<%= cycle('odd', 'even') %>">
+            <td>
+              <%= link_to_user(user) %>
+            </td>
+            <td><%= format_time(user.last_activity) %></td>
+            <td>
+              <%= link_to l(:view_notifications), 
+                          {controller: 'advanced_messenger', action: 'user_notifications', id: user.id}, 
+                          {class: 'icon icon-notification'} %>
+            </td>
+            <td><%= get_notifications_count_for_user(user, AdvancedMessengerHelper::UNREAD) %></td>
+            <td><%= get_notifications_count_for_user(user, AdvancedMessengerHelper::READ_BRIEFLY) %></td>
+          </tr>
+        <% end %>
+      <% else %>
+        <tr>
+          <td colspan="5" class="nodata"><%= l(:label_no_data) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  function toggleFieldset(legend) {
+    var fieldset = legend.parentNode;
+    var content = fieldset.querySelector('div');
+    if (fieldset.classList.contains('collapsed')) {
+      fieldset.classList.remove('collapsed');
+      content.style.display = 'block';
+    } else {
+      fieldset.classList.add('collapsed');
+      content.style.display = 'none';
+    }
+  }
+</script> 

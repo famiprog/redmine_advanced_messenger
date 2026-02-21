@@ -56,6 +56,13 @@ body.avatars-on div.journal {
   margin-bottom: 15px; 
 }
 
+.my-page-header {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
 .my-page-notifications > ul { 
   margin-top: 5px;
   margin-bottom: 5px; 
@@ -70,7 +77,7 @@ body.avatars-on div.journal {
   color: #628DB6;
   margin: 0;
   padding: 5px 0;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: none !important;
 }
 
 .my-page-project-header a {
@@ -80,6 +87,18 @@ body.avatars-on div.journal {
 
 .my-page-project-header a:hover {
   text-decoration: underline;
+}
+
+/* Main notification headings with horizontal lines */
+.my-page-notification-heading,
+.my-page-notifications .my-page-notification-heading {
+  color: #2A5685;
+  margin: 0;
+  padding: 5px 0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 10px;
+  display: block;
+  width: 100%;
 }
 
 .my-page-project-notifications {
@@ -133,6 +152,8 @@ body.avatars-on div.journal {
   background-color:#F6F6F6 !important;
   opacity: 0.95;
   color: black;
+  /* Redmine added end 2024 this style, which prevented us to click in the tooltip. */
+  pointer-events: auto !important;
 }
 
 .ui-tooltip.notifications-tooltip ul {
@@ -197,6 +218,12 @@ body.avatars-on div.journal {
   color: black;
 }
 
-.hidden {
-  display: none;
+.ram-hidden {
+  display: none !important;
+}
+
+.notification-user-link {
+  color: #999 !important;
+  font-size: 0.9em;
+  text-decoration: underline; /* optional, for link styling */
 }

@@ -1,3 +1,14 @@
+## Unreleased
+
+## 1.4.1
+
+* [More precise interception of recipients](https://github.com/famiprog/redmine_advanced_messenger/pull/52)
+* Top/right corner > Unread notifications count: removed periodic refresh
+
+## 1.4.0
+
+* [In My Page, Users Overview mode](https://github.com/famiprog/redmine_advanced_messenger/pull/51)
+
 ## 1.3.7
 
 * [In My Page, show project name for each issue. "Group by projects" mode](https://github.com/famiprog/redmine_advanced_messenger/pull/50)
