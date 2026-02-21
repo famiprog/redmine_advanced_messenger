@@ -3,7 +3,7 @@
 ## 1.4.1
 
 * [More precise interception of recipients](https://github.com/famiprog/redmine_advanced_messenger/pull/52)
-* Top/right corner > Unread notifications count: removed periodic refresh
+* [Top/right corner > Unread notifications count: removed periodic refresh](https://github.com/famiprog/redmine_advanced_messenger/commit/7abc90ec99c9bef649e3eab0f1abdfb683b0bdf4)
 
 ## 1.4.0
 
