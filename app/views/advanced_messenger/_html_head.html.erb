@@ -64,7 +64,10 @@
         jQuery( document ).ready(function() {
             $("div#loggedas").append("<span id='all-unread-notifications-indicator'><span>");
             requestAndRenderGlobalUnreadNotificationsIndicator();
-            setInterval(requestAndRenderGlobalUnreadNotificationsIndicator, <%=AdvancedMessengerSettings.get_setting(:unread_notifications_update_interval)%> * 1000);
+            // Only refresh periodically when in PWA mode (My page redirect, badge, notifications). No periodic update of the header indicator in normal browser mode.
+            if (checkPWA()) {
+                setInterval(requestAndRenderGlobalUnreadNotificationsIndicator, <%=AdvancedMessengerSettings.get_setting(:unread_notifications_update_interval)%> * 1000);
+            }
         });
     <% end %>
 <%end%>
