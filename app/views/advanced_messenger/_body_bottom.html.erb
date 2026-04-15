@@ -182,25 +182,24 @@
                 const endpoint = getReadByUsersEndpoint();
                 if (!endpoint) return;
 
-                // Capture now — the AJAX response updates currentFirstUnreadId/Url before success runs
                 const snapshotId = currentFirstUnreadId;
                 const snapshotUrl = currentFirstUnreadUrl;
                 const snapshotTarget = firstUnreadScrollTargetElement();
 
-                changeReadByUsers(<%=AdvancedMessengerHelper::READ.to_s%>, snapshotId, endpoint, function() {
-                    // Scroll using the pre-call snapshot
-                    const m = snapshotUrl.match(/#([^#]+)$/);
-                    if (snapshotTarget) {
-                        if (m && window.history.replaceState) {
-                            window.history.replaceState(null, '', window.location.pathname + window.location.search + '#' + m[1]);
-                        }
-                        snapshotTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        const $flashTarget = $(snapshotTarget).closest('.advanced-messenger-bordered-panel');
-                        setTimeout(function() { flashYellowOnElement($flashTarget.length ? $flashTarget : $(snapshotTarget)); }, 0);
-                    } else if (m) {
-                        window.location.href = snapshotUrl;
+                // Perform the scroll and yellow highlight immediately, before waiting for the server
+                const m = snapshotUrl.match(/#([^#]+)$/);
+                if (snapshotTarget) {
+                    if (m && window.history.replaceState) {
+                        window.history.replaceState(null, '', window.location.pathname + window.location.search + '#' + m[1]);
                     }
-                });
+                    snapshotTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const $flashTarget = $(snapshotTarget).closest('.advanced-messenger-bordered-panel');
+                    setTimeout(function() { flashYellowOnElement($flashTarget.length ? $flashTarget : $(snapshotTarget)); }, 0);
+                } else if (m) {
+                    window.location.href = snapshotUrl;
+                }
+
+                changeReadByUsers(<%=AdvancedMessengerHelper::READ.to_s%>, snapshotId, endpoint);
             }
 
             $("#mark-first-as-read").on("click", function(e) { e.preventDefault(); firstMarkAsRead(); });

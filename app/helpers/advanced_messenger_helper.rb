@@ -112,6 +112,8 @@ module AdvancedMessengerHelper
             else
                 # we set user to nil because is always the current user
                 notification_status = NotificationsStatus.new(0, nil, parentEntity)
+                # notifications are ordered desc, so the first one per parent is the most recent
+                notification_status.last_notification = entity
                 grouped_notifications[parentEntity.id] = notification_status
             end
             notification_status.count += 1 
@@ -139,7 +141,11 @@ module AdvancedMessengerHelper
         grouped[project_id][:project] ||= project
 
         notifications_hash = grouped[project_id][:notifications]
-        notifications_hash[parentEntity.id] ||= NotificationsStatus.new(0, nil, parentEntity)
+        if notifications_hash[parentEntity.id].nil?
+            notifications_hash[parentEntity.id] = NotificationsStatus.new(0, nil, parentEntity)
+            # notifications are ordered desc, so the first one per parent is the most recent
+            notifications_hash[parentEntity.id].last_notification = entity
+        end
         notifications_hash[parentEntity.id].count += 1
       end
 
@@ -243,10 +249,7 @@ module AdvancedMessengerHelper
 
     def render_issue_notification_line(notification_status, user, read_status, unread_link, show_project:)
         issue = notification_status.parent
-        last_notification = Journal.joins(:user).where(
-            "notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?",
-            issue.id, "%\"#{user.id}\":{\"read\":#{read_status}%"
-        ).order(:created_on).last
+        last_notification = notification_status.last_notification
         last_date = last_notification ? time_tag_without_link_to_activity(last_notification.created_on).html_safe : ""
         last_user = last_notification ? last_notification.user : nil
         user_info = last_user ? "by #{link_to_user(last_user, :class => 'notification-user-link')}" : ""
@@ -263,10 +266,7 @@ module AdvancedMessengerHelper
 
     def render_forum_notification_line(notification_status, user, read_status, unread_link, show_project:)
         topic = notification_status.parent
-        last_notification = Message.joins(:author).where(
-            "(messages.id = ? OR messages.parent_id = ?) AND read_by_users ILIKE ?",
-            topic.id, topic.id, "%\"#{user.id}\":{\"read\":#{read_status}%"
-        ).order(:created_on).last
+        last_notification = notification_status.last_notification
         last_date = last_notification ? time_tag_without_link_to_activity(last_notification.created_on).html_safe : ""
         last_user = last_notification ? last_notification.author : nil
         user_info = last_user ? "by #{link_to_user(last_user, :class => 'notification-user-link')}" : ""
