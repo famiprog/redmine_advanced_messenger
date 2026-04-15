@@ -18,7 +18,8 @@ en:
   message_unread: "Unread"
   message_truncated: "Truncated"
   
-  notifications_dialog_go_to_first_one: "Go to first one"
+  notifications_dialog_go_to_first_one: "First unread: Go to (CTRL+ALT+1)"
+  notifications_dialog_mark_first_as_read: "First unread: Mark as read (CTRL+ALT+2)"
   notifications_dialog_text_for_current_user: "For %{user}, there are <span id='unread-notifications-count'></span> <span style='color: red'> unread </span> notifications."
   notifications_dialog_others_tooltip_text: "Unread notifications"
   notifications_dialog_others_tooltip_text_all_read: "Other users have all messages read."
