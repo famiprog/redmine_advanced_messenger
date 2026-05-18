@@ -14,11 +14,10 @@ module AdvancedMessengerHelper
     def getUnreadJournalsStatus(journals)
         result = getUnreadEntitiesStatus(journals, "id", lambda {|entity| return entity.notes? })
         journal_id = result[0]
-        note_indice = nil
+        note_indice = -1
         if journal_id != -1
             entry = journals.find { |j| j.id.to_s == journal_id.to_s }
-            note_indice = entry&.indice
-            note_indice = journal_id if note_indice.nil?
+            note_indice = entry&.indice || journal_id
         end
         result + [note_indice]
     end
@@ -38,7 +37,7 @@ module AdvancedMessengerHelper
 
     def getFirstMessageIdAndPageNumber(topic, read_status)
         message = Message.where("read_by_users ILIKE ?", "%\"#{User.current.id}\":{\"read\":#{read_status}%").where("parent_id = :topic_id OR (parent_id IS NULL AND id = :topic_id)", topic_id: topic.id).order(:created_on).first
-        return nil if message.nil?
+        return [-1, -1] if message.nil?
         if message.parent_id.nil?
             page_number = -1
             message_id = -1
@@ -257,7 +256,7 @@ module AdvancedMessengerHelper
 
         li  = "<li>"
         li += "<a href='#{unread_link}' style='color: #{notification_count_color(read_status)};'>(#{notification_status.count})</a>"
-        li += " <a href='/issues/#{issue.id}'>##{issue.id} #{issue.subject}</a>"
+        li += " <a href='/advanced_messenger/#{issue.id}/-1/mark_not_visible_journals_as_ignored_and_redirect'>##{issue.id} #{issue.subject}</a>"
         li += " - <a href='/projects/#{issue.project.identifier}' style='color: #628DB6; font-weight: normal;'>#{issue.project.name}</a>" if show_project
         li += " <span style='color: #999; font-size: 0.9em;'>#{display_info}</span>"
         li += "</li>"
@@ -274,7 +273,7 @@ module AdvancedMessengerHelper
 
         li  = "<li>"
         li += "<a href='#{unread_link}' style='color: #{notification_count_color(read_status)};'>(#{notification_status.count})</a>"
-        li += " <a href='/boards/#{topic.board.id}/topics/#{topic.id}'>##{topic.id} #{topic.subject}</a>"
+        li += " <a href='/advanced_messenger/#{topic.board.id}/#{topic.id}/-1/-1/mark_not_visible_messages_as_ignored_and_redirect'>##{topic.id} #{topic.subject}</a>"
         li += " - <a href='/projects/#{topic.board.project.identifier}' style='color: #628DB6; font-weight: normal;'>#{topic.board.project.name}</a>" if show_project
         li += " <span style='color: #999; font-size: 0.9em;'>#{display_info}</span>"
         li += "</li>"
@@ -302,7 +301,7 @@ module AdvancedMessengerHelper
             grouped_notifications: getNotificationsGroupByIssues(AdvancedMessengerHelper::READ_BRIEFLY, false),
             grouped_notifications_grouped: getNotificationsGroupByIssues(AdvancedMessengerHelper::READ_BRIEFLY, true),
             get_link: lambda {|issue|
-                return "/advanced_messenger/#{issue.id}/#{getFirstReadBrieflyNotification(issue.visible_journals_with_index, "indice")}/mark_not_visible_journals_as_ignored_and_redirect"
+                return "/advanced_messenger/#{issue.id}/#{getFirstReadBrieflyNotification(issue.visible_journals_with_index, "indice") || -1}/mark_not_visible_journals_as_ignored_and_redirect"
             },
             my_page_no_notifications_text: :my_page_no_issue_notifications_read_briefly,
             my_page_notifications_text: :my_page_read_briefly_issue_notifications,

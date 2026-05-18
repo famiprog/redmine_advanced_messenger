@@ -200,19 +200,23 @@ class AdvancedMessengerController < ApplicationController
 
   def mark_not_visible_journals_as_ignored_and_redirect
     unread_journals_for_issue = Journal.where("notes != '' AND notes IS NOT NULL AND journalized_id = ? AND read_by_users ILIKE ?", params[:issue_id], '%"' + User.current.id.to_s + "\":{\"read\":#{AdvancedMessengerHelper::UNREAD}%");
+    note_id = params[:note_id].to_s
+    redirect_url = note_id == "-1" ? "/issues/#{params[:issue_id]}" : "/issues/#{params[:issue_id]}#note-#{note_id}"
     mark_not_visible_entities_as_ignored_and_redirect(
       unread_journals_for_issue, 
       method(:is_journal_visible), 
-      "/issues/#{params[:issue_id]}#note-#{params[:note_id]}"
+      redirect_url
     )
   end
 
   def mark_not_visible_messages_as_ignored_and_redirect
     unread_messages_for_topic = Message.where("(id = ? OR parent_id = ?) AND read_by_users ILIKE ?", params[:topic_id], params[:topic_id], '%"' + User.current.id.to_s + "\":{\"read\":#{AdvancedMessengerHelper::UNREAD}%");
+    message_id = params[:unread_message_id].to_s
+    redirect_url = message_id == "-1" ? "/boards/#{params[:board_id]}/topics/#{params[:topic_id]}" : "/boards/#{params[:board_id]}/topics/#{params[:topic_id]}?page=#{params[:page_number]}#message-#{message_id}"
     mark_not_visible_entities_as_ignored_and_redirect(
       unread_messages_for_topic, 
       method(:is_message_visible), 
-      "/boards/#{params[:board_id]}/topics/#{params[:topic_id]}?page=#{params[:page_number]}#message-#{params[:unread_message_id]}"
+      redirect_url
     )
   end
 

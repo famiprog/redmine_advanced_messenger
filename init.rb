@@ -5,7 +5,7 @@ Redmine::Plugin.register :redmine_advanced_messenger do
   name 'Redmine Advanced Messenger'
   author 'famiprog'
   description 'For detailed documentation see the link below.'
-  version '1.5.0-SNAPSHOT2'
+  version '1.5.1'
   url 'https://github.com/famiprog/redmine-advanced-messenger'
   author_url 'https://github.com/famiprog'
 
