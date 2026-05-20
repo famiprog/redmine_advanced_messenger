@@ -82,14 +82,17 @@
         <div id="notifications_dialog" >
             <%=l(:notifications_dialog_text_for_current_user, :user => link_to_user(User.current).gsub("\"", "\'")).html_safe%>
             <div style="padding-top: 10px">
-                <div style="display:flex; gap:10px;">
-                    <a id="go-to-first-one" class="icon icon-down-left-arrow"><%=t(:notifications_dialog_go_to_first_one)%></a>
-                </div>
-                <a id="status-for-others-link" title=" " class='icon icon-chat' style="color:#169; cursor:pointer"><%=t(:notifications_dialog_status_for_others)%></a>
+            <%# I put <br /> inside <a /> because there is logic that removes links based on id; and we want the <br /> to disappear as well%>
+                <a id="go-to-first-one" class="icon icon-down-left-arrow"><%=t(:notifications_dialog_go_to_first_one)%><br /></a>
+                <a id="mark-first-as-read" href="#" class="icon icon-checked-green"><%=t(:notifications_dialog_mark_first_as_read)%><br /></a>
+                <hr />
+                <a id="status-for-others-link" title=" " class='icon icon-chat' style="color:#169; cursor:pointer"><%=t(:notifications_dialog_status_for_others)%><br /></a>
                 <a id="mark-all-unread-ignored" class='icon icon-delete-message' data-remote='true' rel='nofollow' data-method='post' data-confirm='<%=t(:my_page_mark_all_as_ignored_confirmation)%>'><%=t(:my_page_mark_all_as_ignored)%></a>
                 <div id="other-users-status-list-content-holder" style="display:none"></div>
-                <!--By default first link inside a dialog gets auto focus (its a uiDialog feature: https://api.jqueryui.com/1.11/dialog/).
-                We don't need this, so we autofocus on another element without any graphical implication-->
+                <%# 
+                By default first link inside a dialog gets auto focus (its a uiDialog feature: https://api.jqueryui.com/1.11/dialog/).
+                We don't need this, so we autofocus on another element without any graphical implication
+                %>
                 <div autofocus></div>
                 </div>
             </div>
@@ -124,6 +127,94 @@
                 "border": "0px unset"
             })
 
+            let currentFirstUnreadId = null;
+            let currentFirstUnreadUrl = null;
+
+            function getReadByUsersEndpoint() {
+                const url = window.location.href;
+                if (url.includes("/issues")) return "update_journal_read_by_users";
+                if (url.includes("/boards") && url.includes("/topics")) return "update_message_read_by_users";
+                return null;
+            }
+
+            function flashYellowOnElement($node) {
+                if (!$node || !$node.length) return;
+                $node.css('background-color', 'yellow');
+                setTimeout(function() {
+                    $node.css({'transition': 'background-color 5s ease', 'background-color': ''});
+                }, 100);
+                setTimeout(function() { $node.css('transition', ''); }, 5200);
+            }
+
+            function firstUnreadScrollTargetElement() {
+                const m = currentFirstUnreadUrl.match(/#([^#]+)$/);
+                if (!m) return null;
+                const hash = m[1];
+                let el = document.getElementById(hash);
+                if (!el && currentFirstUnreadId) {
+                    el = document.getElementById('change-' + currentFirstUnreadId);
+                }
+                return el;
+            }
+
+            function scrollToFirstUnreadWithoutReload() {
+                const m = currentFirstUnreadUrl.match(/#([^#]+)$/);
+                if (!m) return false;
+                const hash = m[1];
+                const el = firstUnreadScrollTargetElement();
+                if (!el) {
+                    window.location.href = currentFirstUnreadUrl;
+                    return false;
+                }
+                const urlWithHash = window.location.pathname + window.location.search + '#' + hash;
+                if (window.history.replaceState) {
+                    window.history.replaceState(null, '', urlWithHash);
+                } else {
+                    window.location.hash = hash;
+                }
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return true;
+            }
+
+            function firstMarkAsRead() {
+                if (!currentFirstUnreadId || !currentFirstUnreadUrl) return;
+
+                const endpoint = getReadByUsersEndpoint();
+                if (!endpoint) return;
+
+                const snapshotId = currentFirstUnreadId;
+                const snapshotUrl = currentFirstUnreadUrl;
+                const snapshotTarget = firstUnreadScrollTargetElement();
+
+                // Perform the scroll and yellow highlight immediately, before waiting for the server
+                const m = snapshotUrl.match(/#([^#]+)$/);
+                if (snapshotTarget) {
+                    if (m && window.history.replaceState) {
+                        window.history.replaceState(null, '', window.location.pathname + window.location.search + '#' + m[1]);
+                    }
+                    snapshotTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const $flashTarget = $(snapshotTarget).closest('.advanced-messenger-bordered-panel');
+                    setTimeout(function() { flashYellowOnElement($flashTarget.length ? $flashTarget : $(snapshotTarget)); }, 0);
+                } else if (m) {
+                    window.location.href = snapshotUrl;
+                }
+
+                changeReadByUsers(<%=AdvancedMessengerHelper::READ.to_s%>, snapshotId, endpoint);
+            }
+
+            $("#mark-first-as-read").on("click", function(e) { e.preventDefault(); firstMarkAsRead(); });
+
+            $(document).on("keydown", function(e) {
+                if (e.ctrlKey && e.altKey && e.key === '1') {
+                    e.preventDefault();
+                    $("#go-to-first-one")[0]?.click();
+                }
+                if (e.ctrlKey && e.altKey && e.key === '2') {
+                    e.preventDefault();
+                    firstMarkAsRead();
+                }
+            });
+
             $("#status-for-others-link").tooltip({
                 content: function () {
                     if ($("#other-users-status-list-content-holder").children().length == 0) {
@@ -143,16 +234,20 @@
         <% end %>
         <%= javascript_tag do %>
             function renderBottomRightUnreadNotificationsDialog(firstUnreadNotificationIndex, unreadNotificationsForCurrentUser, unreadNotificationsForOtherUsers, url, ignoreAllUrl) {
+                currentFirstUnreadId = firstUnreadNotificationIndex;
+                currentFirstUnreadUrl = url;
                 $("#unread-notifications-count").html(unreadNotificationsForCurrentUser);
                 
                 if (unreadNotificationsForCurrentUser == 0) {
                     $("#go-to-first-one").hide();
+                    $("#mark-first-as-read").hide();
                     $("#mark-all-unread-ignored").hide();
                     $(".notifications-dialog").removeClass("unread");
                     
                 } else {
                     $("#go-to-first-one").attr("href", url);
                     $("#go-to-first-one").show();
+                    $("#mark-first-as-read").show();
                     $("#mark-all-unread-ignored").attr("href", ignoreAllUrl);
                     $("#mark-all-unread-ignored").show();
                     $(".notifications-dialog").addClass("unread");
@@ -179,7 +274,7 @@
                 renderBottomRightUnreadNotificationsDialog(<%=unread_notification_statuses[0]%>, 
                                                     <%=unread_notification_statuses[1]%>, 
                                                     <%=unread_notification_statuses[2].to_json.html_safe%>,
-                                                    "<%=@issue != nil ? '#note-' + unread_notification_statuses[0].to_s : '?r=' + unread_notification_statuses[0].to_s + '#message-' + unread_notification_statuses[0].to_s%>",
+                                                    "<%=@issue != nil ? '#note-' + unread_notification_statuses[3].to_s : '?r=' + unread_notification_statuses[0].to_s + '#message-' + unread_notification_statuses[0].to_s%>",
                                                     "/advanced_messenger/<%=@issue != nil ? @issue.id : @message.id%>/ignore_all_unread_<%=@issue != nil ? 'issues_notes' : 'forum_messages'%> "
                                                     );
             <%end%>

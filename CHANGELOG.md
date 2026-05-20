@@ -1,5 +1,15 @@
 ## Unreleased
 
+## 1.5.1
+
+* Fixed: For the case: user had rights to see an unread note, but now he/she doesn't have. The red link was broken.
+* For the same case, the blue link now performs the silent "mark as ignored".
+
+## 1.5.0
+
+* [MyPageTad.md](./_FEATUREBOOK/featurebook/MyPageTad.md) - The link is split in 2: one towards the last unread notification (so w/ auto scroll); one towards the issue (w/o auto scroll).
+* [BottomRightPanelTad.md](./_FEATUREBOOK/featurebook/BottomRightPanelTad.md) - Existing action action = `First unread: Go to` has shortcut. New action = `First unread: Mark as read`; w/ shortcut.
+
 ## 1.4.1
 
 * [More precise interception of recipients](https://github.com/famiprog/redmine_advanced_messenger/pull/52)

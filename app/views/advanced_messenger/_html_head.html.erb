@@ -79,10 +79,10 @@
 <% if current_controller == 'issues' && current_action == 'show' || current_controller == 'messages' && current_action == 'show' %>
     <%= javascript_tag do %>
         const disableFixForScrollAnchor = <%=AdvancedMessengerSettings.get_setting(:disable_fix_for_scroll_to_anchor) == '1'%>
-        const RED = "red";
-        const GREEN = "#55CB85";
-        const GREY = "#ccc";
-        const ORANGE = "orange";
+        const RED = "<%= AdvancedMessengerCommon::COLOR_UNREAD %>";
+        const GREEN = "<%= AdvancedMessengerCommon::COLOR_READ %>";
+        const GREY = "<%= AdvancedMessengerCommon::COLOR_GREY %>";
+        const ORANGE = "<%= AdvancedMessengerCommon::COLOR_READ_BRIEFLY %>";
         var externalReadNoteMessageId = undefined;
 
         function openMessageIfNeeded() {
@@ -132,8 +132,16 @@
             showOrHide(currentNode.find('.message-preview'), !expanded);
         }
 
-        function changeReadByUsers(newValue, entityId, endpoint) {
-            $.ajax({url:"/advanced_messenger/" + entityId + "/" + newValue + "/" + endpoint, type:"POST"});
+        function changeReadByUsers(newValue, entityId, endpoint, success) {
+            var ajaxOpts = {
+                url: "/advanced_messenger/" + entityId + "/" + newValue + "/" + endpoint,
+                type: "POST",
+                dataType: "script"
+            };
+            if (success) {
+                ajaxOpts.success = success;
+            }
+            $.ajax(ajaxOpts);
         }
 
         function renderExpandAndReadIndicatorForCurrentUser(readableEntityId, endpoint, currentNode, readByUsers, currentUserId, notesPreview, isInitialRender) {
