@@ -36,6 +36,8 @@ Customizations are possible:
 
 This plugin transforms Redmine into a PWA (Progressive Web Application). I.e. it can be installed in the OS just like a native application. The popular browsers support PWAs. 
 
+HINT: right click on the taskbar icon > "Pin".
+
 `@Scenario:`
 ## GIVEN installed as PWA, THEN the taskbar icon shows a badge w/ the number of unread messages, ...
 
